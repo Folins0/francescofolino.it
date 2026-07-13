@@ -261,6 +261,10 @@ section.block > p { line-height: 1.75; color: var(--text); font-size: 1.05rem; }
 .project-meta p { font-size: .92rem; color: var(--muted); line-height: 1.5; margin-bottom: .6rem; }
 .project-meta a { font-size: .85rem; color: var(--accent); text-decoration: none; }
 .project-meta a:hover { text-decoration: underline; }
+.tech-stack { display: flex; flex-wrap: wrap; gap: .4rem; list-style: none; padding: 0; margin: 0 0 .6rem; }
+.tech-stack li { font-size: .75rem; padding: .15rem .55rem; border-radius: 999px; background: var(--accent-soft, rgba(127,127,127,.15)); color: var(--muted); }
+.project-stat { font-size: .85rem; font-weight: 600; margin-bottom: .6rem !important; }
+.project-hint { font-size: .82rem; color: var(--accent); font-style: italic; margin-bottom: .6rem !important; }
 
 .modal {
   position: fixed; inset: 0; background: rgba(20,15,15,.55);
