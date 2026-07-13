@@ -25,6 +25,7 @@ body {
     font-family: var(--font-body);
     font-weight: 400;
     color: var(--ink);
+    overflow-x: hidden;
 }
 
 section, .slideshow-container {
@@ -67,7 +68,7 @@ section, .slideshow-container {
 
 /* ---------- Slideshow ---------- */
 .slideshow-container {
-    width: 100vw;
+    width: 100%;
     height: 100vh;
     position: relative;
     overflow: hidden;
