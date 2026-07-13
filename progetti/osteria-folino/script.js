@@ -42,6 +42,24 @@ var slideshowEl = document.querySelector('.slideshow-container');
 slideshowEl.addEventListener('mouseenter', function () { clearInterval(slideTimer); });
 slideshowEl.addEventListener('mouseleave', autoAdvance);
 
+// Swipe/drag per cambiare slide, sia da touch che da mouse (Pointer Events
+// unifica i due casi in un solo set di listener).
+var puntoInizioX = 0;
+var puntoInizioY = 0;
+slideshowEl.addEventListener('pointerdown', function (e) {
+    puntoInizioX = e.clientX;
+    puntoInizioY = e.clientY;
+});
+slideshowEl.addEventListener('pointerup', function (e) {
+    var deltaX = e.clientX - puntoInizioX;
+    var deltaY = e.clientY - puntoInizioY;
+    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        plusSlides(deltaX < 0 ? 1 : -1);
+    }
+});
+// Evita che trascinare un'immagine avvii il drag-and-drop nativo del browser.
+slideshowEl.addEventListener('dragstart', function (e) { e.preventDefault(); });
+
 document.querySelector('.menu-toggle').addEventListener('click', function() {
     document.querySelector('.nav-menu').classList.toggle('show');
 });

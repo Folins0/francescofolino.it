@@ -180,6 +180,34 @@ section, .slideshow-container {
     transform: scale(1.3);
 }
 
+.scroll-hint {
+    position: absolute;
+    bottom: 68px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--cream);
+    text-decoration: none;
+    font-size: 0.8em;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.8;
+    animation: scroll-hint-bounce 2s ease-in-out infinite;
+}
+
+.scroll-hint:hover {
+    opacity: 1;
+}
+
+@keyframes scroll-hint-bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+}
+
 /* ---------- Navbar ---------- */
 .navbar {
     position: sticky;
@@ -840,6 +868,9 @@ footer {
         scroll-snap-type: none;
     }
     .slide.active img {
+        animation: none;
+    }
+    .scroll-hint {
         animation: none;
     }
     .reveal {
