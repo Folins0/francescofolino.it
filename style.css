@@ -152,7 +152,13 @@ a { color: inherit; }
   color: var(--muted);
   letter-spacing: .08em;
   text-transform: uppercase;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+  padding: .5rem;
 }
+.hero-scroll-hint:hover { color: var(--accent); }
 .hero-scroll-hint svg { animation: hint-bounce 1.6s ease-in-out infinite; }
 @keyframes hint-bounce {
   0%, 100% { transform: translateY(0); opacity: .5; }

@@ -38,10 +38,10 @@
         <h1>Francesco Folino</h1>
         <p data-it="Dove il codice incontra la comunicazione" data-en="Where code meets communication">Dove il codice incontra la comunicazione</p>
       </div>
-      <div class="hero-scroll-hint" id="scrollHint">
+      <button type="button" class="hero-scroll-hint" id="scrollHint" aria-label="Salta l'introduzione">
         <span data-it="scorri" data-en="scroll">scorri</span>
         <svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
+      </button>
 
       <div class="door door-left" id="doorLeft">
         <div class="door-logo"><img src="images/logo.svg" alt=""></div>
@@ -169,6 +169,12 @@
   document.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
   window.addEventListener('resize', () => requestAnimationFrame(update));
   update();
+
+  // clic sull'hint "scorri": salta lo scroll manuale, apre le ante da sola
+  scrollHint.addEventListener('click', () => {
+    const target = wrap.offsetHeight - window.innerHeight;
+    window.scrollTo({ top: target, behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
 
   // menu hamburger mobile
   const navBurger = document.getElementById('navBurger');
