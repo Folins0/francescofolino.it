@@ -143,6 +143,7 @@ a { color: inherit; }
   bottom: 2.5rem;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -164,7 +165,7 @@ a { color: inherit; }
 .door {
   position: absolute;
   top: 0;
-  width: 50vw;
+  width: 50%;
   height: 100vh;
   background: var(--card-bg);
   z-index: 2;
@@ -180,7 +181,7 @@ a { color: inherit; }
   height: var(--logo-size);
   transform: translateY(-50%);
 }
-.door-left  .door-logo { left: calc(50vw - var(--logo-size) / 2); }
+.door-left  .door-logo { left: calc(100% - var(--logo-size) / 2); }
 .door-right .door-logo { left: calc(-1 * var(--logo-size) / 2); }
 .door-logo img { width: 100%; height: 100%; display: block; }
 

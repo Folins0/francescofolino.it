@@ -167,6 +167,7 @@
   }
 
   document.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+  window.addEventListener('resize', () => requestAnimationFrame(update));
   update();
 
   // menu hamburger mobile
