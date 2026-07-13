@@ -9,16 +9,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script>
+  (function () {
+    var theme = localStorage.getItem('theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
 </head>
 <body>
 
   <nav class="site-nav" id="siteNav">
     <img src="images/logo.svg" alt="FF" class="nav-logo">
-    <ul>
-      <li><a href="#chi-sono">Chi sono</a></li>
-      <li><a href="#progetti">Progetti</a></li>
-      <li><a href="#competenze">Competenze</a></li>
-      <li><a href="#contatti">Contatti</a></li>
+    <button class="nav-burger" id="navBurger" aria-label="Menu">☰</button>
+    <ul id="navList">
+      <li><a href="#chi-sono" data-it="Chi sono" data-en="About">Chi sono</a></li>
+      <li><a href="#progetti" data-it="Progetti" data-en="Projects">Progetti</a></li>
+      <li><a href="#competenze" data-it="Competenze" data-en="Skills">Competenze</a></li>
+      <li><a href="#contatti" data-it="Contatti" data-en="Contact">Contatti</a></li>
+      <li><button class="nav-icon-btn" id="langToggle" type="button">EN</button></li>
+      <li><button class="nav-icon-btn" id="themeToggle" type="button" aria-label="Cambia tema">🌙</button></li>
     </ul>
   </nav>
 
@@ -26,9 +36,12 @@
     <div class="hero-pin">
       <div class="hero-text" id="heroText">
         <h1>Francesco Folino</h1>
-        <p>Dove il codice incontra la comunicazione</p>
+        <p data-it="Dove il codice incontra la comunicazione" data-en="Where code meets communication">Dove il codice incontra la comunicazione</p>
       </div>
-      <div class="hero-scroll-hint" id="scrollHint">scorri</div>
+      <div class="hero-scroll-hint" id="scrollHint">
+        <span data-it="scorri" data-en="scroll">scorri</span>
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
 
       <div class="door door-left" id="doorLeft">
         <div class="door-logo"><img src="images/logo.svg" alt=""></div>
@@ -40,13 +53,13 @@
   </section>
 
   <section class="block" id="chi-sono">
-    <h2>Chi sono</h2>
-    <p>Studio Informatica Umanistica all'Università di Pisa, dove imparo a unire codice e comunicazione. Mi sto formando su sviluppo web, Python, MySQL e prompt engineering, e mi piace trasformare quello che imparo in progetti concreti — come Astronaviga.</p>
+    <h2 data-it="Chi sono" data-en="About me">Chi sono</h2>
+    <p data-it="Studio Informatica Umanistica all'Università di Pisa, dove imparo a unire codice e comunicazione. Mi sto formando su sviluppo web, Python, MySQL e prompt engineering, e mi piace trasformare quello che imparo in progetti concreti — come Astronaviga." data-en="I study Humanities Computing at the University of Pisa, where I'm learning to bring code and communication together. I'm building skills in web development, Python, MySQL and prompt engineering, and I like turning what I learn into real projects — like AstroNaviga.">Studio Informatica Umanistica all'Università di Pisa, dove imparo a unire codice e comunicazione. Mi sto formando su sviluppo web, Python, MySQL e prompt engineering, e mi piace trasformare quello che imparo in progetti concreti — come Astronaviga.</p>
   </section>
 
   <section class="block" id="progetti">
-    <h2>Progetti</h2>
-    <p>Clicca sulla finestra per aprire il progetto: si ingrandisce; il tasto ✕ lo richiude.</p>
+    <h2 data-it="Progetti" data-en="Projects">Progetti</h2>
+    <p data-it="Clicca sulla finestra per aprire il progetto: si ingrandisce; il tasto ✕ lo richiude." data-en="Click the window to open the project: it expands; the ✕ button closes it.">Clicca sulla finestra per aprire il progetto: si ingrandisce; il tasto ✕ lo richiude.</p>
 
     <div class="project-grid">
       <div>
@@ -61,8 +74,8 @@
         </div>
         <div class="project-meta">
           <h3>AstroNaviga</h3>
-          <p>Sito didattico sull'esplorazione spaziale: missioni storiche, planetario interattivo e mappa del cielo stellato.</p>
-          <a href="progetti/astronaviga/index.html" target="_blank" rel="noopener">Apri in una nuova scheda ↗</a>
+          <p data-it="Sito didattico sull'esplorazione spaziale: missioni storiche, planetario interattivo e mappa del cielo stellato." data-en="An educational site about space exploration: historic missions, an interactive planetarium and a night-sky map.">Sito didattico sull'esplorazione spaziale: missioni storiche, planetario interattivo e mappa del cielo stellato.</p>
+          <a href="progetti/astronaviga/index.html" target="_blank" rel="noopener" data-it="Apri in una nuova scheda ↗" data-en="Open in a new tab ↗">Apri in una nuova scheda ↗</a>
         </div>
       </div>
 
@@ -78,15 +91,15 @@
         </div>
         <div class="project-meta">
           <h3>Osteria Folino</h3>
-          <p>Sito per un ristorante con prenotazioni in tempo reale: fasce orarie e posti disponibili collegati a un database live e a un'app per il gestore dei tavoli.</p>
-          <a href="progetti/osteria-folino/index.html" target="_blank" rel="noopener">Apri in una nuova scheda ↗</a>
+          <p data-it="Sito per un ristorante con prenotazioni in tempo reale: fasce orarie e posti disponibili collegati a un database live e a un'app per il gestore dei tavoli." data-en="A restaurant site with real-time bookings: time slots and table availability wired to a live database and a manager app.">Sito per un ristorante con prenotazioni in tempo reale: fasce orarie e posti disponibili collegati a un database live e a un'app per il gestore dei tavoli.</p>
+          <a href="progetti/osteria-folino/index.html" target="_blank" rel="noopener" data-it="Apri in una nuova scheda ↗" data-en="Open in a new tab ↗">Apri in una nuova scheda ↗</a>
         </div>
       </div>
     </div>
   </section>
 
   <section class="block" id="competenze">
-    <h2>Competenze</h2>
+    <h2 data-it="Competenze" data-en="Skills">Competenze</h2>
     <ul class="skills">
       <li>HTML</li>
       <li>CSS</li>
@@ -138,7 +151,7 @@
       heroText.style.opacity = 1;
       scrollHint.style.opacity = 0;
     } else {
-      const openT = clamp01((progress - 0.15) / 0.85);
+      const openT = clamp01((progress - 0.03) / 0.97);
       const angle = openT * 115;
       const slide = openT * 15;
 
@@ -155,6 +168,45 @@
 
   document.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
   update();
+
+  // menu hamburger mobile
+  const navBurger = document.getElementById('navBurger');
+  const navList = document.getElementById('navList');
+  navBurger.addEventListener('click', () => {
+    const isOpen = navList.classList.toggle('aperto');
+    navBurger.textContent = isOpen ? '✕' : '☰';
+  });
+  navList.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+    navList.classList.remove('aperto');
+    navBurger.textContent = '☰';
+  }));
+
+  // tema chiaro/scuro (l'attributo iniziale è già impostato in head per evitare il flash)
+  const themeToggle = document.getElementById('themeToggle');
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('theme', theme);
+  }
+  setTheme(document.documentElement.getAttribute('data-theme'));
+  themeToggle.addEventListener('click', () => {
+    setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  // lingua IT/EN
+  const langToggle = document.getElementById('langToggle');
+  function setLang(lang) {
+    document.querySelectorAll('[data-it]').forEach(el => {
+      el.textContent = el.dataset[lang];
+    });
+    document.documentElement.lang = lang;
+    langToggle.textContent = lang === 'it' ? 'EN' : 'IT';
+    localStorage.setItem('lang', lang);
+  }
+  setLang(localStorage.getItem('lang') || 'it');
+  langToggle.addEventListener('click', () => {
+    setLang(document.documentElement.lang === 'it' ? 'en' : 'it');
+  });
 
   // anteprima progetti: la pagina è disegnata a 1440x900, la scaliamo in base
   // alla larghezza reale della card così si vede intera anche su schermi stretti
