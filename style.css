@@ -1,7 +1,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --accent: #b5541a;
+  --accent: #5a3e91;
   --ink: #111111;
   --muted: #666666;
   --line: #e5e5e5;
@@ -17,7 +17,7 @@
 }
 
 :root[data-theme="dark"] {
-  --accent: #e2905a;
+  --accent: #b79ce8;
   --ink: #f2ede8;
   --muted: #a89f98;
   --line: #3a322f;
