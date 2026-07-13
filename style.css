@@ -152,13 +152,18 @@ a { color: inherit; }
   color: var(--muted);
   letter-spacing: .08em;
   text-transform: uppercase;
+  appearance: none;
+  -webkit-appearance: none;
   background: none;
   border: 0;
+  outline: none;
   font-family: inherit;
   cursor: pointer;
   padding: .5rem;
+  border-radius: 6px;
 }
 .hero-scroll-hint:hover { color: var(--accent); }
+.hero-scroll-hint:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .hero-scroll-hint svg { animation: hint-bounce 1.6s ease-in-out infinite; }
 @keyframes hint-bounce {
   0%, 100% { transform: translateY(0); opacity: .5; }
