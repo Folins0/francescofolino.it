@@ -299,6 +299,27 @@ section.block > p { line-height: 1.75; color: var(--text); font-size: 1.05rem; }
 .feature-info:hover .feature-info-popup,
 .feature-info.open .feature-info-popup { display: block; }
 
+.feature-info-touch-hint { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .feature-info-touch-hint {
+    display: flex; align-items: center; justify-content: flex-end; gap: .35rem;
+    margin: -.1rem 0 .3rem;
+    font-size: .72rem; color: var(--muted);
+  }
+  .pulse-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+    animation: pulse-dot 2s ease-in-out infinite;
+    flex: none;
+  }
+}
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(.85); opacity: .55; }
+  50%      { transform: scale(1.15); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot { animation: none; }
+}
+
 .project-system {
   border: 1px dashed var(--accent); border-radius: 14px; padding: 1.4rem 1.2rem 1.2rem;
 }
