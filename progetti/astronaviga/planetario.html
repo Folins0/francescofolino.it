@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planetario - AstroNaviga</title>
+    <link rel="icon" type="image/svg+xml" href="images/ico.svg">
+    <link rel="alternate icon" type="image/x-icon" href="images/ico.ico">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="fonts.css">
+</head>
+<body>
+
+    <div class="stars-container"></div>
+
+    <nav>
+        <div class="logo">
+            <img src="images/ico.svg" alt="Logo AstroNaviga" class="logo-icon">
+            <span class="logo-astro">Astro</span><span class="logo-naviga">Naviga</span>
+        </div>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="planetario.html" class="active">Planetario</a></li>
+            <li><a href="cielo.html">Cielo Stellato</a></li>
+            <li><a href="missioni.html">Missioni spaziali</a></li>
+        </ul>
+        <button class="nav-burger" aria-label="Menu">☰</button>
+    </nav>
+
+    <header class="hero hero-planetario">
+        <div class="hero-content">
+            <h1>PLANETARIO</h1>
+            <p>Clicca su un oggetto nella rotta oppure usa i pulsanti per esplorare il Sistema Solare</p>
+        </div>
+    </header>
+
+    <section class="container" id="sezione-pianeti">
+        <h2>Sistema Solare</h2>
+        <p>Clicca su un punto nella rotta per selezionare un corpo celeste, oppure usa i pulsanti in basso per navigare in ordine dal Sole verso l'esterno</p>
+
+        <div id="timeline-wrapper">
+            <div id="timeline"></div>
+        </div>
+
+        <div id="pianeta-card" class="card">
+            <div class="pianeta-card-interno">
+                <div class="pianeta-col-sinistra">
+                    <div id="pianeta-img" class="pianeta-img"></div>
+                    <div class="pianeta-simbolo-box">
+                        <span id="pianeta-simbolo-icona" class="pianeta-simbolo-icona"></span>
+                        <span id="pianeta-simbolo-testo" class="pianeta-simbolo-testo"></span>
+                    </div>
+                </div>
+                <div class="card-body pianeta-info">
+                    <h3 id="pianeta-nome">&nbsp;</h3>
+                    <p id="pianeta-desc"></p>
+                    <ul id="pianeta-dati" class="pianeta-dati-lista"></ul>
+                </div>
+            </div>
+            <div id="pianeta-nota" class="pianeta-nota"></div>
+        </div>
+
+        <div id="pianeta-controlli">
+            <button id="btn-precedente" class="btn-primary">← Precedente</button>
+            <button id="btn-successivo" class="btn-primary">Successivo →</button>
+        </div>
+
+    </section>
+
+    <footer>
+        <p>&copy; 2026 AstroNaviga - Esplora l'universo con noi</p>
+        <a href="index.html">Torna alla home</a>
+    </footer>
+
+    <script src="planetario.js"></script>
+    <script src="nav.js"></script>
+</body>
+</html>

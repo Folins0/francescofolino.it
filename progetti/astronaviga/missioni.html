@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missioni Spaziali - AstroNaviga</title>
+    <link rel="icon" type="image/svg+xml" href="images/ico.svg">
+    <link rel="alternate icon" type="image/x-icon" href="images/ico.ico">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="fonts.css">
+    <link rel="stylesheet" href="missioni.css">
+</head>
+<body class="missioni-page">
+
+<nav>
+    <div class="logo">
+        <img src="images/ico.svg" alt="Logo AstroNaviga" class="logo-icon">
+        <span class="logo-astro">Astro</span><span class="logo-naviga">Naviga</span>
+    </div>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="planetario.html">Planetario</a></li>
+        <li><a href="cielo.html">Cielo Stellato</a></li>
+        <li><a href="missioni.html" class="active">Missioni spaziali</a></li>
+    </ul>
+    <button class="nav-burger" aria-label="Menu">☰</button>
+</nav>
+
+<h1 class="sr-only">Missioni Spaziali</h1>
+
+<div class="missioni-dots" id="missioni-dots"></div>
+<div class="missione-counter" id="missione-counter">01 / 12</div>
+<div class="scroll-hint" id="scroll-hint">&#8595;</div>
+<button class="btn-torna-su" id="btn-torna-su" aria-label="Torna alla prima missione">&#8593;</button>
+
+<div class="missioni-scroll" id="missioni-scroll">
+
+    <section class="missione-slide">
+        <img class="missione-bg" style="object-position: 72% center;" src="images/sputnik.jpg" alt="Sputnik 1">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">URSS</span>
+                <span class="missione-anno">1957</span>
+            </div>
+            <h2>Sputnik 1</h2>
+            <p>Il 4 ottobre 1957 l'Unione Sovietica lanciò il primo satellite artificiale della storia. Sputnik 1 orbitò la Terra per tre mesi, segnando l'inizio dell'era spaziale e dando il via alla corsa allo spazio</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" src="images/vostok.jpg" alt="Vostok 1 - Yuri Gagarin">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">URSS</span>
+                <span class="missione-anno">1961</span>
+            </div>
+            <h2>Vostok 1</h2>
+            <p>Il 12 aprile 1961 Yuri Gagarin divenne il primo essere umano nello spazio, compiendo un'orbita completa attorno alla Terra in 108 minuti. Una data celebrata ancora oggi come Giornata dell'Astronautica</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" src="images/apollo.jpg" alt="Apollo 11">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">NASA</span>
+                <span class="missione-anno">1969</span>
+            </div>
+            <h2>Apollo 11</h2>
+            <p>Il 20 luglio 1969 Neil Armstrong e Buzz Aldrin toccarono per la prima volta il suolo lunare. Furono 12 gli astronauti a camminare sulla Luna nell'ambito del programma Apollo, tra il 1969 e il 1972</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" src="images/mir.jpg" alt="Stazione spaziale Mir">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">URSS / Russia</span>
+                <span class="missione-anno">1986</span>
+            </div>
+            <h2>Stazione Mir</h2>
+            <p>Mir fu la prima stazione spaziale modulare della storia, abitata quasi ininterrottamente dal 1986 al 2000. Ha ospitato astronauti di 12 nazioni diverse, dimostrando che la vita prolungata nello spazio è possibile</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" src="images/hubble.jpg" alt="Telescopio Hubble">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">NASA / ESA</span>
+                <span class="missione-anno">1990</span>
+            </div>
+            <h2>Hubble</h2>
+            <p>Lanciato nel 1990 da una collaborazione NASA-ESA, il telescopio Hubble ha rivoluzionato l'astronomia con immagini di galassie lontane miliardi di anni luce, nebulose e misure dell'espansione dell'universo</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" src="images/iss.jpg" alt="Stazione Spaziale Internazionale">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">15 nazioni</span>
+                <span class="missione-anno">1998</span>
+            </div>
+            <h2>ISS</h2>
+            <p>La Stazione Spaziale Internazionale è il progetto scientifico più costoso mai realizzato dall'umanità. Dal novembre 2000 ospita senza interruzione astronauti di tutto il mondo per ricerche in microgravità</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" src="images/mars-express.jpg" alt="Marte fotografato da Mars Express">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">ESA</span>
+                <span class="missione-anno">2003</span>
+            </div>
+            <h2>Mars Express</h2>
+            <p>La prima missione europea verso Marte, ancora operativa dopo oltre vent'anni. Mars Express ha mappato la superficie, rilevato ghiaccio d'acqua sotto il polo sud marziano e studiato l'atmosfera del pianeta rosso</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" src="images/rosetta.jpg" alt="Sonda Rosetta">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">ESA</span>
+                <span class="missione-anno">2004</span>
+            </div>
+            <h2>Rosetta</h2>
+            <p>La sonda europea Rosetta ha viaggiato per dieci anni fino alla cometa 67P/Churyumov-Gerasimenko. Nel novembre 2014 il lander Philae toccò la superficie della cometa: il primo atterraggio su un corpo cometario della storia</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" style="object-position: center 28%;" src="images/mars-curiosity.jpg" alt="Selfie del rover Curiosity su Marte">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">NASA</span>
+                <span class="missione-anno">2012</span>
+            </div>
+            <h2>Curiosity</h2>
+            <p>Atterrato nel cratere Gale nel 2012, Curiosity ha confermato la presenza passata di acqua liquida su Marte e rilevato composti organici nel suolo. È ancora operativo dopo oltre 12 anni di attività scientifica</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" src="images/moon-surface.jpg" alt="Lander Chang'e 4 con rover Yutu-2">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">Cina (CNSA)</span>
+                <span class="missione-anno">2019</span>
+            </div>
+            <h2>Chang'e 4</h2>
+            <p>Il 3 gennaio 2019 la sonda cinese Chang'e 4 è atterrata sul lato nascosto della Luna, per la prima volta nella storia. Il rover Yutu-2 analizza ancora oggi il terreno di questa regione mai esplorata da vicino</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" src="images/tianwen.jpg" alt="Sonda Tianwen-1 in orbita su Marte">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">Cina (CNSA)</span>
+                <span class="missione-anno">2021</span>
+            </div>
+            <h2>Tianwen-1</h2>
+            <p>Con una sola missione la Cina ha inserito in orbita un satellite, fatto atterrare un lander e dispiegato il rover Zhurong su Marte. Un risultato tecnico riuscito solo a pochi Paesi nel mondo</p>
+        </div>
+    </section>
+
+    <section class="missione-slide">
+        <img class="missione-bg" src="images/jwst.jpg" alt="Telescopio James Webb dispiegato nello spazio">
+        <div class="missione-content">
+            <div class="missione-meta">
+                <span class="missione-agenzia">NASA / ESA / CSA</span>
+                <span class="missione-anno">2021</span>
+            </div>
+            <h2>James Webb</h2>
+            <p>Il telescopio infrarosso più potente mai costruito, frutto della collaborazione tra NASA, ESA e agenzia spaziale canadese. Osserva le prime galassie formatesi dopo il Big Bang e analizza le atmosfere di pianeti extrasolari</p>
+        </div>
+    </section>
+
+</div>
+
+<!-- modal info aggiuntive -->
+<div class="modal-info-overlay" id="modal-info-overlay">
+    <div class="modal-info-box">
+        <button class="modal-info-chiudi" id="modal-info-chiudi">✕</button>
+        <h3 id="modal-info-titolo">&nbsp;</h3>
+        <p id="modal-info-testo"></p>
+    </div>
+</div>
+
+<!-- lightbox per foto carosello -->
+<div class="lightbox-overlay" id="lightbox-overlay">
+    <button class="lightbox-chiudi" id="lightbox-chiudi">✕</button>
+    <button class="lightbox-nav" id="lightbox-prev">&#8249;</button>
+    <img class="lightbox-img" id="lightbox-img" src="#" alt="">
+    <button class="lightbox-nav" id="lightbox-next">&#8250;</button>
+    <span class="lightbox-caption" id="lightbox-caption"></span>
+</div>
+
+<script src="missioni.js"></script>
+<script src="nav.js"></script>
+
+</body>
+</html>

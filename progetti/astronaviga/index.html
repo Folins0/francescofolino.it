@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroNaviga</title>
+    <link rel="icon" type="image/svg+xml" href="images/ico.svg">
+    <link rel="alternate icon" type="image/x-icon" href="images/ico.ico">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="fonts.css">
+</head>
+<body>
+
+    <div class="stars-container"></div>
+
+    <nav>
+        <div class="logo">
+            <img src="images/ico.svg" alt="Logo AstroNaviga" class="logo-icon">
+            <span class="logo-astro">Astro</span><span class="logo-naviga">Naviga</span>
+        </div>
+        <ul>
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="planetario.html">Planetario</a></li>
+            <li><a href="cielo.html">Cielo Stellato</a></li>
+            <li><a href="missioni.html">Missioni spaziali</a></li>
+        </ul>
+        <button class="nav-burger" aria-label="Menu">☰</button>
+    </nav>
+
+    <header class="hero hero-home">
+        <div class="hero-content">
+            <h1>AstroNaviga</h1>
+            <p>Esplora l'universo attraverso missioni spaziali storiche, scopri i pianeti del nostro sistema solare e osserva le costellazioni che illuminano il cielo notturno</p>
+            <a href="missioni.html" class="btn-primary">Scopri le Missioni</a>
+            <a href="planetario.html" class="btn-primary">Scopri i pianeti del sistema solare</a>
+            <a href="cielo.html" class="btn-primary">Osserva il cielo stellato</a>
+        </div>
+    </header>
+
+    <section id="introduzione" class="container">
+        <h2>Esplora l'universo</h2><br>
+        <p>AstroNaviga ti porta in un viaggio attraverso lo spazio, dalle missioni storiche che hanno segnato l'esplorazione umana ai pianeti del nostro sistema solare, fino alle stelle che illuminano il cielo notturno</p>
+
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-img card-img-lancio"></div>
+                <div class="card-body">
+                    <h3>Missioni Spaziali</h3>
+                    <p>Scopri le missioni più importanti della storia dell'esplorazione spaziale</p>
+                    <ul>
+                        <li>12 missioni storiche</li>
+                        <li>Da Sputnik ad Apollo fino al James Webb</li>
+                        <li>Telescopi e rover spaziali</li>
+                        <li>Foto e curiosità su ogni missione</li>
+                    </ul>
+                    <a href="missioni.html" class="card-explore">Esplora →</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="mini-solar-system">
+                    <div class="mss-sun"></div>
+                    <div class="mss-orbit" style="--r:28px;--dur:2.5s;--color:#b5b5b5;--size:5px;"></div>
+                    <div class="mss-orbit" style="--r:46px;--dur:5s;--color:#e8c97a;--size:7px;"></div>
+                    <div class="mss-orbit" style="--r:65px;--dur:9s;--color:#3a7bd5;--size:8px;"></div>
+                    <div class="mss-orbit" style="--r:85px;--dur:17s;--color:#c1440e;--size:6px;"></div>
+                </div>
+                <div class="card-body">
+                    <h3>Planetario</h3>
+                    <p>Scopri i pianeti del Sistema Solare e le loro caratteristiche principali</p>
+                    <ul>
+                        <li>10 corpi celesti, dal Sole a Plutone</li>
+                        <li>Dati tecnici e simboli astronomici</li>
+                        <li>Curiosità per ogni pianeta</li>
+                        <li>Nota speciale sul caso Plutone</li>
+                    </ul>
+                    <a href="planetario.html" class="card-explore">Esplora →</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img card-img-cielo"></div>
+                <div class="card-body">
+                    <h3>Cielo Stellato</h3>
+                    <p>Impara a osservare il cielo notturno e riconoscere le costellazioni zodiacali</p>
+                    <ul>
+                        <li>18 costellazioni con mappa stellare</li>
+                        <li>Zodiaco e costellazioni principali</li>
+                        <li>Modalità luce rossa per l'osservazione notturna</li>
+                        <li>Quiz interattivo sulle costellazioni</li>
+                    </ul>
+                    <a href="cielo.html" class="card-explore">Esplora →</a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 AstroNaviga - Esplora l'universo con noi</p>
+        <a href="index.html">Torna alla home</a>
+    </footer>
+
+    <script src="nav.js"></script>
+</body>
+</html>
