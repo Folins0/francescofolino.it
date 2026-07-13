@@ -75,15 +75,15 @@
         <div class="project-meta">
           <div class="project-title-row">
             <h3>AstroNaviga</h3>
-            <details class="feature-info">
-              <summary aria-label="Funzionalità">?</summary>
-              <ul>
+            <div class="feature-info">
+              <button type="button" class="feature-info-btn" aria-label="Funzionalità" aria-expanded="false">?</button>
+              <ul class="feature-info-popup">
                 <li data-it="Timeline delle missioni spaziali storiche" data-en="Timeline of historic space missions">Timeline delle missioni spaziali storiche</li>
                 <li data-it="Planetario interattivo" data-en="Interactive planetarium">Planetario interattivo</li>
                 <li data-it="Mappa del cielo stellato navigabile" data-en="Navigable night-sky map">Mappa del cielo stellato navigabile</li>
                 <li data-it="Sito multi-pagina con navigazione tematica" data-en="Multi-page site with themed navigation">Sito multi-pagina con navigazione tematica</li>
               </ul>
-            </details>
+            </div>
           </div>
           <p data-it="Sito didattico sull'esplorazione spaziale: missioni storiche, planetario interattivo e mappa del cielo stellato." data-en="An educational site about space exploration: historic missions, an interactive planetarium and a night-sky map.">Sito didattico sull'esplorazione spaziale: missioni storiche, planetario interattivo e mappa del cielo stellato.</p>
           <ul class="tech-stack"><li>HTML</li><li>CSS</li><li>JavaScript</li></ul>
@@ -108,15 +108,15 @@
             <div class="project-meta">
               <div class="project-title-row">
                 <h3>Osteria Folino</h3>
-                <details class="feature-info">
-                  <summary aria-label="Funzionalità">?</summary>
-                  <ul>
+                <div class="feature-info">
+                  <button type="button" class="feature-info-btn" aria-label="Funzionalità" aria-expanded="false">?</button>
+                  <ul class="feature-info-popup">
                     <li data-it="Prenotazione tavoli online per fasce orarie" data-en="Online table booking by time slot">Prenotazione tavoli online per fasce orarie</li>
                     <li data-it="Disponibilità posti in tempo reale dal DB" data-en="Real-time seat availability from the DB">Disponibilità posti in tempo reale dal DB</li>
                     <li data-it="Conferma prenotazione lato utente" data-en="User-side booking confirmation">Conferma prenotazione lato utente</li>
                     <li data-it="Backend PHP collegato al database di RistoLive" data-en="PHP backend wired to the RistoLive database">Backend PHP collegato al database di RistoLive</li>
                   </ul>
-                </details>
+                </div>
               </div>
               <p data-it="Sito per un ristorante con prenotazioni in tempo reale: fasce orarie e posti disponibili collegati a un database live e a un'app per il gestore dei tavoli." data-en="A restaurant site with real-time bookings: time slots and table availability wired to a live database and a manager app.">Sito per un ristorante con prenotazioni in tempo reale: fasce orarie e posti disponibili collegati a un database live e a un'app per il gestore dei tavoli.</p>
               <ul class="tech-stack"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>PHP</li><li>MySQL</li></ul>
@@ -139,15 +139,15 @@
             <div class="project-meta">
               <div class="project-title-row">
                 <h3>RistoLive</h3>
-                <details class="feature-info">
-                  <summary aria-label="Funzionalità">?</summary>
-                  <ul>
+                <div class="feature-info">
+                  <button type="button" class="feature-info-btn" aria-label="Funzionalità" aria-expanded="false">?</button>
+                  <ul class="feature-info-popup">
                     <li data-it="Dashboard di gestione tavoli in tempo reale" data-en="Real-time table management dashboard">Dashboard di gestione tavoli in tempo reale</li>
                     <li data-it="Vista prenotazioni sincronizzata con Osteria Folino" data-en="Bookings view synced with Osteria Folino">Vista prenotazioni sincronizzata con Osteria Folino</li>
                     <li data-it="Login gestore (demo, dati finti)" data-en="Manager login (demo, fake data)">Login gestore (demo, dati finti)</li>
                     <li data-it="Aggiornamenti live tramite lo stesso database" data-en="Live updates through the same database">Aggiornamenti live tramite lo stesso database</li>
                   </ul>
-                </details>
+                </div>
               </div>
               <p data-it="App per il gestore di un ristorante: tavoli e prenotazioni in tempo reale, collegata allo stesso database di Osteria Folino. Login e dati di questa demo sono finti." data-en="An app for restaurant staff: real-time tables and reservations, wired to the same database as Osteria Folino. Login and data in this demo are fake.">App per il gestore di un ristorante: tavoli e prenotazioni in tempo reale, collegata allo stesso database di Osteria Folino. Login e dati di questa demo sono finti.</p>
               <ul class="tech-stack"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>PHP</li><li>MySQL</li></ul>
@@ -310,6 +310,28 @@
   document.getElementById('modalClose').addEventListener('click', closeModal);
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // popover funzionalità: hover su desktop, tocco/click sul "?" su mobile
+  function closeFeatureInfos() {
+    document.querySelectorAll('.feature-info.open').forEach(wrap => {
+      wrap.classList.remove('open');
+      wrap.querySelector('.feature-info-btn').setAttribute('aria-expanded', 'false');
+    });
+  }
+  document.querySelectorAll('.feature-info-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const wrap = btn.closest('.feature-info');
+      const wasOpen = wrap.classList.contains('open');
+      closeFeatureInfos();
+      if (!wasOpen) {
+        wrap.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+  document.addEventListener('click', closeFeatureInfos);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeatureInfos(); });
 </script>
 </body>
 </html>
