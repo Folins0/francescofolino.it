@@ -270,12 +270,13 @@ section.block > p { line-height: 1.75; color: var(--text); font-size: 1.05rem; }
 .project-title-row h3 { margin-bottom: 0; }
 .feature-info { position: relative; }
 .feature-info-btn {
-  width: 22px; height: 22px; border-radius: 50%;
-  border: 1px solid var(--line); background: none; display: flex; align-items: center; justify-content: center;
-  font-size: .75rem; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit;
+  width: 22px; height: 22px; border-radius: 50%; padding: 0;
+  border: 1.5px solid var(--accent); background: var(--card-bg);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent); cursor: pointer; flex: none;
 }
 .feature-info-btn:hover, .feature-info-btn:focus-visible, .feature-info.open .feature-info-btn {
-  border-color: var(--accent); color: var(--accent);
+  background: var(--accent); color: var(--card-bg);
 }
 .feature-info-popup {
   display: none;
