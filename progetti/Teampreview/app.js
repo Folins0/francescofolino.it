@@ -1044,10 +1044,12 @@ function addToLookup(lookup, names) {
   });
 }
 
-// Slug PokéAPI più vicino al testo OCR di un ritaglio, solo se molto simile
-// (soglia stretta): evita falsi positivi quando il ritaglio non contiene un
-// testo leggibile. extraSuffixes gestisce casi come le forme di genere
-// delle specie (Pyroar, Meowstic, Indeedee... -> slug con suffisso "-male").
+// Slug PokéAPI più vicino al testo OCR di un ritaglio, solo se abbastanza
+// simile: evita falsi positivi quando il ritaglio non contiene un testo
+// leggibile, ma tollera un paio di caratteri sbagliati (l'OCR reale su uno
+// screenshot compresso raramente legge un nome carattere per carattere).
+// extraSuffixes gestisce casi come le forme di genere delle specie (Pyroar,
+// Meowstic, Indeedee... -> slug con suffisso "-male").
 function closestMatch(rawText, lookup, extraSuffixes = []) {
   const query = normalizeOcrText(rawText);
   if (query.length < 3) return null;
@@ -1066,7 +1068,7 @@ function closestMatch(rawText, lookup, extraSuffixes = []) {
       best = lookup[key];
     }
   }
-  const threshold = Math.max(1, Math.floor(query.length * 0.2));
+  const threshold = Math.max(2, Math.round(query.length * 0.25));
   return bestDist <= threshold ? best : null;
 }
 
@@ -1147,7 +1149,7 @@ function binarizeNameCrop(ctx, w, h) {
 // rilevata, tarate su un vero screenshot 3088x1440 della team preview di
 // Pokémon Champions. Da ritarare se il gioco cambia UI.
 function isCardPurple(r, g, b) {
-  return b > r + 10 && b > g + 30 && r > 60 && r < 190 && b > 120 && b < 230;
+  return b > r + 5 && b > g + 20 && r > 50 && r < 200 && b > 110 && b < 240;
 }
 
 // Bande contigue dove fracArray supera threshold, scartando quelle più
@@ -1474,6 +1476,7 @@ screenshotBuildBtn.addEventListener("click", async () => {
     const worker = await getOcrWorker();
     const infoImg = await loadImage(infoFile);
     const cards = detectCardBoxes(infoImg);
+    console.log(`[TeamPreview OCR] schede rilevate: ${cards.length}`);
 
     if (!cards.length) {
       setScreenshotFeedback("Non ho trovato nessuna scheda Pokémon nello screenshot. Prova a costruire il team manualmente.", true);
@@ -1482,16 +1485,19 @@ screenshotBuildBtn.addEventListener("click", async () => {
 
     await setOcrMode(worker, "letters");
     const mons = [];
-    for (const card of cards.slice(0, MAX_TEAM_SIZE)) {
+    for (let cardIndex = 0; cardIndex < Math.min(cards.length, MAX_TEAM_SIZE); cardIndex++) {
+      const card = cards[cardIndex];
       const nameText = await ocrCanvas(worker, cropCardRegion(infoImg, card, NAME_REGION));
       const speciesSlug = closestMatch(nameText, nameLookup, ["male"]);
+      console.log(`[TeamPreview OCR] scheda ${cardIndex + 1}: letto "${nameText.trim()}" -> ${speciesSlug || "NESSUN MATCH"}`);
       if (!speciesSlug) continue;
 
       let mon;
       try {
         mon = await fetchPokemon(speciesSlug);
-      } catch {
-        continue; // riconosciuto dall'OCR ma non trovato su PokéAPI
+      } catch (err) {
+        console.log(`[TeamPreview OCR] scheda ${cardIndex + 1}: "${speciesSlug}" scartato - ${err.message}`);
+        continue; // riconosciuto dall'OCR ma non trovato su PokéAPI o non in roster
       }
 
       const abilityText = await ocrCanvas(worker, cropCardRegion(infoImg, card, ABILITY_REGION));
