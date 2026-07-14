@@ -17,7 +17,7 @@
 }
 
 :root[data-theme="dark"] {
-  --accent: #b79ce8;
+  --accent: #cab1f6;
   --ink: #f2ede8;
   --muted: #a89f98;
   --line: #3a322f;
@@ -141,7 +141,7 @@ a { color: inherit; }
 .hero-text p { margin-top: .75rem; font-size: 1.2rem; color: var(--accent); font-weight: 600; }
 .hero-text .hero-subtitle {
   margin-top: .4rem;
-  font-size: .85rem;
+  font-size: 1rem;
   color: var(--muted);
   font-weight: 500;
   max-width: 480px;
