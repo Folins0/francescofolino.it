@@ -46,6 +46,7 @@ async function fetchPokemon(name) {
     learnset: data.moves.map((m) => m.move.name),
     moves: [null, null, null, null],
     item: "",
+    ability: "", // sola lettura, popolata dall'import screenshot: nessun editor nel roster
     ev: { hp: 0, attack: 0, defense: 0, "special-attack": 0, "special-defense": 0, speed: 0 },
     iv: { hp: 31, attack: 31, defense: 31, "special-attack": 31, "special-defense": 31, speed: 31 },
     nature: "Hardy",
@@ -135,3 +136,54 @@ async function fetchItalianNameMap() {
   }
   return map;
 }
+
+/** Lista nomi mosse (per il lookup OCR in inglese). */
+async function fetchMoveNames() {
+  const res = await fetch(`${POKEAPI_BASE}/move?limit=1000`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.results.map((m) => m.name);
+}
+
+/** Lista nomi abilità (per il lookup OCR in inglese). */
+async function fetchAbilityNames() {
+  const res = await fetch(`${POKEAPI_BASE}/ability?limit=400`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.results.map((a) => a.name);
+}
+
+/**
+ * Mappa "nome italiano normalizzato -> slug PokéAPI inglese" generica, per
+ * entità semplici (mossa/oggetto/abilità) dove lo slug inglese è il campo
+ * "name" dell'entità stessa (a differenza delle specie, che hanno
+ * l'indirezione specie -> forma di default, vedi fetchItalianNameMap).
+ */
+async function fetchItalianMap(entityTable, namesField, limit) {
+  const query = `{
+    ${entityTable}(limit: ${limit}) {
+      name
+      ${namesField}(where: {language_id: {_eq: 8}}) { name }
+    }
+  }`;
+
+  const res = await fetch(POKEAPI_GRAPHQL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+  if (!res.ok) return {};
+
+  const { data } = await res.json();
+  const map = {};
+  for (const entity of data?.[entityTable] || []) {
+    const itName = entity[namesField][0]?.name;
+    if (!itName || !entity.name) continue;
+    map[itName.toLowerCase().replace(/[^a-z]/g, "")] = entity.name;
+  }
+  return map;
+}
+
+const fetchItalianMoveMap = () => fetchItalianMap("pokemon_v2_move", "pokemon_v2_movenames", 1000);
+const fetchItalianItemMap = () => fetchItalianMap("pokemon_v2_item", "pokemon_v2_itemnames", 2200);
+const fetchItalianAbilityMap = () => fetchItalianMap("pokemon_v2_ability", "pokemon_v2_abilitynames", 400);

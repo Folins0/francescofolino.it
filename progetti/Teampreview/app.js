@@ -209,6 +209,11 @@ function renderRoster() {
     });
     slot.appendChild(statRow);
 
+    const abilityLine = document.createElement("div");
+    abilityLine.className = "item-line";
+    abilityLine.textContent = mon.ability ? `Abilità: ${mon.ability.replace(/-/g, " ")}` : "Abilità: —";
+    slot.appendChild(abilityLine);
+
     const itemLine = document.createElement("div");
     itemLine.className = "item-line";
     itemLine.textContent = mon.item ? `Oggetto: ${mon.item.replace(/-/g, " ")}` : "Oggetto: —";
@@ -796,53 +801,57 @@ teamCodeImportBtn.addEventListener("click", async () => {
   setTeamCodeFeedback(`Team importato con ${mons.length} Pokémon.`);
 });
 
-// Riconoscimento specie Pokémon da uno screenshot della team preview del
-// gioco (OCR client-side con Tesseract.js, nessun backend/API key). Cerca
-// solo i nomi specie: abilità/oggetto/mosse/statistiche non sono ancora
-// gestiti dal roster, quindi non proviamo a estrarli.
-//
-// Layout screenshot: griglia 2 colonne x 3 righe (6 schede viola), nome
-// specie sempre in alto a sinistra di ogni scheda, testo scuro in grassetto
-// su sfondo viola/lavanda. Invece di fare OCR sull'intera immagine (troppo
-// rumore da abilità/mosse/statistiche) ritagliamo la zona nome di ogni
-// scheda e la leggiamo separatamente.
+// Riconoscimento Pokémon da uno screenshot della team preview del gioco
+// (OCR client-side con Tesseract.js, nessun backend/API key): specie,
+// abilità, oggetto e le 4 mosse dalla tab "Info Pokémon", ed opzionalmente
+// le 6 stat finali dalla tab "Statistiche". Il gioco è in italiano: ogni
+// campo viene tradotto verso lo slug inglese PokéAPI via fuzzy match contro
+// un dizionario IT/EN scaricato una volta sola all'avvio (vedi in fondo al
+// file).
 function setScreenshotFeedback(message, isError = false) {
   screenshotFeedback.textContent = message;
   screenshotFeedback.classList.toggle("error", isError);
 }
 
 // nome normalizzato (solo lettere, minuscolo) -> slug PokéAPI inglese.
-// Popolata all'avvio sia dai nomi inglesi (autocomplete) sia dalla mappa
-// italiana, così l'OCR riconosce entrambe le lingue con lo stesso lookup.
+// Un dizionario per campo (specie/mossa/oggetto/abilità), ognuno popolato
+// all'avvio sia dai nomi inglesi (autocomplete) sia dalla mappa italiana,
+// così l'OCR riconosce entrambe le lingue con lo stesso lookup.
 let nameLookup = {};
+let moveLookup = {};
+let itemLookup = {};
+let abilityLookup = {};
 
 function normalizeOcrText(s) {
   return s.toLowerCase().replace(/[^a-z]/g, "");
 }
 
-function addNamesToLookup(names) {
+function addToLookup(lookup, names) {
   names.forEach((slug) => {
-    nameLookup[normalizeOcrText(slug)] = slug;
+    lookup[normalizeOcrText(slug)] = slug;
   });
 }
 
-// Slug PokéAPI più vicino al testo OCR di un ritaglio-nome, solo se molto
-// simile (soglia stretta): evita falsi positivi quando il ritaglio non
-// contiene un nome leggibile.
-function closestSpeciesForCrop(rawText) {
+// Slug PokéAPI più vicino al testo OCR di un ritaglio, solo se molto simile
+// (soglia stretta): evita falsi positivi quando il ritaglio non contiene un
+// testo leggibile. extraSuffixes gestisce casi come le forme di genere
+// delle specie (Pyroar, Meowstic, Indeedee... -> slug con suffisso "-male").
+function closestMatch(rawText, lookup, extraSuffixes = []) {
   const query = normalizeOcrText(rawText);
   if (query.length < 3) return null;
-  if (nameLookup[query]) return nameLookup[query];
-  if (nameLookup[`${query}male`]) return nameLookup[`${query}male`]; // Pyroar, Meowstic, Indeedee...
+  if (lookup[query]) return lookup[query];
+  for (const suffix of extraSuffixes) {
+    if (lookup[`${query}${suffix}`]) return lookup[`${query}${suffix}`];
+  }
 
   let best = null;
   let bestDist = Infinity;
-  for (const key in nameLookup) {
+  for (const key in lookup) {
     if (Math.abs(key.length - query.length) > 2) continue;
     const dist = levenshtein(query, key);
     if (dist < bestDist) {
       bestDist = dist;
-      best = nameLookup[key];
+      best = lookup[key];
     }
   }
   const threshold = Math.max(1, Math.floor(query.length * 0.2));
@@ -858,31 +867,58 @@ function loadImage(file) {
   });
 }
 
-// Il nome è testo scuro in grassetto, lo sfondo scheda è viola/lavanda
-// chiaro: la polarità (chi è "inchiostro" e chi è "sfondo") può comunque
-// variare con luminosità/tema dello screenshot, quindi non la fissiamo a
-// priori. Sogliamo sulla luminosità media del ritaglio e assumiamo che il
-// testo sia la classe minoritaria di pixel (poco inchiostro, molto sfondo),
-// poi la portiamo a nero su bianco: il contrasto che Tesseract legge meglio.
+// Soglia di Otsu: il taglio di luminosità che massimizza la varianza tra le
+// due classi risultanti. Rispetto a una semplice media, individua meglio la
+// valle tra il picco "testo" e il picco "sfondo" anche quando lo sfondo ha
+// una texture a righe leggere (il caso delle schede del gioco).
+function otsuThreshold(lums) {
+  const hist = new Array(256).fill(0);
+  for (let p = 0; p < lums.length; p++) hist[Math.min(255, Math.max(0, Math.round(lums[p])))]++;
+
+  const total = lums.length;
+  let sum = 0;
+  for (let t = 0; t < 256; t++) sum += t * hist[t];
+
+  let sumB = 0, weightB = 0, maxVariance = 0, threshold = 127;
+  for (let t = 0; t < 256; t++) {
+    weightB += hist[t];
+    if (weightB === 0) continue;
+    const weightF = total - weightB;
+    if (weightF === 0) break;
+    sumB += t * hist[t];
+    const meanB = sumB / weightB;
+    const meanF = (sum - sumB) / weightF;
+    const variance = weightB * weightF * (meanB - meanF) * (meanB - meanF);
+    if (variance > maxVariance) {
+      maxVariance = variance;
+      threshold = t;
+    }
+  }
+  return threshold;
+}
+
+// Il nome è testo scuro o chiaro in grassetto (la polarità varia con
+// luminosità/tema dello screenshot, quindi non la fissiamo a priori), lo
+// sfondo scheda è viola/lavanda con una leggera texture a righe. Sogliamo
+// con Otsu e assumiamo che il testo sia la classe minoritaria di pixel (poco
+// inchiostro, molto sfondo), poi lo portiamo a nero su bianco: il contrasto
+// che Tesseract legge meglio.
 function binarizeNameCrop(ctx, w, h) {
   const imgData = ctx.getImageData(0, 0, w, h);
   const d = imgData.data;
   const n = d.length / 4;
   const lums = new Float32Array(n);
-  let sum = 0;
   for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-    const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-    lums[p] = lum;
-    sum += lum;
+    lums[p] = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
   }
-  const mean = sum / n;
+  const threshold = otsuThreshold(lums);
 
   let darkCount = 0;
-  for (let p = 0; p < n; p++) if (lums[p] < mean) darkCount++;
+  for (let p = 0; p < n; p++) if (lums[p] < threshold) darkCount++;
   const textIsDark = darkCount <= n - darkCount;
 
   for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-    const isDarkPixel = lums[p] < mean;
+    const isDarkPixel = lums[p] < threshold;
     const isText = textIsDark ? isDarkPixel : !isDarkPixel;
     const v = isText ? 0 : 255;
     d[i] = d[i + 1] = d[i + 2] = v;
@@ -890,75 +926,236 @@ function binarizeNameCrop(ctx, w, h) {
   ctx.putImageData(imgData, 0, 0);
 }
 
-// Regioni scheda (frazioni dell'immagine intera), misurate pixel per pixel
-// su uno screenshot reale 3088x1440 della team preview di Pokémon Champions
-// (sia tab "Info Pokémon" che "Statistiche": il blocco nome è identico in
-// entrambe). Le schede NON riempiono l'intera immagine — c'è una barra in
-// alto e margini — quindi le colonne/righe sono intervalli assoluti, non
-// una semplice divisione dell'immagine in 2x3. Da ritarare se il gioco
-// cambia UI o se un altro layout di schermata usa proporzioni diverse.
-const CARD_COLS = [
-  { left: 508 / 3088, right: 1126 / 3088 },
-  { left: 1582 / 3088, right: 2194 / 3088 },
-];
-const CARD_ROW_TOP = 354 / 1440;
-const CARD_ROW_HEIGHT = 248 / 1440;
-const CARD_ROW_PERIOD = 290 / 1440; // altezza scheda + spazio tra una riga e l'altra
-const CARD_ROWS = 3;
+// Rilevamento dinamico delle 6 schede viola (2 colonne x 3 righe), invece di
+// coordinate hardcoded: scansioniamo i pixel per bande orizzontali/verticali
+// dello sfondo viola/lavanda della scheda, così il roster si può leggere da
+// uno screenshot di qualunque risoluzione/telefono, non solo da quella
+// misurata in fase di sviluppo. Le sotto-regioni (nome/abilità/oggetto/
+// mosse/stat) restano invece percentuali fisse relative alla scheda
+// rilevata, tarate su un vero screenshot 3088x1440 della team preview di
+// Pokémon Champions. Da ritarare se il gioco cambia UI.
+function isCardPurple(r, g, b) {
+  return b > r + 10 && b > g + 30 && r > 60 && r < 190 && b > 120 && b < 230;
+}
 
-// Il nome sta nella striscia in alto della scheda, dopo lo sprite e prima
-// delle icone genere/tipo: frazioni relative al box della scheda stessa.
-const NAME_IN_CARD = { left: 0.154, right: 0.680, top: 0, bottom: 0.242 };
+// Bande contigue dove fracArray supera threshold, scartando quelle più
+// corte di minSize (rumore).
+function findBands(fracArray, threshold, minSize) {
+  const bands = [];
+  let start = null;
+  for (let i = 0; i < fracArray.length; i++) {
+    if (fracArray[i] > threshold && start === null) {
+      start = i;
+    } else if (fracArray[i] <= threshold && start !== null) {
+      if (i - start >= minSize) bands.push([start, i]);
+      start = null;
+    }
+  }
+  if (start !== null && fracArray.length - start >= minSize) bands.push([start, fracArray.length]);
+  return bands;
+}
+
+// Una scheda può apparire come una o più bande di colore adiacenti (es. nella
+// tab "Info Pokémon" la porzione nome/abilità e quella mosse hanno due
+// sfumature di viola leggermente diverse, quindi il rilevamento le vede come
+// bande separate). Raggruppiamo le bande di una riga in (al più) 2 schede
+// tagliando nel punto con lo spazio più ampio tra bande consecutive: quello
+// è per costruzione il confine tra la scheda sinistra e quella destra, tutti
+// gli altri spazi sono più piccoli confini interni alla stessa scheda.
+function splitBandsIntoTwoCards(bands) {
+  if (bands.length <= 1) return bands;
+
+  let maxGapIndex = 0;
+  let maxGap = -Infinity;
+  for (let i = 0; i < bands.length - 1; i++) {
+    const gap = bands[i + 1][0] - bands[i][1];
+    if (gap > maxGap) {
+      maxGap = gap;
+      maxGapIndex = i;
+    }
+  }
+
+  const groups = [bands.slice(0, maxGapIndex + 1), bands.slice(maxGapIndex + 1)];
+  return groups.map((group) => [group[0][0], group[group.length - 1][1]]);
+}
+
+const EXPECTED_CARD_ROWS = 3;
+
+// Rileva i box (in pixel dell'immagine originale) delle schede Pokémon,
+// in ordine di lettura (riga per riga, sinistra poi destra).
+function detectCardBoxes(img) {
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, w, h);
+  const { data } = ctx.getImageData(0, 0, w, h);
+
+  const purple = new Uint8Array(w * h);
+  const rowFrac = new Float32Array(h);
+  for (let y = 0; y < h; y++) {
+    let sum = 0;
+    const rowOffset = y * w;
+    for (let x = 0; x < w; x++) {
+      const i = (rowOffset + x) * 4;
+      const isPurple = isCardPurple(data[i], data[i + 1], data[i + 2]) ? 1 : 0;
+      purple[rowOffset + x] = isPurple;
+      sum += isPurple;
+    }
+    rowFrac[y] = sum / w;
+  }
+
+  let rowBands = findBands(rowFrac, 0.15, h * 0.03);
+  if (!rowBands.length) return [];
+  const maxRowHeight = Math.max(...rowBands.map(([s, e]) => e - s));
+  rowBands = rowBands
+    .filter(([s, e]) => e - s >= maxRowHeight * 0.6) // scarta la barra superiore dell'interfaccia (più sottile)
+    .sort((a, b) => a[0] - b[0])
+    .slice(0, EXPECTED_CARD_ROWS);
+
+  const cardBoxes = [];
+  for (const [ry0, ry1] of rowBands) {
+    const colFrac = new Float32Array(w);
+    for (let x = 0; x < w; x++) {
+      let sum = 0;
+      for (let y = ry0; y < ry1; y++) sum += purple[y * w + x];
+      colFrac[x] = sum / (ry1 - ry0);
+    }
+    const colBands = splitBandsIntoTwoCards(findBands(colFrac, 0.5, w * 0.01));
+
+    for (const [cx0, cx1] of colBands) {
+      cardBoxes.push({ x: cx0, y: ry0, w: cx1 - cx0, h: ry1 - ry0 });
+    }
+  }
+  return cardBoxes;
+}
 
 const CROP_SCALE = 3; // upscale prima dell'OCR, il testo piccolo si legge meglio ingrandito
 
-function cropNameRegions(img) {
-  const w = img.naturalWidth;
-  const h = img.naturalHeight;
+// Ritaglia una sotto-regione di una scheda (frazioni 0-1 relative al box
+// della scheda) e la binarizza per l'OCR.
+function cropCardRegion(img, card, frac) {
+  const sx = card.x + frac.left * card.w;
+  const sy = card.y + frac.top * card.h;
+  const sw = (frac.right - frac.left) * card.w;
+  const sh = (frac.bottom - frac.top) * card.h;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = sw * CROP_SCALE;
+  canvas.height = sh * CROP_SCALE;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  binarizeNameCrop(ctx, canvas.width, canvas.height);
+  return canvas;
+}
+
+// Tab "Info Pokémon": nome in alto a sinistra (dopo lo sprite, prima delle
+// icone genere/tipo), abilità e oggetto sotto (con margine maggiore per
+// l'oggetto per saltarne l'icona), le 4 mosse in colonna sulla destra.
+const NAME_REGION = { left: 0.0952, right: 0.421, top: 0, bottom: 0.242 };
+const ABILITY_REGION = { left: 0.0868, right: 0.607, top: 0.30, bottom: 0.47 };
+const ITEM_REGION = { left: 0.1238, right: 0.607, top: 0.56, bottom: 0.73 };
+const MOVES_BOX_REGION = { left: 0.6473, right: 1.0 };
+const MOVE_TEXT_LEFT_MARGIN = 0.05; // frazione della larghezza della colonna mosse, per saltare l'icona tipo
+
+const MOVES_TOP_MARGIN = 0.04; // evita il bordo/angolo arrotondato in alto della scheda, sopra la prima mossa
+
+function cropMoveRegions(img, card) {
+  const boxLeft = card.x + MOVES_BOX_REGION.left * card.w;
+  const boxW = (MOVES_BOX_REGION.right - MOVES_BOX_REGION.left) * card.w;
+  const listTop = card.y + MOVES_TOP_MARGIN * card.h;
+  const rowH = (card.h * (1 - MOVES_TOP_MARGIN)) / 4;
+
   const canvases = [];
+  for (let i = 0; i < 4; i++) {
+    canvases.push(cropCardRegion(img, {
+      x: boxLeft + MOVE_TEXT_LEFT_MARGIN * boxW,
+      y: listTop + i * rowH,
+      w: boxW * (1 - MOVE_TEXT_LEFT_MARGIN),
+      h: rowH,
+    }, { left: 0, right: 1, top: 0, bottom: 1 }));
+  }
+  return canvases;
+}
 
-  for (let r = 0; r < CARD_ROWS; r++) {
-    const cardTop = CARD_ROW_TOP + r * CARD_ROW_PERIOD;
-    for (const col of CARD_COLS) {
-      const cardW = col.right - col.left;
-      const sx = (col.left + NAME_IN_CARD.left * cardW) * w;
-      const sy = (cardTop + NAME_IN_CARD.top * CARD_ROW_HEIGHT) * h;
-      const sw = (NAME_IN_CARD.right - NAME_IN_CARD.left) * cardW * w;
-      const sh = (NAME_IN_CARD.bottom - NAME_IN_CARD.top) * CARD_ROW_HEIGHT * h;
+// Tab "Statistiche": PS/Attacco/Difesa nella metà sinistra della scheda,
+// Att.Sp/Dif.Sp/Velocità nella metà destra, stesso ordine di STAT_KEYS.
+// Ogni riga mostra numero finale + un trattino + un piccolo numero di EV: ci
+// serve solo il primo numero, quindi il ritaglio si ferma prima del trattino.
+const STAT_ROWS = [
+  { top: 0.30, bottom: 0.512 },
+  { top: 0.512, bottom: 0.723 },
+  { top: 0.723, bottom: 0.935 },
+];
+const STAT_COL_LEFT = { left: 0.29, right: 0.38 };
+const STAT_COL_RIGHT = { left: 0.762, right: 0.85 };
 
-      const canvas = document.createElement("canvas");
-      canvas.width = sw * CROP_SCALE;
-      canvas.height = sh * CROP_SCALE;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-      binarizeNameCrop(ctx, canvas.width, canvas.height);
-      canvases.push(canvas);
+// Ritorna 6 ritagli nell'ordine di STAT_KEYS (hp, attack, defense,
+// special-attack, special-defense, speed).
+function cropStatRegions(img, card) {
+  const canvases = [];
+  for (const col of [STAT_COL_LEFT, STAT_COL_RIGHT]) {
+    for (const row of STAT_ROWS) {
+      canvases.push(cropCardRegion(img, card, { left: col.left, right: col.right, top: row.top, bottom: row.bottom }));
     }
   }
   return canvases;
 }
 
 // Worker Tesseract riutilizzato tra uno screenshot e l'altro (crearne uno
-// per ritaglio sarebbe molto più lento). Whitelist solo lettere e PSM
-// "riga singola": i ritagli-nome non contengono numeri né altre righe.
+// per ritaglio sarebbe molto più lento). setOcrMode cambia whitelist/PSM a
+// seconda che si stia leggendo testo (nome/abilità/oggetto/mosse) o cifre
+// (stat numeriche).
 let ocrWorkerPromise = null;
 async function getOcrWorker() {
   if (!ocrWorkerPromise) {
-    ocrWorkerPromise = Tesseract.createWorker("eng").then(async (worker) => {
-      await worker.setParameters({
-        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ",
-        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
-      });
-      return worker;
-    });
+    ocrWorkerPromise = Tesseract.createWorker("eng");
   }
   return ocrWorkerPromise;
 }
 
+let ocrMode = null;
+async function setOcrMode(worker, mode) {
+  if (ocrMode === mode) return;
+  ocrMode = mode;
+  await worker.setParameters({
+    tessedit_char_whitelist: mode === "digits"
+      ? "0123456789"
+      : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ",
+    tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+  });
+}
+
+async function ocrCanvas(worker, canvas) {
+  const { data } = await worker.recognize(canvas);
+  return data.text;
+}
+
+// Le card "Statistiche" mostrano solo il valore finale di ogni stat, non
+// l'EV che lo produce (e le frecce che indicano la natura non le leggiamo,
+// come da richiesta): cerchiamo l'EV (0-252, step 4) che riproduce quel
+// valore più da vicino, assumendo IV 31 e natura neutra.
+function solveEvForStat(statKey, base, target) {
+  if (base == null) return 0;
+  let bestEv = 0;
+  let bestDiff = Infinity;
+  for (let ev = 0; ev <= 252; ev += 4) {
+    const diff = Math.abs(calcStat(statKey, base, 31, ev, LEVEL, "Hardy") - target);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestEv = ev;
+    }
+  }
+  return bestEv;
+}
+
 screenshotBuildBtn.addEventListener("click", async () => {
-  const files = [screenshot1Input.files[0], screenshot2Input.files[0]].filter(Boolean);
-  if (!files.length) {
-    setScreenshotFeedback("Carica almeno uno screenshot.", true);
+  const infoFile = screenshot1Input.files[0];
+  const statsFile = screenshot2Input.files[0];
+  if (!infoFile) {
+    setScreenshotFeedback('Carica almeno lo screenshot della tab "Info Pokémon".', true);
     return;
   }
   if (state.teams.length >= MAX_TEAMS) {
@@ -971,33 +1168,67 @@ screenshotBuildBtn.addEventListener("click", async () => {
 
   try {
     const worker = await getOcrWorker();
-    const speciesNames = [];
-    for (const file of files) {
-      const img = await loadImage(file);
-      for (const canvas of cropNameRegions(img)) {
-        const { data } = await worker.recognize(canvas);
-        const match = closestSpeciesForCrop(data.text);
-        if (match && !speciesNames.includes(match)) speciesNames.push(match);
-      }
+    const infoImg = await loadImage(infoFile);
+    const cards = detectCardBoxes(infoImg);
+
+    if (!cards.length) {
+      setScreenshotFeedback("Non ho trovato nessuna scheda Pokémon nello screenshot. Prova a costruire il team manualmente.", true);
+      return;
     }
 
-    if (!speciesNames.length) {
+    await setOcrMode(worker, "letters");
+    const mons = [];
+    for (const card of cards.slice(0, MAX_TEAM_SIZE)) {
+      const nameText = await ocrCanvas(worker, cropCardRegion(infoImg, card, NAME_REGION));
+      const speciesSlug = closestMatch(nameText, nameLookup, ["male"]);
+      if (!speciesSlug) continue;
+
+      let mon;
+      try {
+        mon = await fetchPokemon(speciesSlug);
+      } catch {
+        continue; // riconosciuto dall'OCR ma non trovato su PokéAPI
+      }
+
+      const abilityText = await ocrCanvas(worker, cropCardRegion(infoImg, card, ABILITY_REGION));
+      const abilitySlug = closestMatch(abilityText, abilityLookup);
+      if (abilitySlug) mon.ability = abilitySlug;
+
+      const itemText = await ocrCanvas(worker, cropCardRegion(infoImg, card, ITEM_REGION));
+      const itemSlug = closestMatch(itemText, itemLookup);
+      if (itemSlug) mon.item = itemSlug;
+
+      const moveCanvases = cropMoveRegions(infoImg, card);
+      for (let i = 0; i < moveCanvases.length; i++) {
+        const moveText = await ocrCanvas(worker, moveCanvases[i]);
+        const moveSlug = closestMatch(moveText, moveLookup);
+        if (moveSlug) mon.moves[i] = moveSlug;
+      }
+
+      mons.push(mon);
+    }
+
+    if (!mons.length) {
       setScreenshotFeedback("Non ho riconosciuto nessun Pokémon negli screenshot. Prova a costruire il team manualmente.", true);
       return;
     }
 
-    const mons = [];
-    for (const name of speciesNames.slice(0, MAX_TEAM_SIZE)) {
-      try {
-        mons.push(await fetchPokemon(name));
-      } catch {
-        // riconosciuto dall'OCR ma non trovato su PokéAPI: lo saltiamo
-      }
-    }
+    if (statsFile) {
+      setScreenshotFeedback("Leggo le statistiche…");
+      const statsImg = await loadImage(statsFile);
+      const statCards = detectCardBoxes(statsImg);
+      await setOcrMode(worker, "digits");
 
-    if (!mons.length) {
-      setScreenshotFeedback("Nomi riconosciuti ma non trovati su PokéAPI.", true);
-      return;
+      for (let i = 0; i < Math.min(statCards.length, mons.length); i++) {
+        const statCanvases = cropStatRegions(statsImg, statCards[i]);
+        for (let s = 0; s < STAT_KEYS.length; s++) {
+          const digitsText = await ocrCanvas(worker, statCanvases[s]);
+          const target = parseInt(digitsText.replace(/[^0-9]/g, ""), 10);
+          if (!Number.isFinite(target)) continue;
+          const key = STAT_KEYS[s];
+          mons[i].ev[key] = solveEvForStat(key, mons[i].stats[key], target);
+        }
+      }
     }
 
     addImportedTeam(mons);
@@ -1011,24 +1242,30 @@ screenshotBuildBtn.addEventListener("click", async () => {
 
 fetchPokemonNames().then((names) => {
   allNames = names;
-  addNamesToLookup(names);
+  addToLookup(nameLookup, names);
   document.getElementById("pokemon-names").innerHTML = names
     .map((n) => `<option value="${n}"></option>`)
     .join("");
 });
 
-// Nomi italiani per il riconoscimento OCR: se la fetch fallisce (rete offline,
-// endpoint irraggiungibile) restano comunque riconoscibili i nomi coincidenti
-// con l'inglese, già in nameLookup.
-fetchItalianNameMap()
-  .then((map) => Object.assign(nameLookup, map))
-  .catch(() => {});
+// Nomi italiani per il riconoscimento OCR (specie/mosse/oggetti/abilità): se
+// una fetch fallisce (rete offline, endpoint irraggiungibile) restano
+// comunque riconoscibili i nomi coincidenti con l'inglese, già nel lookup.
+fetchItalianNameMap().then((map) => Object.assign(nameLookup, map)).catch(() => {});
+
+fetchMoveNames().then((names) => addToLookup(moveLookup, names));
+fetchItalianMoveMap().then((map) => Object.assign(moveLookup, map)).catch(() => {});
+
+fetchAbilityNames().then((names) => addToLookup(abilityLookup, names));
+fetchItalianAbilityMap().then((map) => Object.assign(abilityLookup, map)).catch(() => {});
 
 fetchItemNames().then((names) => {
+  addToLookup(itemLookup, names);
   document.getElementById("item-names").innerHTML = names
     .map((n) => `<option value="${n}"></option>`)
     .join("");
 });
+fetchItalianItemMap().then((map) => Object.assign(itemLookup, map)).catch(() => {});
 
 document.addEventListener("DOMContentLoaded", () => {
   loadState();
