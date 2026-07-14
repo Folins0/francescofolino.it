@@ -890,33 +890,41 @@ function binarizeNameCrop(ctx, w, h) {
   ctx.putImageData(imgData, 0, 0);
 }
 
-// Regioni nome (frazioni dell'immagine intera), tarate su uno screenshot
-// 3088x1440 della tab "Info Pokémon" di Pokémon Champions: griglia 2 colonne
-// x 3 righe di schede, nome in grassetto in alto a sinistra di ogni scheda.
-// In frazioni così restano valide su screenshot di risoluzione diversa ma
-// stesso layout/aspect ratio. Da ritarare se il gioco cambia UI.
-const NAME_REGION_COLS = [
-  { left: 250 / 3088, right: 560 / 3088 },
-  { left: 820 / 3088, right: 1130 / 3088 },
+// Regioni scheda (frazioni dell'immagine intera), misurate pixel per pixel
+// su uno screenshot reale 3088x1440 della team preview di Pokémon Champions
+// (sia tab "Info Pokémon" che "Statistiche": il blocco nome è identico in
+// entrambe). Le schede NON riempiono l'intera immagine — c'è una barra in
+// alto e margini — quindi le colonne/righe sono intervalli assoluti, non
+// una semplice divisione dell'immagine in 2x3. Da ritarare se il gioco
+// cambia UI o se un altro layout di schermata usa proporzioni diverse.
+const CARD_COLS = [
+  { left: 508 / 3088, right: 1126 / 3088 },
+  { left: 1582 / 3088, right: 2194 / 3088 },
 ];
-const NAME_ROW_TOP = 170 / 1440;
-const NAME_ROW_BOTTOM = 620 / 1440;
-const NAME_ROWS = 3;
+const CARD_ROW_TOP = 354 / 1440;
+const CARD_ROW_HEIGHT = 248 / 1440;
+const CARD_ROW_PERIOD = 290 / 1440; // altezza scheda + spazio tra una riga e l'altra
+const CARD_ROWS = 3;
+
+// Il nome sta nella striscia in alto della scheda, dopo lo sprite e prima
+// delle icone genere/tipo: frazioni relative al box della scheda stessa.
+const NAME_IN_CARD = { left: 0.154, right: 0.680, top: 0, bottom: 0.242 };
+
 const CROP_SCALE = 3; // upscale prima dell'OCR, il testo piccolo si legge meglio ingrandito
 
 function cropNameRegions(img) {
   const w = img.naturalWidth;
   const h = img.naturalHeight;
-  const rowH = (NAME_ROW_BOTTOM - NAME_ROW_TOP) / NAME_ROWS;
   const canvases = [];
 
-  for (let r = 0; r < NAME_ROWS; r++) {
-    const top = NAME_ROW_TOP + r * rowH;
-    for (const col of NAME_REGION_COLS) {
-      const sx = col.left * w;
-      const sy = top * h;
-      const sw = (col.right - col.left) * w;
-      const sh = rowH * h;
+  for (let r = 0; r < CARD_ROWS; r++) {
+    const cardTop = CARD_ROW_TOP + r * CARD_ROW_PERIOD;
+    for (const col of CARD_COLS) {
+      const cardW = col.right - col.left;
+      const sx = (col.left + NAME_IN_CARD.left * cardW) * w;
+      const sy = (cardTop + NAME_IN_CARD.top * CARD_ROW_HEIGHT) * h;
+      const sw = (NAME_IN_CARD.right - NAME_IN_CARD.left) * cardW * w;
+      const sh = (NAME_IN_CARD.bottom - NAME_IN_CARD.top) * CARD_ROW_HEIGHT * h;
 
       const canvas = document.createElement("canvas");
       canvas.width = sw * CROP_SCALE;
