@@ -53,11 +53,21 @@
     <div class="team-code-panel">
       <label for="team-code-input" class="search-label">Codice team TeamPreview (formato nostro, non il codice ufficiale del gioco)</label>
       <div class="search-row">
-        <input type="text" id="team-code-input" placeholder="Incolla qui un codice team…" autocomplete="off">
+        <input type="text" id="team-code-input" placeholder="es. ND-K7-3F…" autocomplete="off">
         <button id="team-code-import-btn" type="button">Importa come nuovo team</button>
       </div>
       <button id="team-code-export-btn" type="button" class="team-code-export">Copia codice del team attivo</button>
       <p id="team-code-feedback" class="search-feedback" aria-live="polite"></p>
+    </div>
+
+    <div class="screenshot-panel">
+      <label class="search-label">Componi un team da screenshot della schermata team preview</label>
+      <div class="screenshot-inputs">
+        <label class="screenshot-file">Screenshot 1<input type="file" id="screenshot-1" accept="image/*"></label>
+        <label class="screenshot-file">Screenshot 2 (opzionale)<input type="file" id="screenshot-2" accept="image/*"></label>
+      </div>
+      <button id="screenshot-build-btn" type="button">Leggi Pokémon dagli screenshot</button>
+      <p id="screenshot-feedback" class="search-feedback" aria-live="polite"></p>
     </div>
 
     <div class="roster-header">
@@ -74,6 +84,7 @@
   Dati Pokémon forniti da <a href="https://pokeapi.co" target="_blank" rel="noopener">PokéAPI</a>. Fase 1 — nessun salvataggio, il roster si azzera al refresh.
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="pokeapi.js"></script>
 <script src="app.js"></script>
 </body>

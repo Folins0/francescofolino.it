@@ -53,8 +53,19 @@ slideshowEl.addEventListener('pointerdown', function (e) {
 slideshowEl.addEventListener('pointerup', function (e) {
     var deltaX = e.clientX - puntoInizioX;
     var deltaY = e.clientY - puntoInizioY;
+
     if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
         plusSlides(deltaX < 0 ? 1 : -1);
+        return;
+    }
+
+    // Tap semplice (come le storie Instagram): tocco a destra avanza,
+    // a sinistra torna indietro. Ignora i controlli che hanno già il loro click.
+    var suControllo = e.target.closest('.prev, .next, .dots, .scroll-hint');
+    if (!suControllo && Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
+        var rect = slideshowEl.getBoundingClientRect();
+        var tapX = e.clientX - rect.left;
+        plusSlides(tapX > rect.width / 2 ? 1 : -1);
     }
 });
 // Evita che trascinare un'immagine avvii il drag-and-drop nativo del browser.

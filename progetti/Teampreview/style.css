@@ -217,6 +217,49 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   text-decoration: underline;
 }
 
+.screenshot-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1.5rem;
+}
+.screenshot-inputs { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+.screenshot-file {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  flex: 1;
+  min-width: 180px;
+}
+.screenshot-file input {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+}
+#screenshot-build-btn {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+  cursor: pointer;
+}
+#screenshot-build-btn:hover { border-color: var(--accent); color: var(--accent); }
+#screenshot-build-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .roster-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1rem; }
 .roster-header h2 { font-family: var(--font-display); font-size: 1.3rem; margin: 0; }
 .roster-count { font-family: var(--font-mono); color: var(--muted); font-size: 0.9rem; }

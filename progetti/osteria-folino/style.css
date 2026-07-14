@@ -72,6 +72,7 @@ section, .slideshow-container {
     height: 100vh;
     position: relative;
     overflow: hidden;
+    touch-action: pan-y;
 }
 
 .slide {

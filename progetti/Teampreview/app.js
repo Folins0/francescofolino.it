@@ -30,6 +30,10 @@ const teamCodeInput = document.getElementById("team-code-input");
 const teamCodeImportBtn = document.getElementById("team-code-import-btn");
 const teamCodeExportBtn = document.getElementById("team-code-export-btn");
 const teamCodeFeedback = document.getElementById("team-code-feedback");
+const screenshot1Input = document.getElementById("screenshot-1");
+const screenshot2Input = document.getElementById("screenshot-2");
+const screenshotBuildBtn = document.getElementById("screenshot-build-btn");
+const screenshotFeedback = document.getElementById("screenshot-feedback");
 
 function activeTeam() {
   return teams[activeTeamIndex];
@@ -83,6 +87,14 @@ function renderTeamTabs() {
 function addTeam() {
   if (teams.length >= MAX_TEAMS) return;
   teams.push({ name: `Team ${teams.length + 1}`, mons: [] });
+  activeTeamIndex = teams.length - 1;
+  renderTeamTabs();
+  renderRoster();
+}
+
+// Aggiunge un nuovo team già popolato (da codice team o da screenshot).
+function addImportedTeam(mons) {
+  teams.push({ name: `Team ${teams.length + 1}`, mons });
   activeTeamIndex = teams.length - 1;
   renderTeamTabs();
   renderRoster();
@@ -314,16 +326,17 @@ confirmNoBtn.addEventListener("click", () => {
 });
 
 // Codice team proprio di TeamPreview (non è il formato ufficiale del gioco,
-// che non è pubblico): base64 dei nomi Pokémon del team, per condividerlo
-// con un altro utente di TeamPreview o da un dispositivo all'altro.
+// che non è pubblico): l'ID PokéAPI di ogni Pokémon in base36, separati da
+// "-", per un codice corto e alfanumerico da condividere con un altro
+// utente di TeamPreview o da un dispositivo all'altro.
 function encodeTeamCode(mons) {
-  return btoa(encodeURIComponent(JSON.stringify(mons.map((m) => m.name))));
+  return mons.map((m) => m.id.toString(36).toUpperCase()).join("-");
 }
 
 function decodeTeamCode(code) {
-  const names = JSON.parse(decodeURIComponent(atob(code.trim())));
-  if (!Array.isArray(names) || !names.length) throw new Error("Codice vuoto.");
-  return names;
+  const ids = code.trim().toUpperCase().split("-").filter(Boolean).map((part) => parseInt(part, 36));
+  if (!ids.length || ids.some((id) => Number.isNaN(id))) throw new Error("Codice non valido.");
+  return ids;
 }
 
 function setTeamCodeFeedback(message, isError = false) {
@@ -358,9 +371,9 @@ teamCodeImportBtn.addEventListener("click", async () => {
     return;
   }
 
-  let names;
+  let ids;
   try {
-    names = decodeTeamCode(raw);
+    ids = decodeTeamCode(raw);
   } catch {
     setTeamCodeFeedback("Codice non valido o non riconosciuto.", true);
     return;
@@ -370,11 +383,11 @@ teamCodeImportBtn.addEventListener("click", async () => {
   setTeamCodeFeedback("Importo il team…");
 
   const mons = [];
-  for (const name of names.slice(0, MAX_TEAM_SIZE)) {
+  for (const id of ids.slice(0, MAX_TEAM_SIZE)) {
     try {
-      mons.push(await fetchPokemon(name));
+      mons.push(await fetchPokemon(String(id)));
     } catch {
-      // nome non riconosciuto da PokéAPI: lo saltiamo
+      // ID non riconosciuto da PokéAPI: lo saltiamo
     }
   }
 
@@ -385,12 +398,104 @@ teamCodeImportBtn.addEventListener("click", async () => {
     return;
   }
 
-  teams.push({ name: `Team ${teams.length + 1}`, mons });
-  activeTeamIndex = teams.length - 1;
-  renderTeamTabs();
-  renderRoster();
+  addImportedTeam(mons);
   teamCodeInput.value = "";
   setTeamCodeFeedback(`Team importato con ${mons.length} Pokémon.`);
+});
+
+// Riconoscimento specie Pokémon da uno screenshot della team preview del
+// gioco (OCR client-side con Tesseract.js, nessun backend/API key). Cerca
+// solo i nomi specie: abilità/oggetto/mosse/statistiche non sono ancora
+// gestiti dal roster, quindi non proviamo a estrarli.
+function setScreenshotFeedback(message, isError = false) {
+  screenshotFeedback.textContent = message;
+  screenshotFeedback.classList.toggle("error", isError);
+}
+
+// Nome PokéAPI più vicino a una riga OCR, solo se molto simile (soglia
+// stretta): la maggior parte del testo in uno screenshot NON è una specie
+// (abilità, mosse, oggetti, etichette), quindi qui serve essere severi per
+// evitare falsi positivi.
+function closestNameStrict(line) {
+  if (allNames.includes(line)) return line;
+  if (allNames.includes(`${line}-male`)) return `${line}-male`; // Pyroar, Meowstic, Indeedee...
+  let best = null;
+  let bestDist = Infinity;
+  for (const name of allNames) {
+    if (Math.abs(name.length - line.length) > 1) continue;
+    const dist = levenshtein(line, name);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = name;
+    }
+  }
+  const threshold = Math.max(1, Math.floor(line.length * 0.15));
+  return bestDist <= threshold ? best : null;
+}
+
+function extractSpeciesFromText(text) {
+  // Split per parola, non per riga: nello screenshot il nome specie e la
+  // prima mossa condividono spesso la stessa riga (colonne affiancate).
+  const words = (text.match(/[A-Za-z]+/g) || [])
+    .map((w) => w.toLowerCase())
+    .filter((w) => w.length >= 4);
+
+  const found = [];
+  for (const word of words) {
+    const match = closestNameStrict(word);
+    if (match && !found.includes(match)) found.push(match);
+  }
+  return found;
+}
+
+screenshotBuildBtn.addEventListener("click", async () => {
+  const files = [screenshot1Input.files[0], screenshot2Input.files[0]].filter(Boolean);
+  if (!files.length) {
+    setScreenshotFeedback("Carica almeno uno screenshot.", true);
+    return;
+  }
+  if (teams.length >= MAX_TEAMS) {
+    setScreenshotFeedback("Hai già 6 team: rimuovine uno prima di importarne un altro.", true);
+    return;
+  }
+
+  screenshotBuildBtn.disabled = true;
+  setScreenshotFeedback("Leggo le immagini… la prima volta scarica il modulo OCR, può richiedere qualche secondo.");
+
+  try {
+    let text = "";
+    for (const file of files) {
+      const { data } = await Tesseract.recognize(file, "eng");
+      text += "\n" + data.text;
+    }
+
+    const speciesNames = extractSpeciesFromText(text);
+    if (!speciesNames.length) {
+      setScreenshotFeedback("Non ho riconosciuto nessun Pokémon negli screenshot. Prova a costruire il team manualmente.", true);
+      return;
+    }
+
+    const mons = [];
+    for (const name of speciesNames.slice(0, MAX_TEAM_SIZE)) {
+      try {
+        mons.push(await fetchPokemon(name));
+      } catch {
+        // riconosciuto dall'OCR ma non trovato su PokéAPI: lo saltiamo
+      }
+    }
+
+    if (!mons.length) {
+      setScreenshotFeedback("Nomi riconosciuti ma non trovati su PokéAPI.", true);
+      return;
+    }
+
+    addImportedTeam(mons);
+    setScreenshotFeedback(`Team creato con ${mons.length} Pokémon riconosciuti (su 6 attesi). Controlla e completa a mano se serve.`);
+  } catch {
+    setScreenshotFeedback("Errore nella lettura degli screenshot. Riprova o costruisci il team a mano.", true);
+  } finally {
+    screenshotBuildBtn.disabled = false;
+  }
 });
 
 fetchPokemonNames().then((names) => {

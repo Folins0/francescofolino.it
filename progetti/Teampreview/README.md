@@ -4,8 +4,10 @@ Team builder per Pokémon Champions VGC (Regulation M-B, doubles). Permette di
 cercare un Pokémon tramite [PokéAPI](https://pokeapi.co) (con autocomplete e
 suggerimento di correzione sui refusi) e aggiungerlo a un roster di 6 slot,
 mostrando sprite, tipi e stat base. Si possono gestire fino a 6 team in
-parallelo, ognuno con il proprio roster indipendente, e condividerli tramite
-un codice testuale generato dall'app stessa (vedi nota sotto).
+parallelo, ognuno con il proprio roster indipendente, condividerli tramite
+un codice testuale generato dall'app stessa (vedi nota sotto), oppure
+comporli automaticamente caricando 1-2 screenshot della schermata "team
+preview" del gioco (OCR client-side, riconosce le 6 specie).
 
 ## Come avviarlo
 
@@ -37,13 +39,41 @@ refresh della pagina. È voluto — questa è la Fase 1.
 ## Roadmap (fasi successive)
 
 ### Fase 2 — Calcolo danni/matchup
-Aggiungere un modulo `js/damage.js` che implementi la formula ufficiale dei
-danni Pokémon (livello, potenza mossa, Attacco/Difesa, STAB, efficacia di
-tipo, modificatori random 85–100%). Input: un Pokémon del roster + un
-Pokémon avversario + una mossa. Output: range di danno stimato in % di HP.
-Le tabelle di efficacia di tipo si possono derivare dagli endpoint
-`type/{id}` di PokéAPI, oppure hardcodare la matrice 18×18 (più veloce, dato
-che cambia raramente).
+
+Obiettivo: dato un Pokémon del roster attivo, una sua mossa e un Pokémon
+avversario, mostrare il range di danno stimato in % di HP.
+
+Assunzione di scope (da confermare): livello 50 (standard VGC), natura
+neutra, 0 EV/31 IV per tutti — Fase 1 non salva EV/natura/livello per
+Pokémon, quindi il calcolo userà le stat base così come sono già mostrate
+nel roster. Un calcolo "vero" (con EV/natura reali) è rimandabile a
+un'estensione successiva della scheda Pokémon, se serve più precisione.
+
+1. **Matrice efficacia di tipo** — hardcodare la tabella 18×18 in
+   `damage.js` (cambia raramente, evita 18 chiamate a `type/{id}` ogni
+   volta). Funzione `typeEffectiveness(moveType, defenderTypes) -> number`
+   (0, 0.25, 0.5, 1, 2, 4).
+2. **Dati mossa** — fetch di `move/{name}` da PokéAPI per potenza, tipo,
+   categoria (fisica/speciale/status). Il menu mosse di un Pokémon si
+   popola dall'array `moves` già incluso nella risposta di
+   `fetchPokemon()` (solo nomi: serve poi una fetch per mossa scelta,
+   con cache in memoria per non richiamare PokéAPI ogni volta).
+3. **Selettore avversario** — riusare l'UI di ricerca già esistente
+   (stesso `fetchPokemon` + datalist), ma come slot singolo "avversario"
+   fuori dai team, non aggiunto a un roster.
+4. **Formula danno** (`js/damage.js`):
+   `danno = ((2*Livello/5+2) * Potenza * Atk/Def / 50 + 2) * STAB * Tipo * random(0.85–1.00)`
+   — STAB ×1.5 se la mossa condivide un tipo con l'attaccante, Tipo da
+   step 1, Atk/Def da Attacco o Attacco Speciale in base alla categoria
+   mossa. Output: danno minimo e massimo, convertiti in % dell'HP base
+   del difensore.
+5. **UI risultato** — sezione "Matchup" con attaccante (dal team attivo),
+   mossa, avversario, e il range % risultante; eventualmente un
+   indicatore visivo se il range supera il 100% (KO garantito) o è sotto
+   una soglia bassa (mossa poco efficace).
+
+Ordine consigliato: 1 → 2 → 4 (con dati finti) per validare la formula,
+poi 3 e 5 per l'interfaccia completa.
 
 ### Fase 3 — Persistenza con MySQL
 Backend leggero (Flask o FastAPI) con due tabelle indicative:
@@ -93,14 +123,37 @@ portare e quali lasciare in panchina. Probabilmente si appoggia a un
 endpoint LLM (stesso stack di Fase 4) con il riconoscimento immagine
 delegato a un servizio esterno o a un modello vision.
 
+### Fase 6 — Sito in inglese (opzionale)
+Toggle IT/EN come quello già presente nel portfolio principale
+(`Portofolio/index.html`): attributi `data-it`/`data-en` su ogni testo
+statico, un bottone che scambia `textContent` e salva la preferenza in
+`localStorage`. I testi dinamici generati da `app.js` (nomi Pokémon, tipi,
+messaggi di feedback) vanno tradotti a parte — i nomi Pokémon possono
+restare in inglese/originale PokéAPI, sono già in inglese di default.
+
 ## Note
 
-- **Codice team**: è un formato inventato da TeamPreview (base64 dell'elenco
-  nomi del team), pensato per condividere un roster tra utenti dell'app o tra
-  dispositivi. Pokémon Champions (il gioco) non ha un'API pubblica né un
-  formato di team-code documentato, quindi non è possibile leggere/generare
-  codici compatibili con il gioco vero — se in futuro Game Freak pubblica una
-  specifica ufficiale, si può aggiungere un decoder dedicato.
+- **Screenshot import**: usa [Tesseract.js](https://tesseract.projectnaomi.com/)
+  (OCR via WASM, caricato da CDN, nessun backend/API key) per leggere il testo
+  degli screenshot, poi confronta ogni parola riconosciuta con l'elenco nomi
+  di PokéAPI (soglia di distanza stretta, per non scambiare abilità/mosse/
+  oggetti per specie). Riconosce solo le 6 specie, non abilità/oggetto/mosse/
+  EV — il roster oggi non ha campi per quei dati né in import né in modalità
+  manuale, servirebbe prima estendere il modello dati e la card del roster.
+  L'accuratezza reale dipende dalla qualità/risoluzione dello screenshot; è
+  stata testata con un'immagine sintetica (riconoscimento corretto), non
+  ancora con uno screenshot reale del gioco.
+- **Codice team**: è un formato inventato da TeamPreview (ID PokéAPI di ogni
+  Pokémon in base36, tipo `ND-K7`), pensato per condividere un roster tra
+  utenti dell'app o tra dispositivi. Non è compatibile con i codici
+  "Replica Team" (Rental Team) di
+  Pokémon Champions/Scarlatto e Violetto: quei codici fanno riferimento a
+  dati salvati sui server Nintendo (non un blob autosufficiente decodificabile
+  offline) e il formato non è mai stato pubblicato ufficialmente, quindi non
+  c'è modo di leggerli o generarli da fuori dal gioco. Se serve tenere
+  traccia del codice Replica Team reale di un roster, l'opzione più onesta è
+  un campo di testo libero per appuntarlo accanto al team (nessuna
+  decodifica, solo promemoria) — da valutare in Fase 2+.
 - I colori dei badge tipo (`--type-fire`, `--type-water`, ecc. in
   `style.css`) seguono la palette convenzionale usata da quasi tutti i
   tool VGC/competitivi — non sono asset ufficiali Nintendo/Game Freak,

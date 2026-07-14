@@ -13,7 +13,12 @@ async function fetchPokemon(name) {
   const query = name.trim().toLowerCase().replace(/\s+/g, "-");
   if (!query) throw new Error("Inserisci un nome.");
 
-  const res = await fetch(`${POKEAPI_BASE}/pokemon/${query}`);
+  let res = await fetch(`${POKEAPI_BASE}/pokemon/${query}`);
+  if (res.status === 404 && !/-(male|female|mega)$/.test(query)) {
+    // Alcune specie con forme di genere (Pyroar, Meowstic, Indeedee...) non
+    // hanno una voce col nome nudo su PokéAPI: la forma di base è "-male".
+    res = await fetch(`${POKEAPI_BASE}/pokemon/${query}-male`);
+  }
   if (res.status === 404) {
     throw new Error(`Nessun Pokémon trovato per "${name}".`);
   }
