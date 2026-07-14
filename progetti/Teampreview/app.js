@@ -407,45 +407,107 @@ teamCodeImportBtn.addEventListener("click", async () => {
 // gioco (OCR client-side con Tesseract.js, nessun backend/API key). Cerca
 // solo i nomi specie: abilità/oggetto/mosse/statistiche non sono ancora
 // gestiti dal roster, quindi non proviamo a estrarli.
+//
+// Layout screenshot: griglia 2 colonne x 3 righe (6 schede viola), nome
+// specie sempre in alto a sinistra di ogni scheda, testo chiaro su sfondo
+// viola. Invece di fare OCR sull'intera immagine (troppo rumore da abilità/
+// mosse/statistiche) ritagliamo la zona nome di ogni scheda e la leggiamo
+// separatamente.
 function setScreenshotFeedback(message, isError = false) {
   screenshotFeedback.textContent = message;
   screenshotFeedback.classList.toggle("error", isError);
 }
 
-// Nome PokéAPI più vicino a una riga OCR, solo se molto simile (soglia
-// stretta): la maggior parte del testo in uno screenshot NON è una specie
-// (abilità, mosse, oggetti, etichette), quindi qui serve essere severi per
-// evitare falsi positivi.
-function closestNameStrict(line) {
-  if (allNames.includes(line)) return line;
-  if (allNames.includes(`${line}-male`)) return `${line}-male`; // Pyroar, Meowstic, Indeedee...
+// nome normalizzato (solo lettere, minuscolo) -> slug PokéAPI inglese.
+// Popolata all'avvio sia dai nomi inglesi (autocomplete) sia dalla mappa
+// italiana, così l'OCR riconosce entrambe le lingue con lo stesso lookup.
+let nameLookup = {};
+
+function normalizeOcrText(s) {
+  return s.toLowerCase().replace(/[^a-z]/g, "");
+}
+
+function addNamesToLookup(names) {
+  names.forEach((slug) => {
+    nameLookup[normalizeOcrText(slug)] = slug;
+  });
+}
+
+// Slug PokéAPI più vicino al testo OCR di un ritaglio-nome, solo se molto
+// simile (soglia stretta): evita falsi positivi quando il ritaglio non
+// contiene un nome leggibile.
+function closestSpeciesForCrop(rawText) {
+  const query = normalizeOcrText(rawText);
+  if (query.length < 3) return null;
+  if (nameLookup[query]) return nameLookup[query];
+  if (nameLookup[`${query}male`]) return nameLookup[`${query}male`]; // Pyroar, Meowstic, Indeedee...
+
   let best = null;
   let bestDist = Infinity;
-  for (const name of allNames) {
-    if (Math.abs(name.length - line.length) > 1) continue;
-    const dist = levenshtein(line, name);
+  for (const key in nameLookup) {
+    if (Math.abs(key.length - query.length) > 2) continue;
+    const dist = levenshtein(query, key);
     if (dist < bestDist) {
       bestDist = dist;
-      best = name;
+      best = nameLookup[key];
     }
   }
-  const threshold = Math.max(1, Math.floor(line.length * 0.15));
+  const threshold = Math.max(1, Math.floor(query.length * 0.2));
   return bestDist <= threshold ? best : null;
 }
 
-function extractSpeciesFromText(text) {
-  // Split per parola, non per riga: nello screenshot il nome specie e la
-  // prima mossa condividono spesso la stessa riga (colonne affiancate).
-  const words = (text.match(/[A-Za-z]+/g) || [])
-    .map((w) => w.toLowerCase())
-    .filter((w) => w.length >= 4);
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Immagine non valida."));
+    img.src = URL.createObjectURL(file);
+  });
+}
 
-  const found = [];
-  for (const word of words) {
-    const match = closestNameStrict(word);
-    if (match && !found.includes(match)) found.push(match);
+// Le schede hanno testo chiaro su sfondo viola: rendiamo i pixel chiari
+// (il nome) neri e il resto bianco, il contrasto che Tesseract legge meglio.
+function binarizeLightTextOnDark(ctx, w, h) {
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    const v = lum > 150 ? 0 : 255;
+    d[i] = d[i + 1] = d[i + 2] = v;
   }
-  return found;
+  ctx.putImageData(imgData, 0, 0);
+}
+
+// ponytail: frazioni approssimate, relative a ogni cella della griglia, di
+// dove compare il nome (alto-sinistra della scheda). Da tarare su uno
+// screenshot reale se il gioco cambia layout o risoluzione.
+const NAME_CROP = { left: 0.04, right: 0.98, top: 0.04, bottom: 0.3 };
+const CROP_SCALE = 2; // upscale prima dell'OCR, il testo piccolo si legge meglio ingrandito
+
+function cropNameRegions(img) {
+  const cols = 2;
+  const rows = 3;
+  const cellW = img.naturalWidth / cols;
+  const cellH = img.naturalHeight / rows;
+  const canvases = [];
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const sx = c * cellW + NAME_CROP.left * cellW;
+      const sy = r * cellH + NAME_CROP.top * cellH;
+      const sw = (NAME_CROP.right - NAME_CROP.left) * cellW;
+      const sh = (NAME_CROP.bottom - NAME_CROP.top) * cellH;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = sw * CROP_SCALE;
+      canvas.height = sh * CROP_SCALE;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+      binarizeLightTextOnDark(ctx, canvas.width, canvas.height);
+      canvases.push(canvas);
+    }
+  }
+  return canvases;
 }
 
 screenshotBuildBtn.addEventListener("click", async () => {
@@ -463,13 +525,16 @@ screenshotBuildBtn.addEventListener("click", async () => {
   setScreenshotFeedback("Leggo le immagini… la prima volta scarica il modulo OCR, può richiedere qualche secondo.");
 
   try {
-    let text = "";
+    const speciesNames = [];
     for (const file of files) {
-      const { data } = await Tesseract.recognize(file, "eng");
-      text += "\n" + data.text;
+      const img = await loadImage(file);
+      for (const canvas of cropNameRegions(img)) {
+        const { data } = await Tesseract.recognize(canvas, "eng");
+        const match = closestSpeciesForCrop(data.text);
+        if (match && !speciesNames.includes(match)) speciesNames.push(match);
+      }
     }
 
-    const speciesNames = extractSpeciesFromText(text);
     if (!speciesNames.length) {
       setScreenshotFeedback("Non ho riconosciuto nessun Pokémon negli screenshot. Prova a costruire il team manualmente.", true);
       return;
@@ -500,10 +565,18 @@ screenshotBuildBtn.addEventListener("click", async () => {
 
 fetchPokemonNames().then((names) => {
   allNames = names;
+  addNamesToLookup(names);
   document.getElementById("pokemon-names").innerHTML = names
     .map((n) => `<option value="${n}"></option>`)
     .join("");
 });
+
+// Nomi italiani per il riconoscimento OCR: se la fetch fallisce (rete offline,
+// endpoint irraggiungibile) restano comunque riconoscibili i nomi coincidenti
+// con l'inglese, già in nameLookup.
+fetchItalianNameMap()
+  .then((map) => Object.assign(nameLookup, map))
+  .catch(() => {});
 
 renderTeamTabs();
 renderRoster();

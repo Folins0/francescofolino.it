@@ -3,6 +3,7 @@
 // Nessuna chiave richiesta, endpoint pubblico e gratuito.
 
 const POKEAPI_BASE = "https://pokeapi.co/api/v2";
+const POKEAPI_GRAPHQL = "https://beta.pokeapi.co/graphql/v1beta";
 
 /**
  * Cerca un Pokémon per nome (case-insensitive) e restituisce
@@ -51,4 +52,36 @@ async function fetchPokemonNames() {
   if (!res.ok) return [];
   const data = await res.json();
   return data.results.map((p) => p.name);
+}
+
+/**
+ * Mappa "nome italiano normalizzato (solo lettere) -> slug PokéAPI inglese",
+ * per riconoscere i nomi Pokémon negli screenshot in italiano del gioco.
+ * Una sola query GraphQL per tutte le specie (language_id 8 = italiano),
+ * invece di una fetch per specie.
+ */
+async function fetchItalianNameMap() {
+  const query = `{
+    pokemon_v2_pokemonspecies(limit: 1100) {
+      pokemon_v2_pokemonspeciesnames(where: {language_id: {_eq: 8}}) { name }
+      pokemon_v2_pokemons(where: {is_default: {_eq: true}}) { name }
+    }
+  }`;
+
+  const res = await fetch(POKEAPI_GRAPHQL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+  if (!res.ok) return {};
+
+  const { data } = await res.json();
+  const map = {};
+  for (const species of data?.pokemon_v2_pokemonspecies || []) {
+    const itName = species.pokemon_v2_pokemonspeciesnames[0]?.name;
+    const slug = species.pokemon_v2_pokemons[0]?.name;
+    if (!itName || !slug) continue;
+    map[itName.toLowerCase().replace(/[^a-z]/g, "")] = slug;
+  }
+  return map;
 }
