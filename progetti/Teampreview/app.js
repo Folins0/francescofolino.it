@@ -20,6 +20,7 @@ let pendingMon = null; // Pokémon in attesa di conferma dopo un match esatto
 let suggestionCandidates = []; // possibili nomi corretti per il refuso corrente
 let suggestionIndex = 0; // candidato mostrato in questo momento
 let suggestionToken = 0; // invalida le fetch di suggerimento superate da un'azione più recente
+let editMode = false; // modalità "Modifica team" (punto 7): mostra il controllo per sostituire un Pokémon in uno slot
 
 const teamTabs = document.getElementById("team-tabs");
 const rosterGrid = document.getElementById("roster-grid");
@@ -40,6 +41,14 @@ const screenshot1Input = document.getElementById("screenshot-1");
 const screenshot2Input = document.getElementById("screenshot-2");
 const screenshotBuildBtn = document.getElementById("screenshot-build-btn");
 const screenshotFeedback = document.getElementById("screenshot-feedback");
+const editTeamBtn = document.getElementById("edit-team-btn");
+
+editTeamBtn.addEventListener("click", () => {
+  editMode = !editMode;
+  editTeamBtn.classList.toggle("active", editMode);
+  editTeamBtn.textContent = editMode ? "Fine modifica" : "Modifica team";
+  renderRoster();
+});
 
 function activeTeam() {
   return state.teams[state.activeTeamIndex];
@@ -72,6 +81,22 @@ function loadState() {
 
 function typeBadgeStyle(type) {
   return `background: var(--type-${type}, var(--muted));`;
+}
+
+// --- Testo dei tooltip hover (solo desktop, via CSS [data-tooltip]) ---
+
+function moveTooltipText(detail) {
+  const acc = detail.accuracy != null ? `${detail.accuracy}%` : "—";
+  const power = detail.power ?? "—";
+  return `Tipo: ${detail.type}\nDanno base: ${power}\nPrecisione: ${acc}${detail.effect ? `\n${detail.effect}` : ""}`;
+}
+
+function abilityTooltipText(detail) {
+  return detail.effect || "Nessuna descrizione disponibile.";
+}
+
+function itemTooltipText(detail) {
+  return detail.effect || "Nessuna descrizione disponibile.";
 }
 
 function renderTeamTabs() {
@@ -211,29 +236,47 @@ function renderRoster() {
 
     const abilityLine = document.createElement("div");
     abilityLine.className = "item-line";
-    abilityLine.textContent = mon.ability ? `Abilità: ${mon.ability.replace(/-/g, " ")}` : "Abilità: —";
+    if (mon.ability) {
+      abilityLine.textContent = `Abilità: ${mon.ability.replace(/-/g, " ")}`;
+      const detail = getCachedAbility(mon.ability);
+      if (detail) abilityLine.dataset.tooltip = abilityTooltipText(detail);
+      else if (detail === undefined) fetchAbilityDetail(mon.ability).then(() => renderRoster());
+    } else {
+      abilityLine.textContent = "Abilità: —";
+    }
     slot.appendChild(abilityLine);
 
     const itemLine = document.createElement("div");
     itemLine.className = "item-line";
-    itemLine.textContent = mon.item ? `Oggetto: ${mon.item.replace(/-/g, " ")}` : "Oggetto: —";
+    if (mon.item) {
+      itemLine.textContent = `Oggetto: ${mon.item.replace(/-/g, " ")}`;
+      const detail = getCachedItem(mon.item);
+      if (detail) itemLine.dataset.tooltip = itemTooltipText(detail);
+      else if (detail === undefined) fetchItemDetail(mon.item).then(() => renderRoster());
+    } else {
+      itemLine.textContent = "Oggetto: —";
+    }
     slot.appendChild(itemLine);
 
     const movesRow = document.createElement("div");
     movesRow.className = "moves-row";
     mon.moves.forEach((moveName) => {
-      const chip = document.createElement("span");
+      const chip = document.createElement("button");
+      chip.type = "button";
       chip.className = "move-chip";
+      chip.addEventListener("click", () => openStatsModal(mon));
       if (moveName) {
         const detail = getCachedMove(moveName);
         if (detail) {
           chip.style.cssText = `border-left-color: var(--type-${detail.type}, var(--muted));`;
+          chip.dataset.tooltip = moveTooltipText(detail);
         } else {
           fetchMoveDetail(moveName).then(() => renderRoster()).catch(() => {});
         }
-        chip.textContent = moveName.replace(/-/g, " ");
+        chip.textContent = moveDisplayName(moveName);
       } else {
-        chip.textContent = "—";
+        chip.title = "Clicca per assegnare una mossa";
+        chip.textContent = "+ Assegna mossa";
         chip.classList.add("empty-move");
       }
       movesRow.appendChild(chip);
@@ -246,6 +289,8 @@ function renderRoster() {
     statsBtn.textContent = "Statistiche";
     statsBtn.addEventListener("click", () => openStatsModal(mon));
     slot.appendChild(statsBtn);
+
+    if (editMode) slot.appendChild(buildReplaceControl(i));
 
     rosterGrid.appendChild(slot);
   }
@@ -260,6 +305,43 @@ function removeFromTeam(index) {
   saveState();
 }
 
+// Sostituisce in-place il Pokémon di uno slot (modalità "Modifica team",
+// punto 7): stessa posizione nel roster, niente rimuovi+ri-aggiungi in coda.
+function buildReplaceControl(index) {
+  const row = document.createElement("div");
+  row.className = "slot-replace";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = "Cambia Pokémon…";
+  input.setAttribute("list", "pokemon-names");
+  input.autocomplete = "off";
+  row.appendChild(input);
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = "Sostituisci";
+  btn.addEventListener("click", async () => {
+    const name = input.value.trim();
+    if (!name) return;
+    btn.disabled = true;
+    try {
+      const newMon = await fetchPokemon(name);
+      const oldName = activeTeam().mons[index].name;
+      activeTeam().mons[index] = newMon;
+      renderRoster();
+      saveState();
+      setFeedback(`${oldName} sostituito con ${newMon.name}.`);
+    } catch (err) {
+      setFeedback(err.message, true);
+      btn.disabled = false;
+    }
+  });
+  row.appendChild(btn);
+
+  return row;
+}
+
 // --- Modal "Statistiche": editor di mosse/oggetto/SP/IV/natura + stat finali ---
 
 const modalBackdrop = document.getElementById("modal-backdrop");
@@ -270,6 +352,16 @@ let statsModalMon = null;
 
 function clamp(v, lo, hi) {
   return Math.min(hi, Math.max(lo, v));
+}
+
+// Riusate sia dal modal Statistiche del roster sia dal pannello "spread
+// personalizzato" del calcolatore danno (punto 1).
+function natureOptionsHtml(selected) {
+  return Object.keys(NATURES).map((n) => `<option value="${n}" ${selected === n ? "selected" : ""}>${n}${NATURES[n].plus ? ` (+${STAT_LABELS[NATURES[n].plus]}/-${STAT_LABELS[NATURES[n].minus]})` : " (neutra)"}</option>`).join("");
+}
+
+function spIvGridHtml(prefix, values, max) {
+  return STAT_KEYS.map((k) => `<label>${STAT_LABELS[k]}<input type="number" min="0" max="${max}" step="1" data-${prefix}="${k}" value="${values[k]}"></label>`).join("");
 }
 
 function closeStatsModal() {
@@ -306,28 +398,31 @@ function renderStatsModal() {
           ${[0, 1, 2, 3].map((i) => `
             <select data-move-slot="${i}">
               <option value="">— nessuna —</option>
-              ${mon.learnset.slice().sort().map((name) => `<option value="${name}" ${mon.moves[i] === name ? "selected" : ""}>${name.replace(/-/g, " ")}</option>`).join("")}
+              ${mon.learnset.slice().sort().map((name) => `<option value="${name}" ${mon.moves[i] === name ? "selected" : ""}>${moveDisplayName(name)}</option>`).join("")}
             </select>
           `).join("")}
         </div>
+
+        <h4>Abilità</h4>
+        <input type="text" id="stats-ability-input" list="ability-names" autocomplete="off" placeholder="es. intimidate">
 
         <h4>Oggetto tenuto</h4>
         <input type="text" id="stats-item-input" list="item-names" autocomplete="off" placeholder="es. choice-specs">
 
         <h4>Natura</h4>
         <select id="stats-nature-select">
-          ${Object.keys(NATURES).map((n) => `<option value="${n}" ${mon.nature === n ? "selected" : ""}>${n}${NATURES[n].plus ? ` (+${STAT_LABELS[NATURES[n].plus]}/-${STAT_LABELS[NATURES[n].minus]})` : " (neutra)"}</option>`).join("")}
+          ${natureOptionsHtml(mon.nature)}
         </select>
       </section>
 
       <section class="stats-modal-section">
         <h4>SP <span class="sp-total" id="sp-total"></span></h4>
         <div class="sp-iv-grid">
-          ${STAT_KEYS.map((k) => `<label>${STAT_LABELS[k]}<input type="number" min="0" max="${MAX_SP_PER_STAT}" step="1" data-sp="${k}" value="${mon.sp[k]}"></label>`).join("")}
+          ${spIvGridHtml("sp", mon.sp, MAX_SP_PER_STAT)}
         </div>
         <h4>IV</h4>
         <div class="sp-iv-grid">
-          ${STAT_KEYS.map((k) => `<label>${STAT_LABELS[k]}<input type="number" min="0" max="31" data-iv="${k}" value="${mon.iv[k]}"></label>`).join("")}
+          ${spIvGridHtml("iv", mon.iv, 31)}
         </div>
       </section>
     </div>
@@ -341,9 +436,11 @@ function renderStatsModal() {
     </table>
   `;
 
-  // Valore del campo testo oggetto impostato via .value (mai via HTML), il
-  // testo libero dell'utente non deve mai finire dentro un template innerHTML.
+  // Valore dei campi testo (oggetto/abilità) impostato via .value (mai via
+  // HTML), il testo libero dell'utente non deve mai finire dentro un
+  // template innerHTML.
   statsModalBody.querySelector("#stats-item-input").value = mon.item;
+  statsModalBody.querySelector("#stats-ability-input").value = mon.ability;
 
   wireStatsModalEvents();
   updateFinalStats();
@@ -366,6 +463,12 @@ function wireStatsModalEvents() {
 
   statsModalBody.querySelector("#stats-item-input").addEventListener("input", (e) => {
     mon.item = e.target.value;
+    renderRoster();
+    saveState();
+  });
+
+  statsModalBody.querySelector("#stats-ability-input").addEventListener("input", (e) => {
+    mon.ability = e.target.value;
     renderRoster();
     saveState();
   });
@@ -428,6 +531,65 @@ const dmgMoveSelect = document.getElementById("dmg-move-select");
 const dmgDefenderInput = document.getElementById("dmg-defender-input");
 const dmgCalcBtn = document.getElementById("dmg-calc-btn");
 const dmgResult = document.getElementById("dmg-result");
+const dmgDefenderCustom = document.getElementById("dmg-defender-custom");
+const dmgDefenderNature = document.getElementById("dmg-defender-nature");
+const dmgDefenderSp = document.getElementById("dmg-defender-sp");
+const dmgDefenderIv = document.getElementById("dmg-defender-iv");
+
+// Spread difensivo dell'avversario nel calcolatore danno (punto 1): "auto"
+// calcola un range min-max sugli estremi possibili di SP/natura, "custom"
+// usa lo spread scelto qui dall'utente.
+const dmgDefenderConfig = {
+  mode: "auto",
+  nature: "Hardy",
+  sp: { hp: 0, attack: 0, defense: 0, "special-attack": 0, "special-defense": 0, speed: 0 },
+  iv: { hp: 31, attack: 31, defense: 31, "special-attack": 31, "special-defense": 31, speed: 31 },
+};
+
+dmgDefenderNature.innerHTML = natureOptionsHtml(dmgDefenderConfig.nature);
+dmgDefenderSp.innerHTML = spIvGridHtml("sp", dmgDefenderConfig.sp, MAX_SP_PER_STAT);
+dmgDefenderIv.innerHTML = spIvGridHtml("iv", dmgDefenderConfig.iv, 31);
+
+dmgDefenderNature.addEventListener("change", (e) => { dmgDefenderConfig.nature = e.target.value; });
+
+dmgDefenderSp.querySelectorAll("[data-sp]").forEach((input) => {
+  input.addEventListener("input", () => {
+    const key = input.dataset.sp;
+    let v = clamp(parseInt(input.value, 10) || 0, 0, MAX_SP_PER_STAT);
+    const others = STAT_KEYS.reduce((sum, k) => sum + (k === key ? 0 : dmgDefenderConfig.sp[k]), 0);
+    if (others + v > MAX_SP_TOTAL) v = Math.max(0, MAX_SP_TOTAL - others);
+    dmgDefenderConfig.sp[key] = v;
+    input.value = v;
+  });
+});
+
+dmgDefenderIv.querySelectorAll("[data-iv]").forEach((input) => {
+  input.addEventListener("input", () => {
+    const v = clamp(parseInt(input.value, 10) || 0, 0, 31);
+    dmgDefenderConfig.iv[input.dataset.iv] = v;
+    input.value = v;
+  });
+});
+
+document.querySelectorAll('input[name="dmg-defender-mode"]').forEach((radio) => {
+  radio.addEventListener("change", () => {
+    dmgDefenderConfig.mode = radio.value;
+    dmgDefenderCustom.classList.toggle("hidden", radio.value !== "custom");
+  });
+});
+
+// Nome della prima natura che aumenta/diminuisce una data stat (o "Hardy" se
+// nessuna): usata per gli estremi del range automatico.
+function natureFor(statKey, effect) {
+  for (const name in NATURES) {
+    if (NATURES[name][effect] === statKey) return name;
+  }
+  return "Hardy";
+}
+
+function effectivenessNote(eff) {
+  return eff === 0 ? " (immune)" : eff > 1 ? " (superefficace)" : eff < 1 ? " (poco efficace)" : "";
+}
 
 function buildTypeGroup(label, types, cls) {
   const wrap = document.createElement("div");
@@ -526,7 +688,7 @@ function renderMoveOptions() {
   const mon = mons[Number(dmgAttackerSelect.value)];
   const moves = mon ? mon.moves.filter(Boolean) : [];
   dmgMoveSelect.innerHTML = moves.length
-    ? moves.map((m) => `<option value="${m}">${m.replace(/-/g, " ")}</option>`).join("")
+    ? moves.map((m) => `<option value="${m}">${moveDisplayName(m)}</option>`).join("")
     : `<option value="">Nessuna mossa assegnata</option>`;
 }
 
@@ -554,29 +716,44 @@ dmgCalcBtn.addEventListener("click", async () => {
     const [move, defender] = await Promise.all([fetchMoveDetail(moveName), fetchPokemon(defenderName)]);
 
     if (!move.power) {
-      setDmgResult(`${move.name.replace(/-/g, " ")} è una mossa di stato: non infligge danno diretto.`, true);
+      setDmgResult(`${moveDisplayName(move.name)} è una mossa di stato: non infligge danno diretto.`, true);
       return;
     }
 
     const atkKey = move.damageClass === "special" ? "special-attack" : "attack";
     const defKey = move.damageClass === "special" ? "special-defense" : "defense";
 
-    // L'avversario non è nel roster e non ha SP/IV/natura propri: spread
-    // neutro di default (IV 31, SP 0, natura neutra), vedi nota in UI.
     const atkStat = calcStat(atkKey, attacker.stats[atkKey], attacker.iv[atkKey], attacker.sp[atkKey], LEVEL, attacker.nature);
-    const defStat = calcStat(defKey, defender.stats[defKey], 31, 0, LEVEL, "Hardy");
-    const defHp = calcStat("hp", defender.stats.hp, 31, 0, LEVEL, "Hardy");
 
-    const result = calcDamage({
-      level: LEVEL, power: move.power, atk: atkStat, def: defStat,
-      attackerTypes: attacker.types, moveType: move.type, defenderTypes: defender.types,
-    });
+    let minPct, maxPct, eff;
 
-    const minPct = Math.min(100, Math.round((result.min / defHp) * 1000) / 10);
-    const maxPct = Math.min(100, Math.round((result.max / defHp) * 1000) / 10);
-    const effNote = result.eff === 0 ? " (immune)" : result.eff > 1 ? " (superefficace)" : result.eff < 1 ? " (poco efficace)" : "";
+    if (dmgDefenderConfig.mode === "custom") {
+      const defStat = calcStat(defKey, defender.stats[defKey], dmgDefenderConfig.iv[defKey], dmgDefenderConfig.sp[defKey], LEVEL, dmgDefenderConfig.nature);
+      const defHp = calcStat("hp", defender.stats.hp, dmgDefenderConfig.iv.hp, dmgDefenderConfig.sp.hp, LEVEL, dmgDefenderConfig.nature);
+      const result = calcDamage({
+        level: LEVEL, power: move.power, atk: atkStat, def: defStat,
+        attackerTypes: attacker.types, moveType: move.type, defenderTypes: defender.types,
+      });
+      minPct = Math.min(100, Math.round((result.min / defHp) * 1000) / 10);
+      maxPct = Math.min(100, Math.round((result.max / defHp) * 1000) / 10);
+      eff = result.eff;
+    } else {
+      // Range automatico: estremi di bulk possibili (IV 31 in entrambi i
+      // casi, SP e natura al minimo o al massimo sulla stat difensiva
+      // rilevante), HP a SP 0 come base percentuale in entrambi i casi.
+      const minDef = calcStat(defKey, defender.stats[defKey], 31, 0, LEVEL, natureFor(defKey, "minus"));
+      const maxDef = calcStat(defKey, defender.stats[defKey], 31, MAX_SP_PER_STAT, LEVEL, natureFor(defKey, "plus"));
+      const defHp = calcStat("hp", defender.stats.hp, 31, 0, LEVEL, "Hardy");
 
-    setDmgResult(`${attacker.name} usa ${move.name.replace(/-/g, " ")} contro ${defender.name}: ${minPct}%–${maxPct}% HP${effNote}.`);
+      const worstCase = calcDamage({ level: LEVEL, power: move.power, atk: atkStat, def: minDef, attackerTypes: attacker.types, moveType: move.type, defenderTypes: defender.types });
+      const bestCase = calcDamage({ level: LEVEL, power: move.power, atk: atkStat, def: maxDef, attackerTypes: attacker.types, moveType: move.type, defenderTypes: defender.types });
+
+      minPct = Math.min(100, Math.round((bestCase.min / defHp) * 1000) / 10);
+      maxPct = Math.min(100, Math.round((worstCase.max / defHp) * 1000) / 10);
+      eff = worstCase.eff; // dipende solo dai tipi, uguale in entrambi i casi
+    }
+
+    setDmgResult(`${attacker.name} usa ${moveDisplayName(move.name)} contro ${defender.name}: ${minPct}%–${maxPct}% HP${effectivenessNote(eff)}.`);
   } catch (err) {
     setDmgResult(err.message || "Errore nel calcolo del danno.", true);
   } finally {
@@ -821,6 +998,12 @@ let nameLookup = {};
 let moveLookup = {};
 let itemLookup = {};
 let abilityLookup = {};
+
+// slug inglese mossa -> nome italiano ufficiale, per la UI (punto 4).
+const moveNameIT = {};
+function moveDisplayName(moveName) {
+  return moveNameIT[moveName] || moveName.replace(/-/g, " ");
+}
 
 function normalizeOcrText(s) {
   return s.toLowerCase().replace(/[^a-z]/g, "");
@@ -1370,9 +1553,14 @@ fetchPokemonNames().then((names) => {
 fetchItalianNameMap().then((map) => Object.assign(nameLookup, map)).catch(() => {});
 
 fetchMoveNames().then((names) => addToLookup(moveLookup, names));
-fetchItalianMoveMap().then((map) => Object.assign(moveLookup, map)).catch(() => {});
+fetchItalianMoveMap(moveNameIT).then((map) => Object.assign(moveLookup, map)).then(renderRoster).catch(() => {});
 
-fetchAbilityNames().then((names) => addToLookup(abilityLookup, names));
+fetchAbilityNames().then((names) => {
+  addToLookup(abilityLookup, names);
+  document.getElementById("ability-names").innerHTML = names
+    .map((n) => `<option value="${n}"></option>`)
+    .join("");
+});
 fetchItalianAbilityMap().then((map) => Object.assign(abilityLookup, map)).catch(() => {});
 
 fetchItemNames().then((names) => {

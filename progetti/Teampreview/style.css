@@ -262,8 +262,47 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 
 .roster-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1rem; }
 .roster-header h2 { font-family: var(--font-display); font-size: 1.3rem; margin: 0; }
+.roster-header-actions { display: flex; align-items: baseline; gap: 0.9rem; }
 .roster-count { font-family: var(--font-mono); color: var(--muted); font-size: 0.9rem; }
 #roster-count { color: var(--accent); }
+
+.edit-team-btn {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.edit-team-btn:hover { border-color: var(--accent); color: var(--accent); }
+.edit-team-btn.active { border-color: var(--accent); color: #1a1500; background: var(--accent); }
+
+.slot-replace { display: flex; gap: 0.4rem; margin-top: 0.7rem; }
+.slot-replace input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+}
+.slot-replace button {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.slot-replace button:hover { border-color: var(--accent); color: var(--accent); }
 
 .roster-grid {
   display: grid;
@@ -363,12 +402,17 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   font-size: 0.68rem;
   color: var(--text);
   background: var(--surface-raised);
+  border: none;
   border-left: 3px solid var(--muted);
   border-radius: 4px;
   padding: 0.2rem 0.45rem;
   text-transform: capitalize;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
 }
-.move-chip.empty-move { color: var(--muted); }
+.move-chip:hover { outline: 1px solid var(--accent); }
+.move-chip.empty-move { color: var(--muted); font-style: italic; }
 
 .stats-btn {
   margin-top: 0.8rem;
@@ -384,6 +428,34 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   align-self: flex-start;
 }
 .stats-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* --- Tooltip hover, solo desktop (punto 3): CSS puro via [data-tooltip],
+   :hover non scatta in modo affidabile su touch quindi non serve rilevare
+   il device. --- */
+[data-tooltip] { position: relative; }
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  width: max-content;
+  max-width: 260px;
+  white-space: pre-line;
+  background: var(--surface-raised);
+  border: 1px solid var(--accent-dim);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+@media (hover: none) {
+  [data-tooltip]:hover::after { display: none; }
+}
 
 /* --- Modal statistiche --- */
 
@@ -513,6 +585,11 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 .matchup-note { color: var(--muted); font-size: 0.8rem; margin: 0 0 0.8rem; }
 
 .damage-calc { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1.2rem 1.4rem; }
+.dmg-defender-mode { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-top: 0.8rem; font-size: 0.82rem; color: var(--muted); }
+.dmg-defender-mode label { display: flex; align-items: center; gap: 0.4rem; cursor: pointer; }
+.dmg-defender-custom { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--line); }
+.dmg-defender-custom.hidden { display: none; }
+.dmg-defender-custom select { max-width: 260px; }
 .damage-calc-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 .damage-calc-row select, .damage-calc-row input {
   background: var(--surface-raised);

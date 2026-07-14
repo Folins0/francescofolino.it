@@ -29,6 +29,10 @@ async function fetchPokemon(name) {
 
   const data = await res.json();
 
+  if (!CHAMPIONS_ROSTER.has(data.name)) {
+    throw new Error(`${data.name} non è disponibile in Pokémon Champions.`);
+  }
+
   return {
     id: data.id,
     name: data.name,
@@ -46,7 +50,7 @@ async function fetchPokemon(name) {
     learnset: data.moves.map((m) => m.move.name),
     moves: [null, null, null, null],
     item: "",
-    ability: "", // sola lettura, popolata dall'import screenshot: nessun editor nel roster
+    ability: "", // editabile dal modal Statistiche del roster, o popolata dall'import screenshot
     sp: { hp: 0, attack: 0, defense: 0, "special-attack": 0, "special-defense": 0, speed: 0 },
     iv: { hp: 31, attack: 31, defense: 31, "special-attack": 31, "special-defense": 31, speed: 31 },
     nature: "Hardy",
@@ -61,7 +65,18 @@ function moveCacheKey(name) {
   return name.trim().toLowerCase().replace(/\s+/g, "-");
 }
 
-/** Dettaglio di una mossa (tipo, potenza, categoria fisica/speciale/status). */
+/**
+ * Testo italiano (flavor text) di un'entità, se presente tra le sue voci
+ * multilingua. Il campo testo si chiama "flavor_text" per mosse/abilità ma
+ * "text" per gli strumenti (item) — stessa struttura a parte il nome campo.
+ */
+function pickFlavorText(entries, lang) {
+  const entry = entries?.find((e) => e.language.name === lang);
+  const text = entry?.flavor_text ?? entry?.text;
+  return text ? text.replace(/[\n\f]/g, " ") : null;
+}
+
+/** Dettaglio di una mossa (tipo, potenza, precisione, categoria, effetto — per tooltip, punto 3). */
 async function fetchMoveDetail(name) {
   const key = moveCacheKey(name);
   if (moveCache[key]) return moveCache[key];
@@ -74,7 +89,11 @@ async function fetchMoveDetail(name) {
     name: data.name,
     type: data.type.name,
     power: data.power, // null per le mosse di stato
+    accuracy: data.accuracy, // null = non può fallire
     damageClass: data.damage_class.name, // physical | special | status
+    effect: pickFlavorText(data.flavor_text_entries, "it")
+      || data.effect_entries?.find((e) => e.language.name === "en")?.short_effect
+      || "",
   };
   moveCache[key] = move;
   return move;
@@ -84,6 +103,63 @@ async function fetchMoveDetail(name) {
 function getCachedMove(name) {
   if (!name) return null;
   return moveCache[moveCacheKey(name)] || null;
+}
+
+// Cache abilità/oggetti per i tooltip (punto 3): la chiave viene salvata anche
+// quando l'entità non esiste (valore null), altrimenti un testo libero non
+// valido (es. il campo "oggetto" mentre l'utente sta ancora scrivendo)
+// scatenerebbe una fetch fallita a ogni ridisegno.
+const abilityCache = {};
+const itemCache = {};
+
+/** Dettaglio di un'abilità (descrizione), o null se non trovata. */
+async function fetchAbilityDetail(name) {
+  const key = moveCacheKey(name);
+  if (key in abilityCache) return abilityCache[key];
+
+  const res = await fetch(`${POKEAPI_BASE}/ability/${key}`);
+  if (!res.ok) { abilityCache[key] = null; return null; }
+  const data = await res.json();
+
+  const ability = {
+    name: data.name,
+    effect: pickFlavorText(data.flavor_text_entries, "it")
+      || data.effect_entries?.find((e) => e.language.name === "en")?.short_effect
+      || "",
+  };
+  abilityCache[key] = ability;
+  return ability;
+}
+
+function getCachedAbility(name) {
+  if (!name) return null;
+  const key = moveCacheKey(name);
+  return key in abilityCache ? abilityCache[key] : undefined;
+}
+
+/** Dettaglio di uno strumento tenuto (effetto), o null se non trovato. */
+async function fetchItemDetail(name) {
+  const key = moveCacheKey(name);
+  if (key in itemCache) return itemCache[key];
+
+  const res = await fetch(`${POKEAPI_BASE}/item/${key}`);
+  if (!res.ok) { itemCache[key] = null; return null; }
+  const data = await res.json();
+
+  const item = {
+    name: data.name,
+    effect: pickFlavorText(data.flavor_text_entries, "it")
+      || data.effect_entries?.find((e) => e.language.name === "en")?.short_effect
+      || "",
+  };
+  itemCache[key] = item;
+  return item;
+}
+
+function getCachedItem(name) {
+  if (!name) return null;
+  const key = moveCacheKey(name);
+  return key in itemCache ? itemCache[key] : undefined;
 }
 
 /** Lista nomi oggetti (per l'autocomplete del campo "oggetto tenuto"). */
@@ -102,7 +178,7 @@ async function fetchPokemonNames() {
   const res = await fetch(`${POKEAPI_BASE}/pokemon?limit=2000`);
   if (!res.ok) return [];
   const data = await res.json();
-  return data.results.map((p) => p.name);
+  return data.results.map((p) => p.name).filter((n) => CHAMPIONS_ROSTER.has(n));
 }
 
 /**
@@ -158,8 +234,11 @@ async function fetchAbilityNames() {
  * entità semplici (mossa/oggetto/abilità) dove lo slug inglese è il campo
  * "name" dell'entità stessa (a differenza delle specie, che hanno
  * l'indirezione specie -> forma di default, vedi fetchItalianNameMap).
+ * Se passato, `displayMap` viene popolato in parallelo con la direzione
+ * inversa "slug inglese -> nome italiano" (per mostrarlo in UI), dalla
+ * stessa risposta, senza una seconda fetch.
  */
-async function fetchItalianMap(entityTable, namesField, limit) {
+async function fetchItalianMap(entityTable, namesField, limit, displayMap) {
   const query = `{
     ${entityTable}(limit: ${limit}) {
       name
@@ -180,10 +259,11 @@ async function fetchItalianMap(entityTable, namesField, limit) {
     const itName = entity[namesField][0]?.name;
     if (!itName || !entity.name) continue;
     map[itName.toLowerCase().replace(/[^a-z]/g, "")] = entity.name;
+    if (displayMap) displayMap[entity.name] = itName;
   }
   return map;
 }
 
-const fetchItalianMoveMap = () => fetchItalianMap("pokemon_v2_move", "pokemon_v2_movenames", 1000);
+const fetchItalianMoveMap = (displayMap) => fetchItalianMap("pokemon_v2_move", "pokemon_v2_movenames", 1000, displayMap);
 const fetchItalianItemMap = () => fetchItalianMap("pokemon_v2_item", "pokemon_v2_itemnames", 2200);
 const fetchItalianAbilityMap = () => fetchItalianMap("pokemon_v2_ability", "pokemon_v2_abilitynames", 400);

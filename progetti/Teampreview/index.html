@@ -50,16 +50,6 @@
       <!-- Tab dei team generati da app.js -->
     </div>
 
-    <div class="team-code-panel">
-      <label for="team-code-input" class="search-label">Codice team TeamPreview (formato nostro, non il codice ufficiale del gioco)</label>
-      <div class="search-row">
-        <input type="text" id="team-code-input" placeholder="es. ND-K7-3F…" autocomplete="off">
-        <button id="team-code-import-btn" type="button">Importa come nuovo team</button>
-      </div>
-      <button id="team-code-export-btn" type="button" class="team-code-export">Copia codice del team attivo</button>
-      <p id="team-code-feedback" class="search-feedback" aria-live="polite"></p>
-    </div>
-
     <div class="screenshot-panel">
       <label class="search-label">Componi un team da screenshot della schermata team preview</label>
       <div class="screenshot-inputs">
@@ -72,7 +62,10 @@
 
     <div class="roster-header">
       <h2>Roster</h2>
-      <span class="roster-count"><span id="roster-count">0</span>/6</span>
+      <div class="roster-header-actions">
+        <button id="edit-team-btn" type="button" class="edit-team-btn">Modifica team</button>
+        <span class="roster-count"><span id="roster-count">0</span>/6</span>
+      </div>
     </div>
     <div class="roster-grid" id="roster-grid">
       <!-- Gli slot vengono generati da app.js -->
@@ -95,9 +88,19 @@
       <div id="matchup-uncovered" class="matchup-group-list"></div>
     </div>
 
+    <div class="team-code-panel">
+      <label for="team-code-input" class="search-label">Codice team TeamPreview (formato nostro, non il codice ufficiale del gioco)</label>
+      <div class="search-row">
+        <input type="text" id="team-code-input" placeholder="es. ND-K7-3F…" autocomplete="off">
+        <button id="team-code-import-btn" type="button">Importa come nuovo team</button>
+      </div>
+      <button id="team-code-export-btn" type="button" class="team-code-export">Copia codice del team attivo</button>
+      <p id="team-code-feedback" class="search-feedback" aria-live="polite"></p>
+    </div>
+
     <div class="damage-calc">
       <h3>Calcolatore danno</h3>
-      <p class="matchup-note">L'avversario non fa parte del roster: si assume IV 31/SP 0/natura neutra, Lv.50.</p>
+      <p class="matchup-note">L'avversario non fa parte del roster: scegli come stimarne lo spread difensivo, Lv.50.</p>
       <div class="damage-calc-row">
         <select id="dmg-attacker-select"></select>
         <select id="dmg-move-select"></select>
@@ -105,12 +108,28 @@
         <input type="text" id="dmg-defender-input" list="pokemon-names" placeholder="Pokémon avversario" autocomplete="off">
         <button id="dmg-calc-btn" type="button">Calcola</button>
       </div>
+
+      <div class="dmg-defender-mode">
+        <label><input type="radio" name="dmg-defender-mode" value="auto" checked> Range automatico (min–max su tutti gli SP possibili)</label>
+        <label><input type="radio" name="dmg-defender-mode" value="custom"> Spread personalizzato</label>
+      </div>
+
+      <div id="dmg-defender-custom" class="stats-modal-section dmg-defender-custom hidden">
+        <h4>Natura avversario</h4>
+        <select id="dmg-defender-nature"></select>
+        <h4>SP avversario</h4>
+        <div class="sp-iv-grid" id="dmg-defender-sp"></div>
+        <h4>IV avversario</h4>
+        <div class="sp-iv-grid" id="dmg-defender-iv"></div>
+      </div>
+
       <p id="dmg-result" class="search-feedback" aria-live="polite"></p>
     </div>
   </section>
 </main>
 
 <datalist id="item-names"></datalist>
+<datalist id="ability-names"></datalist>
 
 <div id="modal-backdrop" class="modal-backdrop hidden"></div>
 <div id="stats-modal" class="stats-modal hidden" role="dialog" aria-modal="true" aria-label="Statistiche Pokémon">
@@ -123,6 +142,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="champions-roster.js"></script>
 <script src="pokeapi.js"></script>
 <script src="damage.js"></script>
 <script src="app.js"></script>
