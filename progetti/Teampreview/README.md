@@ -7,7 +7,8 @@ mostrando sprite, tipi e stat base. Si possono gestire fino a 6 team in
 parallelo, ognuno con il proprio roster indipendente, condividerli tramite
 un codice testuale generato dall'app stessa (vedi nota sotto), oppure
 comporli automaticamente caricando 1-2 screenshot della schermata "team
-preview" del gioco (OCR client-side, riconosce le 6 specie).
+preview" del gioco (Gemini vision + OCR client-side, riconosce le 6 specie:
+vedi nota sotto).
 
 Ogni Pokémon del roster può avere fino a 4 mosse, un oggetto tenuto, EV/IV
 e natura (pannello "Statistiche" su ogni scheda), con stat finali calcolate
@@ -29,14 +30,37 @@ python3 -m http.server 8000
 
 Poi apri `http://localhost:8000` nel browser.
 
+### Import da screenshot: Gemini + OCR
+
+Quando carichi lo screenshot "Info Pokémon", l'app prova prima a farlo
+analizzare da Gemini 1.5 Flash (`server.js` + `ai-vision.js`), poi usa i 6
+nomi suggeriti come rosa ristretta per il fuzzy match del nome nell'OCR
+locale (Tesseract), invece di cercare su tutto il pokedex: più stabile sui
+ritagli rumorosi. Se il backend non è in esecuzione o non risponde, l'app
+degrada da sola all'OCR puro di prima (nessuna funzionalità persa).
+
+Per abilitarlo, in un terminale separato:
+
+```bash
+cd Teampreview
+export GEMINI_API_KEY=la-tua-chiave   # su Windows: set GEMINI_API_KEY=...
+node server.js
+```
+
+Ascolta su `http://localhost:8787`; l'URL è in `AI_VISION_ENDPOINT` in cima
+ad `app.js`, da aggiornare se il backend viene deployato altrove.
+
 ## Struttura
 
 ```
 Teampreview/
-├── index.html      # markup della pagina
-├── style.css       # token di design (colori, tipografia, layout)
-├── pokeapi.js      # wrapper attorno alle chiamate a PokéAPI
-├── damage.js       # matrice tipi, nature, calcolo stat finali e danno
+├── index.html        # markup della pagina
+├── style.css         # token di design (colori, tipografia, layout)
+├── pokeapi.js         # wrapper attorno alle chiamate a PokéAPI
+├── damage.js          # matrice tipi, nature, calcolo stat finali e danno
+├── ai-vision.js        # analyzeScreenshot(): chiamata a Gemini 1.5 Flash + cache
+├── ai-vision.test.js    # self-check per ai-vision.js (node --test)
+├── server.js            # backend minimo, espone POST /api/analyze-screenshot
 ├── app.js          # stato dei team, rendering, gestione ricerca, modal, matchup
 └── README.md
 ```
