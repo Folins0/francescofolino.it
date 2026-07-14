@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeamPreview — Regulation M-B</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">Team</span>
+    <span class="brand-name">Preview</span>
+  </div>
+  <div class="reg-badge">Regulation M-B · Doubles</div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Costruisci il roster.<br>Leggi il matchup.</h1>
+    <p class="hero-sub">Team builder per Pokémon Champions VGC. Cerca un Pokémon, aggiungilo al roster, controlla tipi e stat base — senza aprire dieci schede diverse.</p>
+  </section>
+
+  <section class="search-panel">
+    <label for="search-input" class="search-label">Cerca Pokémon</label>
+    <div class="search-row">
+      <input type="text" id="search-input" list="pokemon-names" placeholder="es. flapple, banette, incineroar…" autocomplete="off">
+      <datalist id="pokemon-names"></datalist>
+      <button id="search-btn">Aggiungi al roster</button>
+    </div>
+    <p id="search-feedback" class="search-feedback" aria-live="polite"></p>
+    <div id="confirm-box" class="confirm-box hidden">
+      <img id="confirm-sprite" alt="">
+      <div class="confirm-text">
+        <span id="confirm-name"></span>
+        <p>È questo il Pokémon che cercavi?</p>
+      </div>
+      <div class="confirm-actions">
+        <button id="confirm-yes" type="button">Sì, aggiungi</button>
+        <button id="confirm-no" type="button">No</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="roster">
+    <div class="team-tabs" id="team-tabs">
+      <!-- Tab dei team generati da app.js -->
+    </div>
+    <div class="roster-header">
+      <h2>Roster</h2>
+      <span class="roster-count"><span id="roster-count">0</span>/6</span>
+    </div>
+    <div class="roster-grid" id="roster-grid">
+      <!-- Gli slot vengono generati da app.js -->
+    </div>
+  </section>
+</main>
+
+<footer class="page-footer">
+  Dati Pokémon forniti da <a href="https://pokeapi.co" target="_blank" rel="noopener">PokéAPI</a>. Fase 1 — nessun salvataggio, il roster si azzera al refresh.
+</footer>
+
+<script src="pokeapi.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
