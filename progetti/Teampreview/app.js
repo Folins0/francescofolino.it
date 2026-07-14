@@ -802,10 +802,10 @@ teamCodeImportBtn.addEventListener("click", async () => {
 // gestiti dal roster, quindi non proviamo a estrarli.
 //
 // Layout screenshot: griglia 2 colonne x 3 righe (6 schede viola), nome
-// specie sempre in alto a sinistra di ogni scheda, testo chiaro su sfondo
-// viola. Invece di fare OCR sull'intera immagine (troppo rumore da abilità/
-// mosse/statistiche) ritagliamo la zona nome di ogni scheda e la leggiamo
-// separatamente.
+// specie sempre in alto a sinistra di ogni scheda, testo scuro in grassetto
+// su sfondo viola/lavanda. Invece di fare OCR sull'intera immagine (troppo
+// rumore da abilità/mosse/statistiche) ritagliamo la zona nome di ogni
+// scheda e la leggiamo separatamente.
 function setScreenshotFeedback(message, isError = false) {
   screenshotFeedback.textContent = message;
   screenshotFeedback.classList.toggle("error", isError);
@@ -858,49 +858,93 @@ function loadImage(file) {
   });
 }
 
-// Le schede hanno testo chiaro su sfondo viola: rendiamo i pixel chiari
-// (il nome) neri e il resto bianco, il contrasto che Tesseract legge meglio.
-function binarizeLightTextOnDark(ctx, w, h) {
+// Il nome è testo scuro in grassetto, lo sfondo scheda è viola/lavanda
+// chiaro: la polarità (chi è "inchiostro" e chi è "sfondo") può comunque
+// variare con luminosità/tema dello screenshot, quindi non la fissiamo a
+// priori. Sogliamo sulla luminosità media del ritaglio e assumiamo che il
+// testo sia la classe minoritaria di pixel (poco inchiostro, molto sfondo),
+// poi la portiamo a nero su bianco: il contrasto che Tesseract legge meglio.
+function binarizeNameCrop(ctx, w, h) {
   const imgData = ctx.getImageData(0, 0, w, h);
   const d = imgData.data;
-  for (let i = 0; i < d.length; i += 4) {
+  const n = d.length / 4;
+  const lums = new Float32Array(n);
+  let sum = 0;
+  for (let i = 0, p = 0; i < d.length; i += 4, p++) {
     const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-    const v = lum > 150 ? 0 : 255;
+    lums[p] = lum;
+    sum += lum;
+  }
+  const mean = sum / n;
+
+  let darkCount = 0;
+  for (let p = 0; p < n; p++) if (lums[p] < mean) darkCount++;
+  const textIsDark = darkCount <= n - darkCount;
+
+  for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+    const isDarkPixel = lums[p] < mean;
+    const isText = textIsDark ? isDarkPixel : !isDarkPixel;
+    const v = isText ? 0 : 255;
     d[i] = d[i + 1] = d[i + 2] = v;
   }
   ctx.putImageData(imgData, 0, 0);
 }
 
-// ponytail: frazioni approssimate, relative a ogni cella della griglia, di
-// dove compare il nome (alto-sinistra della scheda). Da tarare su uno
-// screenshot reale se il gioco cambia layout o risoluzione.
-const NAME_CROP = { left: 0.04, right: 0.98, top: 0.04, bottom: 0.3 };
-const CROP_SCALE = 2; // upscale prima dell'OCR, il testo piccolo si legge meglio ingrandito
+// Regioni nome (frazioni dell'immagine intera), tarate su uno screenshot
+// 3088x1440 della tab "Info Pokémon" di Pokémon Champions: griglia 2 colonne
+// x 3 righe di schede, nome in grassetto in alto a sinistra di ogni scheda.
+// In frazioni così restano valide su screenshot di risoluzione diversa ma
+// stesso layout/aspect ratio. Da ritarare se il gioco cambia UI.
+const NAME_REGION_COLS = [
+  { left: 250 / 3088, right: 560 / 3088 },
+  { left: 820 / 3088, right: 1130 / 3088 },
+];
+const NAME_ROW_TOP = 170 / 1440;
+const NAME_ROW_BOTTOM = 620 / 1440;
+const NAME_ROWS = 3;
+const CROP_SCALE = 3; // upscale prima dell'OCR, il testo piccolo si legge meglio ingrandito
 
 function cropNameRegions(img) {
-  const cols = 2;
-  const rows = 3;
-  const cellW = img.naturalWidth / cols;
-  const cellH = img.naturalHeight / rows;
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  const rowH = (NAME_ROW_BOTTOM - NAME_ROW_TOP) / NAME_ROWS;
   const canvases = [];
 
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const sx = c * cellW + NAME_CROP.left * cellW;
-      const sy = r * cellH + NAME_CROP.top * cellH;
-      const sw = (NAME_CROP.right - NAME_CROP.left) * cellW;
-      const sh = (NAME_CROP.bottom - NAME_CROP.top) * cellH;
+  for (let r = 0; r < NAME_ROWS; r++) {
+    const top = NAME_ROW_TOP + r * rowH;
+    for (const col of NAME_REGION_COLS) {
+      const sx = col.left * w;
+      const sy = top * h;
+      const sw = (col.right - col.left) * w;
+      const sh = rowH * h;
 
       const canvas = document.createElement("canvas");
       canvas.width = sw * CROP_SCALE;
       canvas.height = sh * CROP_SCALE;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-      binarizeLightTextOnDark(ctx, canvas.width, canvas.height);
+      binarizeNameCrop(ctx, canvas.width, canvas.height);
       canvases.push(canvas);
     }
   }
   return canvases;
+}
+
+// Worker Tesseract riutilizzato tra uno screenshot e l'altro (crearne uno
+// per ritaglio sarebbe molto più lento). Whitelist solo lettere e PSM
+// "riga singola": i ritagli-nome non contengono numeri né altre righe.
+let ocrWorkerPromise = null;
+async function getOcrWorker() {
+  if (!ocrWorkerPromise) {
+    ocrWorkerPromise = Tesseract.createWorker("eng").then(async (worker) => {
+      await worker.setParameters({
+        tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ",
+        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+      });
+      return worker;
+    });
+  }
+  return ocrWorkerPromise;
 }
 
 screenshotBuildBtn.addEventListener("click", async () => {
@@ -918,11 +962,12 @@ screenshotBuildBtn.addEventListener("click", async () => {
   setScreenshotFeedback("Leggo le immagini… la prima volta scarica il modulo OCR, può richiedere qualche secondo.");
 
   try {
+    const worker = await getOcrWorker();
     const speciesNames = [];
     for (const file of files) {
       const img = await loadImage(file);
       for (const canvas of cropNameRegions(img)) {
-        const { data } = await Tesseract.recognize(canvas, "eng");
+        const { data } = await worker.recognize(canvas);
         const match = closestSpeciesForCrop(data.text);
         if (match && !speciesNames.includes(match)) speciesNames.push(match);
       }
