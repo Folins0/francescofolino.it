@@ -7,8 +7,13 @@ const MAX_TEAMS = 6; // team creabili in totale
 
 let teams = [{ name: "Team 1", mons: [] }];
 let activeTeamIndex = 0;
+const MAX_SUGGESTIONS = 5; // tentativi massimi quando il nome è scritto male
+
 let allNames = []; // tutti i nomi Pokémon, per riconoscere una corrispondenza esatta
 let pendingMon = null; // Pokémon in attesa di conferma dopo un match esatto
+let suggestionCandidates = []; // possibili nomi corretti per il refuso corrente
+let suggestionIndex = 0; // candidato mostrato in questo momento
+let suggestionToken = 0; // invalida le fetch di suggerimento superate da un'azione più recente
 
 const teamTabs = document.getElementById("team-tabs");
 const rosterGrid = document.getElementById("roster-grid");
@@ -21,6 +26,10 @@ const confirmSprite = document.getElementById("confirm-sprite");
 const confirmName = document.getElementById("confirm-name");
 const confirmYesBtn = document.getElementById("confirm-yes");
 const confirmNoBtn = document.getElementById("confirm-no");
+const teamCodeInput = document.getElementById("team-code-input");
+const teamCodeImportBtn = document.getElementById("team-code-import-btn");
+const teamCodeExportBtn = document.getElementById("team-code-export-btn");
+const teamCodeFeedback = document.getElementById("team-code-feedback");
 
 function activeTeam() {
   return teams[activeTeamIndex];
@@ -235,20 +244,26 @@ function levenshtein(a, b) {
   return dp[a.length][b.length];
 }
 
-// Nome valido più vicino a un probabile errore di battitura, o null se troppo diverso.
-function findTypoMatch(query) {
-  let best = null;
-  let bestDist = Infinity;
-  for (const name of allNames) {
-    if (Math.abs(name.length - query.length) > 2) continue;
-    const dist = levenshtein(query, name);
-    if (dist < bestDist) {
-      bestDist = dist;
-      best = name;
-    }
+// I nomi validi più vicini a un probabile errore di battitura, dal più simile.
+function findTypoMatches(query) {
+  return allNames
+    .filter((name) => Math.abs(name.length - query.length) <= 2)
+    .map((name) => ({ name, dist: levenshtein(query, name) }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, MAX_SUGGESTIONS)
+    .map((s) => s.name);
+}
+
+async function showSuggestionAt(index) {
+  const token = ++suggestionToken;
+  const name = suggestionCandidates[index];
+  try {
+    const mon = await fetchPokemon(name);
+    if (token !== suggestionToken) return; // superata da un click/input successivo
+    showConfirm(mon);
+  } catch {
+    if (token === suggestionToken) hideConfirm();
   }
-  const threshold = Math.max(1, Math.floor(query.length * 0.3));
-  return bestDist <= threshold ? best : null;
 }
 
 async function checkForSuggestion() {
@@ -258,28 +273,23 @@ async function checkForSuggestion() {
     return;
   }
 
-  let match;
   if (allNames.includes(query)) {
-    match = query; // nome corretto per intero
+    suggestionCandidates = [query]; // nome corretto per intero
   } else if (allNames.some((n) => n.startsWith(query))) {
     hideConfirm(); // sta ancora scrivendo verso un nome valido, non è un errore
     return;
   } else {
-    match = findTypoMatch(query); // nessun nome inizia così: probabile refuso
+    suggestionCandidates = findTypoMatches(query); // nessun nome inizia così: probabile refuso
   }
 
-  if (!match) {
+  if (!suggestionCandidates.length) {
     hideConfirm();
     return;
   }
-  if (pendingMon && pendingMon.name === match) return; // già mostrato
+  if (pendingMon && pendingMon.name === suggestionCandidates[0]) return; // già mostrato
 
-  try {
-    const mon = await fetchPokemon(match);
-    showConfirm(mon);
-  } catch {
-    hideConfirm();
-  }
+  suggestionIndex = 0;
+  await showSuggestionAt(suggestionIndex);
 }
 
 searchBtn.addEventListener("click", handleAdd);
@@ -292,9 +302,95 @@ confirmYesBtn.addEventListener("click", () => {
   if (pendingMon) addMonToTeam(pendingMon);
 });
 confirmNoBtn.addEventListener("click", () => {
-  hideConfirm();
-  searchInput.value = "";
-  searchInput.focus();
+  suggestionIndex++;
+  if (suggestionIndex < suggestionCandidates.length) {
+    showSuggestionAt(suggestionIndex);
+  } else {
+    suggestionToken++; // invalida eventuali fetch di suggerimento ancora in corso
+    hideConfirm();
+    searchInput.value = "";
+    setFeedback("Non riesco a trovare il Pokémon che mi hai chiesto, riprova a cercarlo.", true);
+  }
+});
+
+// Codice team proprio di TeamPreview (non è il formato ufficiale del gioco,
+// che non è pubblico): base64 dei nomi Pokémon del team, per condividerlo
+// con un altro utente di TeamPreview o da un dispositivo all'altro.
+function encodeTeamCode(mons) {
+  return btoa(encodeURIComponent(JSON.stringify(mons.map((m) => m.name))));
+}
+
+function decodeTeamCode(code) {
+  const names = JSON.parse(decodeURIComponent(atob(code.trim())));
+  if (!Array.isArray(names) || !names.length) throw new Error("Codice vuoto.");
+  return names;
+}
+
+function setTeamCodeFeedback(message, isError = false) {
+  teamCodeFeedback.textContent = message;
+  teamCodeFeedback.classList.toggle("error", isError);
+}
+
+teamCodeExportBtn.addEventListener("click", async () => {
+  const mons = activeTeam().mons;
+  if (!mons.length) {
+    setTeamCodeFeedback("Il team attivo è vuoto: aggiungi almeno un Pokémon prima di esportare.", true);
+    return;
+  }
+  const code = encodeTeamCode(mons);
+  try {
+    await navigator.clipboard.writeText(code);
+    setTeamCodeFeedback("Codice copiato negli appunti!");
+  } catch {
+    teamCodeInput.value = code;
+    setTeamCodeFeedback("Copia manualmente il codice dal campo qui sopra.");
+  }
+});
+
+teamCodeImportBtn.addEventListener("click", async () => {
+  const raw = teamCodeInput.value.trim();
+  if (!raw) {
+    setTeamCodeFeedback("Incolla un codice team prima di importare.", true);
+    return;
+  }
+  if (teams.length >= MAX_TEAMS) {
+    setTeamCodeFeedback("Hai già 6 team: rimuovine uno prima di importarne un altro.", true);
+    return;
+  }
+
+  let names;
+  try {
+    names = decodeTeamCode(raw);
+  } catch {
+    setTeamCodeFeedback("Codice non valido o non riconosciuto.", true);
+    return;
+  }
+
+  teamCodeImportBtn.disabled = true;
+  setTeamCodeFeedback("Importo il team…");
+
+  const mons = [];
+  for (const name of names.slice(0, MAX_TEAM_SIZE)) {
+    try {
+      mons.push(await fetchPokemon(name));
+    } catch {
+      // nome non riconosciuto da PokéAPI: lo saltiamo
+    }
+  }
+
+  teamCodeImportBtn.disabled = false;
+
+  if (!mons.length) {
+    setTeamCodeFeedback("Nessun Pokémon valido trovato in questo codice.", true);
+    return;
+  }
+
+  teams.push({ name: `Team ${teams.length + 1}`, mons });
+  activeTeamIndex = teams.length - 1;
+  renderTeamTabs();
+  renderRoster();
+  teamCodeInput.value = "";
+  setTeamCodeFeedback(`Team importato con ${mons.length} Pokémon.`);
 });
 
 fetchPokemonNames().then((names) => {

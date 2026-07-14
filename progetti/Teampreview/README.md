@@ -4,7 +4,8 @@ Team builder per Pokémon Champions VGC (Regulation M-B, doubles). Permette di
 cercare un Pokémon tramite [PokéAPI](https://pokeapi.co) (con autocomplete e
 suggerimento di correzione sui refusi) e aggiungerlo a un roster di 6 slot,
 mostrando sprite, tipi e stat base. Si possono gestire fino a 6 team in
-parallelo, ognuno con il proprio roster indipendente.
+parallelo, ognuno con il proprio roster indipendente, e condividerli tramite
+un codice testuale generato dall'app stessa (vedi nota sotto).
 
 ## Come avviarlo
 
@@ -94,6 +95,12 @@ delegato a un servizio esterno o a un modello vision.
 
 ## Note
 
+- **Codice team**: è un formato inventato da TeamPreview (base64 dell'elenco
+  nomi del team), pensato per condividere un roster tra utenti dell'app o tra
+  dispositivi. Pokémon Champions (il gioco) non ha un'API pubblica né un
+  formato di team-code documentato, quindi non è possibile leggere/generare
+  codici compatibili con il gioco vero — se in futuro Game Freak pubblica una
+  specifica ufficiale, si può aggiungere un decoder dedicato.
 - I colori dei badge tipo (`--type-fire`, `--type-water`, ecc. in
   `style.css`) seguono la palette convenzionale usata da quasi tutti i
   tool VGC/competitivi — non sono asset ufficiali Nintendo/Game Freak,

@@ -49,6 +49,17 @@
     <div class="team-tabs" id="team-tabs">
       <!-- Tab dei team generati da app.js -->
     </div>
+
+    <div class="team-code-panel">
+      <label for="team-code-input" class="search-label">Codice team TeamPreview (formato nostro, non il codice ufficiale del gioco)</label>
+      <div class="search-row">
+        <input type="text" id="team-code-input" placeholder="Incolla qui un codice team…" autocomplete="off">
+        <button id="team-code-import-btn" type="button">Importa come nuovo team</button>
+      </div>
+      <button id="team-code-export-btn" type="button" class="team-code-export">Copia codice del team attivo</button>
+      <p id="team-code-feedback" class="search-feedback" aria-live="polite"></p>
+    </div>
+
     <div class="roster-header">
       <h2>Roster</h2>
       <span class="roster-count"><span id="roster-count">0</span>/6</span>
