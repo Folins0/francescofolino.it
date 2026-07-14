@@ -1034,20 +1034,37 @@ function detectCardBoxes(img) {
 
 const CROP_SCALE = 3; // upscale prima dell'OCR, il testo piccolo si legge meglio ingrandito
 
+function cardRegionRect(card, frac) {
+  return {
+    sx: card.x + frac.left * card.w,
+    sy: card.y + frac.top * card.h,
+    sw: (frac.right - frac.left) * card.w,
+    sh: (frac.bottom - frac.top) * card.h,
+  };
+}
+
 // Ritaglia una sotto-regione di una scheda (frazioni 0-1 relative al box
 // della scheda) e la binarizza per l'OCR.
 function cropCardRegion(img, card, frac) {
-  const sx = card.x + frac.left * card.w;
-  const sy = card.y + frac.top * card.h;
-  const sw = (frac.right - frac.left) * card.w;
-  const sh = (frac.bottom - frac.top) * card.h;
-
+  const { sx, sy, sw, sh } = cardRegionRect(card, frac);
   const canvas = document.createElement("canvas");
   canvas.width = sw * CROP_SCALE;
   canvas.height = sh * CROP_SCALE;
   const ctx = canvas.getContext("2d");
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   binarizeNameCrop(ctx, canvas.width, canvas.height);
+  return canvas;
+}
+
+// Come cropCardRegion ma senza binarizzare: serve per analizzare il colore
+// originale dei pixel (le frecce di natura), non per l'OCR.
+function cropCardRegionRaw(img, card, frac) {
+  const { sx, sy, sw, sh } = cardRegionRect(card, frac);
+  const canvas = document.createElement("canvas");
+  canvas.width = sw;
+  canvas.height = sh;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   return canvas;
 }
 
@@ -1104,6 +1121,68 @@ function cropStatRegions(img, card) {
   return canvases;
 }
 
+// Tra la fine dell'etichetta e l'inizio del numero c'è, quando la natura non
+// è neutra, una doppia freccia colorata: rossa verso l'alto per la stat
+// aumentata (+10%), blu verso il basso per quella diminuita (-10%). Verificato
+// sui pixel reali dello screenshot: tonalità ~320° per il rosso e ~210° per
+// il blu, ben distinte dal viola di sfondo (~250°). Nota: questo è
+// l'opposto della convenzione "blu=su/rosso=giù" di altri giochi Pokémon.
+const NATURE_ARROW_COL_LEFT = { left: 0.22, right: 0.29 };
+const NATURE_ARROW_COL_RIGHT = { left: 0.68, right: 0.762 };
+
+// Ritorna 6 ritagli (non binarizzati: qui serve il colore) nell'ordine di
+// STAT_KEYS, stessa disposizione di cropStatRegions.
+function cropNatureArrowRegions(img, card) {
+  const canvases = [];
+  for (const col of [NATURE_ARROW_COL_LEFT, NATURE_ARROW_COL_RIGHT]) {
+    for (const row of STAT_ROWS) {
+      canvases.push(cropCardRegionRaw(img, card, { left: col.left, right: col.right, top: row.top, bottom: row.bottom }));
+    }
+  }
+  return canvases;
+}
+
+// "up" (freccia rossa, stat aumentata), "down" (freccia blu, stat diminuita)
+// o null (nessuna freccia, stat neutra), contando i pixel per tonalità.
+function detectNatureArrow(canvas) {
+  const ctx = canvas.getContext("2d");
+  const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let blueCount = 0;
+  let redCount = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const sat = max === 0 ? 0 : (max - min) / max;
+    if (sat < 0.15) continue;
+
+    let hue;
+    if (max === min) hue = 0;
+    else if (max === r) hue = 60 * (((g - b) / (max - min)) % 6);
+    else if (max === g) hue = 60 * ((b - r) / (max - min) + 2);
+    else hue = 60 * ((r - g) / (max - min) + 4);
+    if (hue < 0) hue += 360;
+
+    if (hue >= 195 && hue <= 235) blueCount++;
+    else if (hue >= 310 && hue <= 350) redCount++;
+  }
+  if (redCount > blueCount && redCount > 5) return "up";
+  if (blueCount > redCount && blueCount > 5) return "down";
+  return null;
+}
+
+// Le 25 nature hanno un effetto +10%/-10% univoco su una coppia di stat
+// (vedi NATURES in damage.js): dalla coppia (stat aumentata, stat diminuita)
+// rilevata dalle frecce si risale alla natura esatta. Se non se ne rileva
+// nessuna (o solo una), la natura è neutra/non determinabile: "Hardy".
+function natureFromArrows(boostedKey, loweredKey) {
+  if (!boostedKey || !loweredKey) return "Hardy";
+  for (const name in NATURES) {
+    const n = NATURES[name];
+    if (n.plus === boostedKey && n.minus === loweredKey) return name;
+  }
+  return "Hardy";
+}
+
 // Worker Tesseract riutilizzato tra uno screenshot e l'altro (crearne uno
 // per ritaglio sarebbe molto più lento). setOcrMode cambia whitelist/PSM a
 // seconda che si stia leggendo testo (nome/abilità/oggetto/mosse) o cifre
@@ -1134,15 +1213,14 @@ async function ocrCanvas(worker, canvas) {
 }
 
 // Le card "Statistiche" mostrano solo il valore finale di ogni stat, non
-// l'EV che lo produce (e le frecce che indicano la natura non le leggiamo,
-// come da richiesta): cerchiamo l'EV (0-252, step 4) che riproduce quel
-// valore più da vicino, assumendo IV 31 e natura neutra.
-function solveEvForStat(statKey, base, target) {
+// l'EV che lo produce: cerchiamo l'EV (0-252, step 4) che riproduce quel
+// valore più da vicino, assumendo IV 31 e la natura rilevata dalle frecce.
+function solveEvForStat(statKey, base, target, natureName) {
   if (base == null) return 0;
   let bestEv = 0;
   let bestDiff = Infinity;
   for (let ev = 0; ev <= 252; ev += 4) {
-    const diff = Math.abs(calcStat(statKey, base, 31, ev, LEVEL, "Hardy") - target);
+    const diff = Math.abs(calcStat(statKey, base, 31, ev, LEVEL, natureName) - target);
     if (diff < bestDiff) {
       bestDiff = diff;
       bestEv = ev;
@@ -1220,13 +1298,25 @@ screenshotBuildBtn.addEventListener("click", async () => {
       await setOcrMode(worker, "digits");
 
       for (let i = 0; i < Math.min(statCards.length, mons.length); i++) {
-        const statCanvases = cropStatRegions(statsImg, statCards[i]);
+        const card = statCards[i];
+        const statCanvases = cropStatRegions(statsImg, card);
+        const arrowCanvases = cropNatureArrowRegions(statsImg, card);
+
+        let boostedKey = null;
+        let loweredKey = null;
+        for (let s = 0; s < STAT_KEYS.length; s++) {
+          const dir = detectNatureArrow(arrowCanvases[s]);
+          if (dir === "up") boostedKey = STAT_KEYS[s];
+          else if (dir === "down") loweredKey = STAT_KEYS[s];
+        }
+        mons[i].nature = natureFromArrows(boostedKey, loweredKey);
+
         for (let s = 0; s < STAT_KEYS.length; s++) {
           const digitsText = await ocrCanvas(worker, statCanvases[s]);
           const target = parseInt(digitsText.replace(/[^0-9]/g, ""), 10);
           if (!Number.isFinite(target)) continue;
           const key = STAT_KEYS[s];
-          mons[i].ev[key] = solveEvForStat(key, mons[i].stats[key], target);
+          mons[i].ev[key] = solveEvForStat(key, mons[i].stats[key], target, mons[i].nature);
         }
       }
     }
