@@ -1,5 +1,5 @@
 // app.js
-// Stato applicativo: tutto ciò che descrive i team (roster, mosse, EV/IV,
+// Stato applicativo: tutto ciò che descrive i team (roster, mosse, SP/IV,
 // natura, oggetto) vive in `state`, un unico oggetto. In Fase 3 questo
 // stesso `state` verrà salvato/caricato da un backend MySQL (o passato così
 // com'è a un'API esterna, es. un assistente AI).
@@ -260,7 +260,7 @@ function removeFromTeam(index) {
   saveState();
 }
 
-// --- Modal "Statistiche": editor di mosse/oggetto/EV/IV/natura + stat finali ---
+// --- Modal "Statistiche": editor di mosse/oggetto/SP/IV/natura + stat finali ---
 
 const modalBackdrop = document.getElementById("modal-backdrop");
 const statsModal = document.getElementById("stats-modal");
@@ -321,12 +321,12 @@ function renderStatsModal() {
       </section>
 
       <section class="stats-modal-section">
-        <h4>EV <span class="ev-total" id="ev-total"></span></h4>
-        <div class="ev-iv-grid">
-          ${STAT_KEYS.map((k) => `<label>${STAT_LABELS[k]}<input type="number" min="0" max="252" step="4" data-ev="${k}" value="${mon.ev[k]}"></label>`).join("")}
+        <h4>SP <span class="sp-total" id="sp-total"></span></h4>
+        <div class="sp-iv-grid">
+          ${STAT_KEYS.map((k) => `<label>${STAT_LABELS[k]}<input type="number" min="0" max="${MAX_SP_PER_STAT}" step="1" data-sp="${k}" value="${mon.sp[k]}"></label>`).join("")}
         </div>
         <h4>IV</h4>
-        <div class="ev-iv-grid">
+        <div class="sp-iv-grid">
           ${STAT_KEYS.map((k) => `<label>${STAT_LABELS[k]}<input type="number" min="0" max="31" data-iv="${k}" value="${mon.iv[k]}"></label>`).join("")}
         </div>
       </section>
@@ -376,13 +376,13 @@ function wireStatsModalEvents() {
     saveState();
   });
 
-  statsModalBody.querySelectorAll("[data-ev]").forEach((input) => {
+  statsModalBody.querySelectorAll("[data-sp]").forEach((input) => {
     input.addEventListener("input", () => {
-      const key = input.dataset.ev;
-      let v = clamp(parseInt(input.value, 10) || 0, 0, 252);
-      const others = STAT_KEYS.reduce((sum, k) => sum + (k === key ? 0 : mon.ev[k]), 0);
-      if (others + v > 510) v = Math.max(0, 510 - others);
-      mon.ev[key] = v;
+      const key = input.dataset.sp;
+      let v = clamp(parseInt(input.value, 10) || 0, 0, MAX_SP_PER_STAT);
+      const others = STAT_KEYS.reduce((sum, k) => sum + (k === key ? 0 : mon.sp[k]), 0);
+      if (others + v > MAX_SP_TOTAL) v = Math.max(0, MAX_SP_TOTAL - others);
+      mon.sp[key] = v;
       input.value = v;
       updateFinalStats();
       saveState();
@@ -404,17 +404,17 @@ function updateFinalStats() {
   const mon = statsModalMon;
   if (!mon) return;
 
-  let totalEv = 0;
+  let totalSp = 0;
   STAT_KEYS.forEach((k) => {
-    totalEv += mon.ev[k];
+    totalSp += mon.sp[k];
     const base = mon.stats[k];
     const cell = statsModalBody.querySelector(`[data-final="${k}"]`);
-    if (cell) cell.textContent = base != null ? calcStat(k, base, mon.iv[k], mon.ev[k], LEVEL, mon.nature) : "–";
+    if (cell) cell.textContent = base != null ? calcStat(k, base, mon.iv[k], mon.sp[k], LEVEL, mon.nature) : "–";
   });
 
-  const totalEl = statsModalBody.querySelector("#ev-total");
-  totalEl.textContent = `${totalEv}/510`;
-  totalEl.classList.toggle("error", totalEv > 510);
+  const totalEl = statsModalBody.querySelector("#sp-total");
+  totalEl.textContent = `${totalSp}/${MAX_SP_TOTAL}`;
+  totalEl.classList.toggle("error", totalSp > MAX_SP_TOTAL);
 }
 
 // --- Analisi matchup: debolezze/resistenze per Pokémon, copertura offensiva
@@ -561,9 +561,9 @@ dmgCalcBtn.addEventListener("click", async () => {
     const atkKey = move.damageClass === "special" ? "special-attack" : "attack";
     const defKey = move.damageClass === "special" ? "special-defense" : "defense";
 
-    // L'avversario non è nel roster e non ha EV/IV/natura propri: spread
-    // neutro di default (IV 31, EV 0, natura neutra), vedi nota in UI.
-    const atkStat = calcStat(atkKey, attacker.stats[atkKey], attacker.iv[atkKey], attacker.ev[atkKey], LEVEL, attacker.nature);
+    // L'avversario non è nel roster e non ha SP/IV/natura propri: spread
+    // neutro di default (IV 31, SP 0, natura neutra), vedi nota in UI.
+    const atkStat = calcStat(atkKey, attacker.stats[atkKey], attacker.iv[atkKey], attacker.sp[atkKey], LEVEL, attacker.nature);
     const defStat = calcStat(defKey, defender.stats[defKey], 31, 0, LEVEL, "Hardy");
     const defHp = calcStat("hp", defender.stats.hp, 31, 0, LEVEL, "Hardy");
 
@@ -1099,7 +1099,7 @@ function cropMoveRegions(img, card) {
 
 // Tab "Statistiche": PS/Attacco/Difesa nella metà sinistra della scheda,
 // Att.Sp/Dif.Sp/Velocità nella metà destra, stesso ordine di STAT_KEYS.
-// Ogni riga mostra numero finale + un trattino + un piccolo numero di EV: ci
+// Ogni riga mostra numero finale + un trattino + il piccolo numero di SP: ci
 // serve solo il primo numero, quindi il ritaglio si ferma prima del trattino.
 const STAT_ROWS = [
   { top: 0.30, bottom: 0.512 },
@@ -1121,25 +1121,19 @@ function cropStatRegions(img, card) {
   return canvases;
 }
 
-// Dopo il trattino, il piccolo numero di EV investiti: il gioco lo mostra in
-// una scala 0-32 (non 0-252), 32 = EV massimo. Stessa disposizione di
-// cropStatRegions.
-const EV_PIP_COL_LEFT = { left: 0.42, right: 0.475 };
-const EV_PIP_COL_RIGHT = { left: 0.89, right: 0.95 };
+// Dopo il trattino, il numero di SP investiti (0-32, valore diretto: il
+// gioco non usa gli EV classici 0-252). Stessa disposizione di cropStatRegions.
+const SP_COL_LEFT = { left: 0.42, right: 0.475 };
+const SP_COL_RIGHT = { left: 0.89, right: 0.95 };
 
-function cropEvPipRegions(img, card) {
+function cropSpRegions(img, card) {
   const canvases = [];
-  for (const col of [EV_PIP_COL_LEFT, EV_PIP_COL_RIGHT]) {
+  for (const col of [SP_COL_LEFT, SP_COL_RIGHT]) {
     for (const row of STAT_ROWS) {
       canvases.push(cropCardRegion(img, card, { left: col.left, right: col.right, top: row.top, bottom: row.bottom }));
     }
   }
   return canvases;
-}
-
-// Scala 0-32 mostrata a schermo -> EV reale 0-252 (32 = 252, un pip = 7.875).
-function evFromPip(pipValue) {
-  return Math.min(252, Math.max(0, Math.round((pipValue * 252) / 32)));
 }
 
 // Tra la fine dell'etichetta e l'inizio del numero c'è, quando la natura non
@@ -1233,21 +1227,20 @@ async function ocrCanvas(worker, canvas) {
   return data.text;
 }
 
-// Le card "Statistiche" mostrano solo il valore finale di ogni stat, non
-// l'EV che lo produce: cerchiamo l'EV (0-252, step 4) che riproduce quel
-// valore più da vicino, assumendo IV 31 e la natura rilevata dalle frecce.
-function solveEvForStat(statKey, base, target, natureName) {
+// Fallback se il numero di SP non è leggibile: risali dal valore finale
+// della stat, provando ogni SP possibile (0-32) con la natura rilevata.
+function solveSpForStat(statKey, base, target, natureName) {
   if (base == null) return 0;
-  let bestEv = 0;
+  let bestSp = 0;
   let bestDiff = Infinity;
-  for (let ev = 0; ev <= 252; ev += 4) {
-    const diff = Math.abs(calcStat(statKey, base, 31, ev, LEVEL, natureName) - target);
+  for (let sp = 0; sp <= MAX_SP_PER_STAT; sp++) {
+    const diff = Math.abs(calcStat(statKey, base, 31, sp, LEVEL, natureName) - target);
     if (diff < bestDiff) {
       bestDiff = diff;
-      bestEv = ev;
+      bestSp = sp;
     }
   }
-  return bestEv;
+  return bestSp;
 }
 
 screenshotBuildBtn.addEventListener("click", async () => {
@@ -1321,7 +1314,7 @@ screenshotBuildBtn.addEventListener("click", async () => {
       for (let i = 0; i < Math.min(statCards.length, mons.length); i++) {
         const card = statCards[i];
         const statCanvases = cropStatRegions(statsImg, card);
-        const pipCanvases = cropEvPipRegions(statsImg, card);
+        const spCanvases = cropSpRegions(statsImg, card);
         const arrowCanvases = cropNatureArrowRegions(statsImg, card);
 
         let boostedKey = null;
@@ -1336,19 +1329,19 @@ screenshotBuildBtn.addEventListener("click", async () => {
         for (let s = 0; s < STAT_KEYS.length; s++) {
           const key = STAT_KEYS[s];
 
-          const pipText = await ocrCanvas(worker, pipCanvases[s]);
-          const pipValue = parseInt(pipText.replace(/[^0-9]/g, ""), 10);
-          if (Number.isFinite(pipValue) && pipValue <= 32) {
-            mons[i].ev[key] = evFromPip(pipValue);
+          const spText = await ocrCanvas(worker, spCanvases[s]);
+          const spValue = parseInt(spText.replace(/[^0-9]/g, ""), 10);
+          if (Number.isFinite(spValue) && spValue <= MAX_SP_PER_STAT) {
+            mons[i].sp[key] = spValue;
             continue;
           }
 
-          // Pip EV non leggibile: risali dal valore finale della stat (meno
-          // preciso, l'arrotondamento della formula può nascondere l'EV reale).
+          // SP non leggibile: risali dal valore finale della stat (fallback
+          // meno diretto, ma la formula senza arrotondamento è quasi sempre univoca).
           const digitsText = await ocrCanvas(worker, statCanvases[s]);
           const target = parseInt(digitsText.replace(/[^0-9]/g, ""), 10);
           if (Number.isFinite(target)) {
-            mons[i].ev[key] = solveEvForStat(key, mons[i].stats[key], target, mons[i].nature);
+            mons[i].sp[key] = solveSpForStat(key, mons[i].stats[key], target, mons[i].nature);
           }
         }
       }

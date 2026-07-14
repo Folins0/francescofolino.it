@@ -47,7 +47,7 @@ async function fetchPokemon(name) {
     moves: [null, null, null, null],
     item: "",
     ability: "", // sola lettura, popolata dall'import screenshot: nessun editor nel roster
-    ev: { hp: 0, attack: 0, defense: 0, "special-attack": 0, "special-defense": 0, speed: 0 },
+    sp: { hp: 0, attack: 0, defense: 0, "special-attack": 0, "special-defense": 0, speed: 0 },
     iv: { hp: 31, attack: 31, defense: 31, "special-attack": 31, "special-defense": 31, speed: 31 },
     nature: "Hardy",
   };

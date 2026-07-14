@@ -455,8 +455,8 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   font-size: 0.85rem;
 }
 
-.ev-iv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-.ev-iv-grid label {
+.sp-iv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.sp-iv-grid label {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -464,7 +464,7 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   font-size: 0.68rem;
   color: var(--muted);
 }
-.ev-iv-grid input {
+.sp-iv-grid input {
   background: var(--surface-raised);
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -475,8 +475,8 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   width: 100%;
 }
 
-.ev-total { font-family: var(--font-mono); color: var(--muted); }
-.ev-total.error { color: var(--danger); }
+.sp-total { font-family: var(--font-mono); color: var(--muted); }
+.sp-total.error { color: var(--danger); }
 
 .final-stats-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.8rem; }
 .final-stats-table th, .final-stats-table td { padding: 0.4rem 0.5rem; text-align: center; border-top: 1px solid var(--line); }

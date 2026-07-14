@@ -42,7 +42,7 @@ function typeEffectiveness(moveType, defenderTypes) {
 }
 
 // Le 25 nature: stat aumentata/diminuita del 10%. Chiavi = nomi stat PokéAPI,
-// le stesse già usate in mon.stats/mon.ev/mon.iv.
+// le stesse già usate in mon.stats/mon.sp/mon.iv.
 const NATURES = {
   Hardy: {}, Docile: {}, Serious: {}, Bashful: {}, Quirky: {},
   Lonely:  { plus: "attack", minus: "defense" },
@@ -71,12 +71,18 @@ const STAT_KEYS = ["hp", "attack", "defense", "special-attack", "special-defense
 const STAT_LABELS = { hp: "HP", attack: "Atk", defense: "Def", "special-attack": "SpA", "special-defense": "SpD", speed: "Spe" };
 const LEVEL = 50; // VGC standard
 
-/** Stat finale a un dato livello, formula standard (HP separata dalle altre). */
-function calcStat(statKey, base, iv, ev, level, natureName) {
-  const core = Math.floor((2 * base + iv + Math.floor(ev / 4)) * level / 100);
-  if (statKey === "hp") return core + level + 10;
+// Pokémon Champions non usa gli EV classici (0-252 a stat, /4 con arrotondamento
+// per difetto): usa "SP" (Stat Point), 0-32 a stat, che sommano un punto stat
+// diretto senza arrotondamento. Vedi calcStat.
+const MAX_SP_PER_STAT = 32;
+const MAX_SP_TOTAL = 66;
 
-  let stat = core + 5;
+/** Stat finale a un dato livello, formula standard (HP separata dalle altre): SP si somma come bonus diretto, dopo lo scaling per livello e prima della natura. */
+function calcStat(statKey, base, iv, sp, level, natureName) {
+  const core = Math.floor((2 * base + iv) * level / 100);
+  if (statKey === "hp") return core + level + 10 + sp;
+
+  let stat = core + 5 + sp;
   const nature = NATURES[natureName];
   if (nature?.plus === statKey) stat = Math.floor(stat * 1.1);
   else if (nature?.minus === statKey) stat = Math.floor(stat * 0.9);
