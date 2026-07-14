@@ -21,7 +21,11 @@
 
   <nav class="site-nav" id="siteNav">
     <img src="images/logo.svg" alt="FF" class="nav-logo">
-    <button class="nav-burger" id="navBurger" aria-label="Menu">☰</button>
+    <button class="nav-burger" id="navBurger" aria-label="Menu" aria-expanded="false">
+      <span class="nav-burger-bar"></span>
+      <span class="nav-burger-bar"></span>
+      <span class="nav-burger-bar"></span>
+    </button>
     <ul id="navList">
       <li><a href="#chi-sono" data-it="Chi sono" data-en="About">Chi sono</a></li>
       <li><a href="#progetti" data-it="Progetti" data-en="Projects">Progetti</a></li>
@@ -88,7 +92,7 @@
           </div>
           <p class="feature-info-touch-hint" aria-hidden="true">
             <span class="pulse-dot"></span>
-            <span data-it="Tocca per i dettagli" data-en="Tap for details">Tocca per i dettagli</span>
+            <span data-it="Tocca l'icona per le funzionalità" data-en="Tap the icon for features">Tocca l'icona per le funzionalità</span>
           </p>
           <div class="project-meta-columns">
             <div class="project-meta-info">
@@ -131,7 +135,7 @@
               </div>
               <p class="feature-info-touch-hint" aria-hidden="true">
                 <span class="pulse-dot"></span>
-                <span data-it="Tocca per i dettagli" data-en="Tap for details">Tocca per i dettagli</span>
+                <span data-it="Tocca l'icona per le funzionalità" data-en="Tap the icon for features">Tocca l'icona per le funzionalità</span>
               </p>
               <div class="project-meta-columns">
                 <div class="project-meta-info">
@@ -172,7 +176,7 @@
               </div>
               <p class="feature-info-touch-hint" aria-hidden="true">
                 <span class="pulse-dot"></span>
-                <span data-it="Tocca per i dettagli" data-en="Tap for details">Tocca per i dettagli</span>
+                <span data-it="Tocca l'icona per le funzionalità" data-en="Tap the icon for features">Tocca l'icona per le funzionalità</span>
               </p>
               <div class="project-meta-columns">
                 <div class="project-meta-info">
@@ -276,11 +280,13 @@
   const navList = document.getElementById('navList');
   navBurger.addEventListener('click', () => {
     const isOpen = navList.classList.toggle('aperto');
-    navBurger.textContent = isOpen ? '✕' : '☰';
+    navBurger.classList.toggle('aperto', isOpen);
+    navBurger.setAttribute('aria-expanded', String(isOpen));
   });
   navList.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
     navList.classList.remove('aperto');
-    navBurger.textContent = '☰';
+    navBurger.classList.remove('aperto');
+    navBurger.setAttribute('aria-expanded', 'false');
   }));
 
   // tema chiaro/scuro (l'attributo iniziale è già impostato in head per evitare il flash)
@@ -342,17 +348,18 @@
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  // popover funzionalità: hover su desktop, tocco/click sul "?" su mobile
+  // popover funzionalità: hover su desktop, tocco/click ovunque per aprire/chiudere
+  const canHoverFeatureInfo = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   function closeFeatureInfos() {
     document.querySelectorAll('.feature-info.open').forEach(wrap => {
       wrap.classList.remove('open');
       wrap.querySelector('.feature-info-btn').setAttribute('aria-expanded', 'false');
     });
   }
-  document.querySelectorAll('.feature-info-btn').forEach(btn => {
+  document.querySelectorAll('.feature-info').forEach(wrap => {
+    const btn = wrap.querySelector('.feature-info-btn');
     btn.addEventListener('click', e => {
       e.stopPropagation();
-      const wrap = btn.closest('.feature-info');
       const wasOpen = wrap.classList.contains('open');
       closeFeatureInfos();
       if (!wasOpen) {
@@ -360,6 +367,17 @@
         btn.setAttribute('aria-expanded', 'true');
       }
     });
+    if (canHoverFeatureInfo) {
+      wrap.addEventListener('mouseenter', () => {
+        closeFeatureInfos();
+        wrap.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      });
+      wrap.addEventListener('mouseleave', () => {
+        wrap.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    }
   });
   document.addEventListener('click', closeFeatureInfos);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeatureInfos(); });
