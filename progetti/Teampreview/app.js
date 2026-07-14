@@ -1,12 +1,18 @@
 // app.js
-// Stato in memoria (Fase 1: nessuna persistenza, si azzera al refresh).
-// In Fase 3 questo stesso "teams" verrà salvato/caricato da un backend MySQL.
+// Stato applicativo: tutto ciò che descrive i team (roster, mosse, EV/IV,
+// natura, oggetto) vive in `state`, un unico oggetto. In Fase 3 questo
+// stesso `state` verrà salvato/caricato da un backend MySQL (o passato così
+// com'è a un'API esterna, es. un assistente AI).
 
 const MAX_TEAM_SIZE = 6; // Pokémon per team
 const MAX_TEAMS = 6; // team creabili in totale
+const STORAGE_KEY = "teampreview-state";
 
-let teams = [{ name: "Team 1", mons: [] }];
-let activeTeamIndex = 0;
+const state = {
+  teams: [{ name: "Team 1", mons: [] }],
+  activeTeamIndex: 0,
+};
+
 const MAX_SUGGESTIONS = 5; // tentativi massimi quando il nome è scritto male
 
 let allNames = []; // tutti i nomi Pokémon, per riconoscere una corrispondenza esatta
@@ -36,7 +42,32 @@ const screenshotBuildBtn = document.getElementById("screenshot-build-btn");
 const screenshotFeedback = document.getElementById("screenshot-feedback");
 
 function activeTeam() {
-  return teams[activeTeamIndex];
+  return state.teams[state.activeTeamIndex];
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // storage pieno o non disponibile: l'app resta comunque usabile in memoria
+  }
+}
+
+// Ricostruisce `state` dal localStorage. Se assente, vuoto o corrotto (JSON
+// non valido, forma inattesa), lascia lo stato di default (roster vuoto),
+// senza mai lanciare errori.
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.teams) || !parsed.teams.length) return;
+    state.teams = parsed.teams;
+    state.activeTeamIndex = clamp(parsed.activeTeamIndex ?? 0, 0, parsed.teams.length - 1);
+  } catch {
+    // JSON corrotto: si parte con lo stato di default, nessun errore in console
+  }
 }
 
 function typeBadgeStyle(type) {
@@ -46,21 +77,22 @@ function typeBadgeStyle(type) {
 function renderTeamTabs() {
   teamTabs.innerHTML = "";
 
-  teams.forEach((t, i) => {
+  state.teams.forEach((t, i) => {
     const tab = document.createElement("button");
     tab.type = "button";
-    tab.className = "team-tab" + (i === activeTeamIndex ? " active" : "");
+    tab.className = "team-tab" + (i === state.activeTeamIndex ? " active" : "");
     tab.textContent = t.name;
     tab.addEventListener("click", () => {
-      activeTeamIndex = i;
+      state.activeTeamIndex = i;
       hideConfirm();
       searchInput.value = "";
       setFeedback("");
       renderTeamTabs();
       renderRoster();
+      saveState();
     });
 
-    if (teams.length > 1) {
+    if (state.teams.length > 1) {
       const removeBtn = document.createElement("span");
       removeBtn.className = "team-tab-remove";
       removeBtn.textContent = "✕";
@@ -79,34 +111,37 @@ function renderTeamTabs() {
   addBtn.type = "button";
   addBtn.className = "team-tab-add";
   addBtn.textContent = "+ Nuovo team";
-  addBtn.disabled = teams.length >= MAX_TEAMS;
+  addBtn.disabled = state.teams.length >= MAX_TEAMS;
   addBtn.addEventListener("click", addTeam);
   teamTabs.appendChild(addBtn);
 }
 
 function addTeam() {
-  if (teams.length >= MAX_TEAMS) return;
-  teams.push({ name: `Team ${teams.length + 1}`, mons: [] });
-  activeTeamIndex = teams.length - 1;
+  if (state.teams.length >= MAX_TEAMS) return;
+  state.teams.push({ name: `Team ${state.teams.length + 1}`, mons: [] });
+  state.activeTeamIndex = state.teams.length - 1;
   renderTeamTabs();
   renderRoster();
+  saveState();
 }
 
 // Aggiunge un nuovo team già popolato (da codice team o da screenshot).
 function addImportedTeam(mons) {
-  teams.push({ name: `Team ${teams.length + 1}`, mons });
-  activeTeamIndex = teams.length - 1;
+  state.teams.push({ name: `Team ${state.teams.length + 1}`, mons });
+  state.activeTeamIndex = state.teams.length - 1;
   renderTeamTabs();
   renderRoster();
+  saveState();
 }
 
 function removeTeam(index) {
-  if (teams.length <= 1) return;
-  teams.splice(index, 1);
-  if (activeTeamIndex >= teams.length) activeTeamIndex = teams.length - 1;
-  else if (activeTeamIndex > index) activeTeamIndex--;
+  if (state.teams.length <= 1) return;
+  state.teams.splice(index, 1);
+  if (state.activeTeamIndex >= state.teams.length) state.activeTeamIndex = state.teams.length - 1;
+  else if (state.activeTeamIndex > index) state.activeTeamIndex--;
   renderTeamTabs();
   renderRoster();
+  saveState();
 }
 
 function renderRoster() {
@@ -217,6 +252,7 @@ function renderRoster() {
 function removeFromTeam(index) {
   activeTeam().mons.splice(index, 1);
   renderRoster();
+  saveState();
 }
 
 // --- Modal "Statistiche": editor di mosse/oggetto/EV/IV/natura + stat finali ---
@@ -319,17 +355,20 @@ function wireStatsModalEvents() {
         try { await fetchMoveDetail(sel.value); } catch { /* badge tipo resterà assente */ }
       }
       renderRoster();
+      saveState();
     });
   });
 
   statsModalBody.querySelector("#stats-item-input").addEventListener("input", (e) => {
     mon.item = e.target.value;
     renderRoster();
+    saveState();
   });
 
   statsModalBody.querySelector("#stats-nature-select").addEventListener("change", (e) => {
     mon.nature = e.target.value;
     updateFinalStats();
+    saveState();
   });
 
   statsModalBody.querySelectorAll("[data-ev]").forEach((input) => {
@@ -341,6 +380,7 @@ function wireStatsModalEvents() {
       mon.ev[key] = v;
       input.value = v;
       updateFinalStats();
+      saveState();
     });
   });
 
@@ -350,6 +390,7 @@ function wireStatsModalEvents() {
       mon.iv[input.dataset.iv] = v;
       input.value = v;
       updateFinalStats();
+      saveState();
     });
   });
 }
@@ -555,6 +596,7 @@ function addMonToTeam(mon) {
   }
   mons.push(mon);
   renderRoster();
+  saveState();
   setFeedback(`${mon.name} aggiunto al roster.`);
   searchInput.value = "";
   hideConfirm();
@@ -717,7 +759,7 @@ teamCodeImportBtn.addEventListener("click", async () => {
     setTeamCodeFeedback("Incolla un codice team prima di importare.", true);
     return;
   }
-  if (teams.length >= MAX_TEAMS) {
+  if (state.teams.length >= MAX_TEAMS) {
     setTeamCodeFeedback("Hai già 6 team: rimuovine uno prima di importarne un altro.", true);
     return;
   }
@@ -867,7 +909,7 @@ screenshotBuildBtn.addEventListener("click", async () => {
     setScreenshotFeedback("Carica almeno uno screenshot.", true);
     return;
   }
-  if (teams.length >= MAX_TEAMS) {
+  if (state.teams.length >= MAX_TEAMS) {
     setScreenshotFeedback("Hai già 6 team: rimuovine uno prima di importarne un altro.", true);
     return;
   }
@@ -935,5 +977,8 @@ fetchItemNames().then((names) => {
     .join("");
 });
 
-renderTeamTabs();
-renderRoster();
+document.addEventListener("DOMContentLoaded", () => {
+  loadState();
+  renderTeamTabs();
+  renderRoster();
+});

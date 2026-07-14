@@ -41,8 +41,10 @@ Teampreview/
 └── README.md
 ```
 
-I team (`teams` in `app.js`) vivono solo in memoria: si azzerano a ogni
-refresh della pagina. È voluto — la persistenza è compito della Fase 3.
+Lo stato dei team (`state` in `app.js`, un unico oggetto `{ teams, activeTeamIndex }`)
+viene salvato in `localStorage` a ogni modifica del roster e ricaricato al
+`DOMContentLoaded`: sopravvive al refresh, ma resta locale al browser. Un
+backend condiviso multi-dispositivo resta compito della Fase 3.
 
 ## Fase 2 — mosse/oggetto/EV/IV/natura e analisi matchup (completata)
 
