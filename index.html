@@ -348,8 +348,7 @@
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  // popover funzionalità: hover su desktop, tocco/click ovunque per aprire/chiudere
-  const canHoverFeatureInfo = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  // popover funzionalità: click/tap sull'icona per aprire, di nuovo per chiudere (mobile e desktop)
   function closeFeatureInfos() {
     document.querySelectorAll('.feature-info.open').forEach(wrap => {
       wrap.classList.remove('open');
@@ -367,17 +366,6 @@
         btn.setAttribute('aria-expanded', 'true');
       }
     });
-    if (canHoverFeatureInfo) {
-      wrap.addEventListener('mouseenter', () => {
-        closeFeatureInfos();
-        wrap.classList.add('open');
-        btn.setAttribute('aria-expanded', 'true');
-      });
-      wrap.addEventListener('mouseleave', () => {
-        wrap.classList.remove('open');
-        btn.setAttribute('aria-expanded', 'false');
-      });
-    }
   });
   document.addEventListener('click', closeFeatureInfos);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeatureInfos(); });
