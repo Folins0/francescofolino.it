@@ -66,7 +66,7 @@ const CHAMPIONS_MEGA_STONES = new Set([
   "galladite", "garchompite", "gardevoirite", "gengarite", "glalitite",
   "gyaradosite", "heracronite", "houndoominite", "kangaskhanite",
   "lopunnite", "lucarionite", "manectite", "mawilite", "medichamite",
-  "metagrossite", "pinsirite", "raichunite-x", "raichunite-y", "sablenite",
-  "sceptilite", "scizorite", "sharpedonite", "slowbronite", "steelixite",
-  "swampertite", "tyranitarite", "venusaurite",
+  "metagrossite", "pinsirite", "pyroarite", "raichunite-x", "raichunite-y",
+  "sablenite", "sceptilite", "scizorite", "sharpedonite", "slowbronite",
+  "steelixite", "swampertite", "tyranitarite", "venusaurite",
 ]);
