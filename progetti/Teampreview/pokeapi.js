@@ -15,10 +15,17 @@ async function fetchPokemon(name) {
   if (!query) throw new Error("Inserisci un nome.");
 
   let res = await fetch(`${POKEAPI_BASE}/pokemon/${query}`);
-  if (res.status === 404 && !/-(male|female|mega)$/.test(query)) {
-    // Alcune specie con forme di genere (Pyroar, Meowstic, Indeedee...) non
-    // hanno una voce col nome nudo su PokéAPI: la forma di base è "-male".
-    res = await fetch(`${POKEAPI_BASE}/pokemon/${query}-male`);
+  if (res.status === 404) {
+    // Alcune specie con più forme (Aegislash, Meowstic, Pyroar, Basculin,
+    // Palafin, Tatsugiri...) non hanno una voce col nome nudo su PokéAPI:
+    // risaliamo alla forma di default tramite l'endpoint species, invece di
+    // indovinare un suffisso fisso.
+    const speciesRes = await fetch(`${POKEAPI_BASE}/pokemon-species/${query}`);
+    if (speciesRes.ok) {
+      const species = await speciesRes.json();
+      const defaultVariety = species.varieties.find((v) => v.is_default);
+      if (defaultVariety) res = await fetch(defaultVariety.pokemon.url);
+    }
   }
   if (res.status === 404) {
     throw new Error(`Nessun Pokémon trovato per "${name}".`);
@@ -164,10 +171,18 @@ function getCachedItem(name) {
 
 /** Lista nomi oggetti (per l'autocomplete del campo "oggetto tenuto"). */
 async function fetchItemNames() {
-  const res = await fetch(`${POKEAPI_BASE}/item?limit=2000`);
+  const res = await fetch(`${POKEAPI_BASE}/item?limit=3000`);
   if (!res.ok) return [];
   const data = await res.json();
   return data.results.map((i) => i.name);
+}
+
+/** Tutte le megapietre note su PokéAPI (per filtrare quelle non in CHAMPIONS_MEGA_STONES). */
+async function fetchMegaStoneNames() {
+  const res = await fetch(`${POKEAPI_BASE}/item-category/mega-stones`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.items.map((i) => i.name);
 }
 
 /**

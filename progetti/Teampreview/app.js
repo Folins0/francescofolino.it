@@ -83,7 +83,7 @@ function typeBadgeStyle(type) {
   return `background: var(--type-${type}, var(--muted));`;
 }
 
-// --- Testo dei tooltip hover (solo desktop, via CSS [data-tooltip]) ---
+// --- Testo dei tooltip hover (via CSS [data-tooltip]) ---
 
 function moveTooltipText(detail) {
   const acc = detail.accuracy != null ? `${detail.accuracy}%` : "—";
@@ -97,6 +97,24 @@ function abilityTooltipText(detail) {
 
 function itemTooltipText(detail) {
   return detail.effect || "Nessuna descrizione disponibile.";
+}
+
+// Su desktop il tooltip si mostra col mouse (:hover in CSS). Su un
+// dispositivo senza hover reale (touch) lo mostriamo al tap, tramite una
+// classe che il CSS tratta come l'hover: un tap altrove lo richiude.
+const isTouchOnly = window.matchMedia("(hover: none)").matches;
+
+if (isTouchOnly) {
+  document.addEventListener("click", (e) => {
+    const target = e.target.closest("[data-tooltip]");
+    document.querySelectorAll(".tap-tooltip").forEach((el) => {
+      if (el !== target) el.classList.remove("tap-tooltip");
+    });
+    // I chip mossa gestiscono da soli il proprio tap-tooltip (vedi
+    // renderRoster): qui si occupa solo degli elementi non a bottone
+    // (riga abilità/oggetto).
+    if (target && target.tagName !== "BUTTON") target.classList.add("tap-tooltip");
+  });
 }
 
 function renderTeamTabs() {
@@ -264,7 +282,18 @@ function renderRoster() {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "move-chip";
-      chip.addEventListener("click", () => openStatsModal(mon));
+      chip.addEventListener("click", () => {
+        // Su touch, il primo tap su una mossa assegnata mostra solo il
+        // tooltip (punto 3/mobile); il secondo tap apre il modal. Su
+        // desktop (mouse) il tooltip è già visibile via hover: il click
+        // apre subito il modal, come prima.
+        if (isTouchOnly && moveName && !chip.classList.contains("tap-tooltip")) {
+          document.querySelectorAll(".tap-tooltip").forEach((el) => el.classList.remove("tap-tooltip"));
+          chip.classList.add("tap-tooltip");
+          return;
+        }
+        openStatsModal(mon);
+      });
       if (moveName) {
         const detail = getCachedMove(moveName);
         if (detail) {
@@ -1563,9 +1592,12 @@ fetchAbilityNames().then((names) => {
 });
 fetchItalianAbilityMap().then((map) => Object.assign(abilityLookup, map)).catch(() => {});
 
-fetchItemNames().then((names) => {
-  addToLookup(itemLookup, names);
-  document.getElementById("item-names").innerHTML = names
+Promise.all([fetchItemNames(), fetchMegaStoneNames()]).then(([names, megaStones]) => {
+  // Le megapietre non in CHAMPIONS_MEGA_STONES vengono escluse: tutti gli
+  // altri oggetti restano disponibili senza restrizioni.
+  const allowedNames = names.filter((n) => !megaStones.includes(n) || CHAMPIONS_MEGA_STONES.has(n));
+  addToLookup(itemLookup, allowedNames);
+  document.getElementById("item-names").innerHTML = allowedNames
     .map((n) => `<option value="${n}"></option>`)
     .join("");
 });
