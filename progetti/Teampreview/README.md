@@ -1,4 +1,4 @@
-# TeamPreview — Fase 1
+# TeamPreview — Fase 2
 
 Team builder per Pokémon Champions VGC (Regulation M-B, doubles). Permette di
 cercare un Pokémon tramite [PokéAPI](https://pokeapi.co) (con autocomplete e
@@ -8,6 +8,13 @@ parallelo, ognuno con il proprio roster indipendente, condividerli tramite
 un codice testuale generato dall'app stessa (vedi nota sotto), oppure
 comporli automaticamente caricando 1-2 screenshot della schermata "team
 preview" del gioco (OCR client-side, riconosce le 6 specie).
+
+Ogni Pokémon del roster può avere fino a 4 mosse, un oggetto tenuto, EV/IV
+e natura (pannello "Statistiche" su ogni scheda), con stat finali calcolate
+a Lv.50. Una sezione "Analisi matchup" mostra debolezze/resistenze del
+roster attivo, la copertura offensiva del team in base alle mosse assegnate
+e un calcolatore di danno tra un Pokémon del roster e un avversario cercato
+al volo.
 
 ## Come avviarlo
 
@@ -29,51 +36,40 @@ Teampreview/
 ├── index.html      # markup della pagina
 ├── style.css       # token di design (colori, tipografia, layout)
 ├── pokeapi.js      # wrapper attorno alle chiamate a PokéAPI
-├── app.js          # stato dei team, rendering, gestione ricerca
+├── damage.js       # matrice tipi, nature, calcolo stat finali e danno
+├── app.js          # stato dei team, rendering, gestione ricerca, modal, matchup
 └── README.md
 ```
 
 I team (`teams` in `app.js`) vivono solo in memoria: si azzerano a ogni
-refresh della pagina. È voluto — questa è la Fase 1.
+refresh della pagina. È voluto — la persistenza è compito della Fase 3.
+
+## Fase 2 — mosse/oggetto/EV/IV/natura e analisi matchup (completata)
+
+- Ogni Pokémon del roster (`mon` in `app.js`) porta ora `moves` (4 slot,
+  selezionabili dal proprio `learnset` scaricato da PokéAPI), `item`
+  (testo libero con autocomplete sugli oggetti PokéAPI), `ev`/`iv` (6
+  stat ciascuno, validati 0–252/totale ≤510 e 0–31) e `nature` (25
+  nature standard, effetto ±10% su una stat). Tutto modificabile dal
+  pannello "Statistiche" di ogni scheda, che mostra anche le stat finali
+  calcolate a **livello 50** con la formula standard (HP a parte).
+- `damage.js` contiene la matrice di efficacia 18×18 (hardcoded, gen 6+),
+  le 25 nature e le funzioni `calcStat`/`calcDamage`.
+- La sezione "Analisi matchup" mostra, per ogni Pokémon del roster attivo,
+  a quali tipi è debole/resistente/immune (doppio tipo combinato), la
+  copertura offensiva del team (quali dei 18 tipi sono colpiti in modo
+  super efficace da almeno una mossa assegnata, e quali no), e un
+  calcolatore di danno min/max in % HP tra un Pokémon+mossa del roster e
+  un avversario cercato al volo.
+- **Assunzione sull'avversario**: non facendo parte di un roster (niente
+  editor EV/IV/natura per lui), il calcolatore gli assume uno spread
+  neutro (31 IV, 0 EV, natura neutra) a Lv.50 — coerente con la nota di
+  scope già presente in Fase 1.
+- Import da codice team e da screenshot restano limitati alla specie (le
+  mosse/oggetto/EV/IV/natura dei Pokémon importati partono dai default e
+  vanno impostate a mano); estendere quei formati è fuori scope qui.
 
 ## Roadmap (fasi successive)
-
-### Fase 2 — Calcolo danni/matchup
-
-Obiettivo: dato un Pokémon del roster attivo, una sua mossa e un Pokémon
-avversario, mostrare il range di danno stimato in % di HP.
-
-Assunzione di scope (da confermare): livello 50 (standard VGC), natura
-neutra, 0 EV/31 IV per tutti — Fase 1 non salva EV/natura/livello per
-Pokémon, quindi il calcolo userà le stat base così come sono già mostrate
-nel roster. Un calcolo "vero" (con EV/natura reali) è rimandabile a
-un'estensione successiva della scheda Pokémon, se serve più precisione.
-
-1. **Matrice efficacia di tipo** — hardcodare la tabella 18×18 in
-   `damage.js` (cambia raramente, evita 18 chiamate a `type/{id}` ogni
-   volta). Funzione `typeEffectiveness(moveType, defenderTypes) -> number`
-   (0, 0.25, 0.5, 1, 2, 4).
-2. **Dati mossa** — fetch di `move/{name}` da PokéAPI per potenza, tipo,
-   categoria (fisica/speciale/status). Il menu mosse di un Pokémon si
-   popola dall'array `moves` già incluso nella risposta di
-   `fetchPokemon()` (solo nomi: serve poi una fetch per mossa scelta,
-   con cache in memoria per non richiamare PokéAPI ogni volta).
-3. **Selettore avversario** — riusare l'UI di ricerca già esistente
-   (stesso `fetchPokemon` + datalist), ma come slot singolo "avversario"
-   fuori dai team, non aggiunto a un roster.
-4. **Formula danno** (`js/damage.js`):
-   `danno = ((2*Livello/5+2) * Potenza * Atk/Def / 50 + 2) * STAB * Tipo * random(0.85–1.00)`
-   — STAB ×1.5 se la mossa condivide un tipo con l'attaccante, Tipo da
-   step 1, Atk/Def da Attacco o Attacco Speciale in base alla categoria
-   mossa. Output: danno minimo e massimo, convertiti in % dell'HP base
-   del difensore.
-5. **UI risultato** — sezione "Matchup" con attaccante (dal team attivo),
-   mossa, avversario, e il range % risultante; eventualmente un
-   indicatore visivo se il range supera il 100% (KO garantito) o è sotto
-   una soglia bassa (mossa poco efficace).
-
-Ordine consigliato: 1 → 2 → 4 (con dati finti) per validare la formula,
-poi 3 e 5 per l'interfaccia completa.
 
 ### Fase 3 — Persistenza con MySQL
 Backend leggero (Flask o FastAPI) con due tabelle indicative:

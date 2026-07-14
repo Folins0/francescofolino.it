@@ -167,25 +167,376 @@ function renderRoster() {
 
     const statRow = document.createElement("div");
     statRow.className = "stat-row";
-    const shown = ["hp", "attack", "defense", "special-attack", "special-defense", "speed"];
-    const labels = { "hp": "HP", "attack": "Atk", "defense": "Def", "special-attack": "SpA", "special-defense": "SpD", "speed": "Spe" };
-    shown.forEach((key) => {
+    STAT_KEYS.forEach((key) => {
       const span = document.createElement("span");
-      span.innerHTML = `${labels[key]} <strong>${mon.stats[key] ?? "–"}</strong>`;
+      span.innerHTML = `${STAT_LABELS[key]} <strong>${mon.stats[key] ?? "–"}</strong>`;
       statRow.appendChild(span);
     });
     slot.appendChild(statRow);
+
+    const itemLine = document.createElement("div");
+    itemLine.className = "item-line";
+    itemLine.textContent = mon.item ? `Oggetto: ${mon.item.replace(/-/g, " ")}` : "Oggetto: —";
+    slot.appendChild(itemLine);
+
+    const movesRow = document.createElement("div");
+    movesRow.className = "moves-row";
+    mon.moves.forEach((moveName) => {
+      const chip = document.createElement("span");
+      chip.className = "move-chip";
+      if (moveName) {
+        const detail = getCachedMove(moveName);
+        if (detail) {
+          chip.style.cssText = `border-left-color: var(--type-${detail.type}, var(--muted));`;
+        } else {
+          fetchMoveDetail(moveName).then(() => renderRoster()).catch(() => {});
+        }
+        chip.textContent = moveName.replace(/-/g, " ");
+      } else {
+        chip.textContent = "—";
+        chip.classList.add("empty-move");
+      }
+      movesRow.appendChild(chip);
+    });
+    slot.appendChild(movesRow);
+
+    const statsBtn = document.createElement("button");
+    statsBtn.type = "button";
+    statsBtn.className = "stats-btn";
+    statsBtn.textContent = "Statistiche";
+    statsBtn.addEventListener("click", () => openStatsModal(mon));
+    slot.appendChild(statsBtn);
 
     rosterGrid.appendChild(slot);
   }
 
   rosterCount.textContent = mons.length;
+  renderMatchup();
 }
 
 function removeFromTeam(index) {
   activeTeam().mons.splice(index, 1);
   renderRoster();
 }
+
+// --- Modal "Statistiche": editor di mosse/oggetto/EV/IV/natura + stat finali ---
+
+const modalBackdrop = document.getElementById("modal-backdrop");
+const statsModal = document.getElementById("stats-modal");
+const statsModalClose = document.getElementById("stats-modal-close");
+const statsModalBody = document.getElementById("stats-modal-body");
+let statsModalMon = null;
+
+function clamp(v, lo, hi) {
+  return Math.min(hi, Math.max(lo, v));
+}
+
+function closeStatsModal() {
+  statsModalMon = null;
+  statsModal.classList.add("hidden");
+  modalBackdrop.classList.add("hidden");
+}
+statsModalClose.addEventListener("click", closeStatsModal);
+modalBackdrop.addEventListener("click", closeStatsModal);
+
+function openStatsModal(mon) {
+  statsModalMon = mon;
+  renderStatsModal();
+  statsModal.classList.remove("hidden");
+  modalBackdrop.classList.remove("hidden");
+}
+
+function renderStatsModal() {
+  const mon = statsModalMon;
+
+  statsModalBody.innerHTML = `
+    <div class="stats-modal-header">
+      <img src="${mon.sprite}" alt="">
+      <div>
+        <h3>${mon.name}</h3>
+        <div class="type-row">${mon.types.map((t) => `<span class="type-badge" style="${typeBadgeStyle(t)}">${t}</span>`).join("")}</div>
+      </div>
+    </div>
+
+    <div class="stats-modal-grid">
+      <section class="stats-modal-section">
+        <h4>Mosse</h4>
+        <div class="moves-edit-grid">
+          ${[0, 1, 2, 3].map((i) => `
+            <select data-move-slot="${i}">
+              <option value="">— nessuna —</option>
+              ${mon.learnset.slice().sort().map((name) => `<option value="${name}" ${mon.moves[i] === name ? "selected" : ""}>${name.replace(/-/g, " ")}</option>`).join("")}
+            </select>
+          `).join("")}
+        </div>
+
+        <h4>Oggetto tenuto</h4>
+        <input type="text" id="stats-item-input" list="item-names" autocomplete="off" placeholder="es. choice-specs">
+
+        <h4>Natura</h4>
+        <select id="stats-nature-select">
+          ${Object.keys(NATURES).map((n) => `<option value="${n}" ${mon.nature === n ? "selected" : ""}>${n}${NATURES[n].plus ? ` (+${STAT_LABELS[NATURES[n].plus]}/-${STAT_LABELS[NATURES[n].minus]})` : " (neutra)"}</option>`).join("")}
+        </select>
+      </section>
+
+      <section class="stats-modal-section">
+        <h4>EV <span class="ev-total" id="ev-total"></span></h4>
+        <div class="ev-iv-grid">
+          ${STAT_KEYS.map((k) => `<label>${STAT_LABELS[k]}<input type="number" min="0" max="252" step="4" data-ev="${k}" value="${mon.ev[k]}"></label>`).join("")}
+        </div>
+        <h4>IV</h4>
+        <div class="ev-iv-grid">
+          ${STAT_KEYS.map((k) => `<label>${STAT_LABELS[k]}<input type="number" min="0" max="31" data-iv="${k}" value="${mon.iv[k]}"></label>`).join("")}
+        </div>
+      </section>
+    </div>
+
+    <table class="final-stats-table">
+      <thead><tr><th></th>${STAT_KEYS.map((k) => `<th>${STAT_LABELS[k]}</th>`).join("")}</tr></thead>
+      <tbody>
+        <tr><th>Base</th>${STAT_KEYS.map((k) => `<td>${mon.stats[k] ?? "–"}</td>`).join("")}</tr>
+        <tr class="final-row"><th>Finali (Lv.${LEVEL})</th>${STAT_KEYS.map((k) => `<td data-final="${k}"></td>`).join("")}</tr>
+      </tbody>
+    </table>
+  `;
+
+  // Valore del campo testo oggetto impostato via .value (mai via HTML), il
+  // testo libero dell'utente non deve mai finire dentro un template innerHTML.
+  statsModalBody.querySelector("#stats-item-input").value = mon.item;
+
+  wireStatsModalEvents();
+  updateFinalStats();
+}
+
+function wireStatsModalEvents() {
+  const mon = statsModalMon;
+
+  statsModalBody.querySelectorAll("[data-move-slot]").forEach((sel) => {
+    sel.addEventListener("change", async () => {
+      const i = Number(sel.dataset.moveSlot);
+      mon.moves[i] = sel.value || null;
+      if (sel.value) {
+        try { await fetchMoveDetail(sel.value); } catch { /* badge tipo resterà assente */ }
+      }
+      renderRoster();
+    });
+  });
+
+  statsModalBody.querySelector("#stats-item-input").addEventListener("input", (e) => {
+    mon.item = e.target.value;
+    renderRoster();
+  });
+
+  statsModalBody.querySelector("#stats-nature-select").addEventListener("change", (e) => {
+    mon.nature = e.target.value;
+    updateFinalStats();
+  });
+
+  statsModalBody.querySelectorAll("[data-ev]").forEach((input) => {
+    input.addEventListener("input", () => {
+      const key = input.dataset.ev;
+      let v = clamp(parseInt(input.value, 10) || 0, 0, 252);
+      const others = STAT_KEYS.reduce((sum, k) => sum + (k === key ? 0 : mon.ev[k]), 0);
+      if (others + v > 510) v = Math.max(0, 510 - others);
+      mon.ev[key] = v;
+      input.value = v;
+      updateFinalStats();
+    });
+  });
+
+  statsModalBody.querySelectorAll("[data-iv]").forEach((input) => {
+    input.addEventListener("input", () => {
+      const v = clamp(parseInt(input.value, 10) || 0, 0, 31);
+      mon.iv[input.dataset.iv] = v;
+      input.value = v;
+      updateFinalStats();
+    });
+  });
+}
+
+function updateFinalStats() {
+  const mon = statsModalMon;
+  if (!mon) return;
+
+  let totalEv = 0;
+  STAT_KEYS.forEach((k) => {
+    totalEv += mon.ev[k];
+    const base = mon.stats[k];
+    const cell = statsModalBody.querySelector(`[data-final="${k}"]`);
+    if (cell) cell.textContent = base != null ? calcStat(k, base, mon.iv[k], mon.ev[k], LEVEL, mon.nature) : "–";
+  });
+
+  const totalEl = statsModalBody.querySelector("#ev-total");
+  totalEl.textContent = `${totalEv}/510`;
+  totalEl.classList.toggle("error", totalEv > 510);
+}
+
+// --- Analisi matchup: debolezze/resistenze per Pokémon, copertura offensiva
+// del team, calcolatore di danno tra un Pokémon del roster e un avversario. ---
+
+const matchupDefense = document.getElementById("matchup-defense");
+const matchupCovered = document.getElementById("matchup-covered");
+const matchupUncovered = document.getElementById("matchup-uncovered");
+const dmgAttackerSelect = document.getElementById("dmg-attacker-select");
+const dmgMoveSelect = document.getElementById("dmg-move-select");
+const dmgDefenderInput = document.getElementById("dmg-defender-input");
+const dmgCalcBtn = document.getElementById("dmg-calc-btn");
+const dmgResult = document.getElementById("dmg-result");
+
+function buildTypeGroup(label, types, cls) {
+  const wrap = document.createElement("div");
+  wrap.className = `matchup-group matchup-group-${cls}`;
+  const lbl = document.createElement("span");
+  lbl.className = "matchup-group-label";
+  lbl.textContent = `${label}:`;
+  wrap.appendChild(lbl);
+  if (!types.length) {
+    const none = document.createElement("span");
+    none.className = "muted-note";
+    none.textContent = "—";
+    wrap.appendChild(none);
+  }
+  types.forEach((t) => {
+    const badge = document.createElement("span");
+    badge.className = "type-badge";
+    badge.textContent = t;
+    badge.style.cssText = typeBadgeStyle(t);
+    wrap.appendChild(badge);
+  });
+  return wrap;
+}
+
+function renderMatchup() {
+  const mons = activeTeam().mons;
+  matchupDefense.innerHTML = "";
+
+  if (!mons.length) {
+    const empty = document.createElement("p");
+    empty.className = "muted-note";
+    empty.textContent = "Aggiungi almeno un Pokémon al roster per vedere l'analisi.";
+    matchupDefense.appendChild(empty);
+  }
+
+  mons.forEach((mon) => {
+    const row = document.createElement("div");
+    row.className = "matchup-mon-row";
+
+    const label = document.createElement("span");
+    label.className = "matchup-mon-name";
+    label.textContent = mon.name;
+    row.appendChild(label);
+
+    const weak = [], resist = [], immune = [];
+    TYPES.forEach((atkType) => {
+      const mult = typeEffectiveness(atkType, mon.types);
+      if (mult === 0) immune.push(atkType);
+      else if (mult > 1) weak.push(atkType);
+      else if (mult < 1) resist.push(atkType);
+    });
+
+    row.appendChild(buildTypeGroup("Debole", weak, "weak"));
+    row.appendChild(buildTypeGroup("Resiste", resist, "resist"));
+    if (immune.length) row.appendChild(buildTypeGroup("Immune", immune, "immune"));
+
+    matchupDefense.appendChild(row);
+  });
+
+  renderCoverage();
+  renderAttackerOptions();
+}
+
+function renderCoverage() {
+  const mons = activeTeam().mons;
+  const attackMoves = [];
+  mons.forEach((mon) => {
+    mon.moves.forEach((name) => {
+      const detail = getCachedMove(name);
+      if (detail && detail.power) attackMoves.push(detail);
+    });
+  });
+
+  const covered = [], uncovered = [];
+  TYPES.forEach((defType) => {
+    const hits = attackMoves.some((m) => typeEffectiveness(m.type, [defType]) >= 2);
+    (hits ? covered : uncovered).push(defType);
+  });
+
+  matchupCovered.innerHTML = "";
+  matchupCovered.appendChild(buildTypeGroup("Copertura buona", covered, "resist"));
+  matchupUncovered.innerHTML = "";
+  matchupUncovered.appendChild(buildTypeGroup("Tipi scoperti", uncovered, "weak"));
+}
+
+function renderAttackerOptions() {
+  const mons = activeTeam().mons;
+  dmgAttackerSelect.innerHTML = mons.length
+    ? mons.map((m, i) => `<option value="${i}">${m.name}</option>`).join("")
+    : `<option value="">Nessun Pokémon nel roster</option>`;
+  renderMoveOptions();
+}
+
+function renderMoveOptions() {
+  const mons = activeTeam().mons;
+  const mon = mons[Number(dmgAttackerSelect.value)];
+  const moves = mon ? mon.moves.filter(Boolean) : [];
+  dmgMoveSelect.innerHTML = moves.length
+    ? moves.map((m) => `<option value="${m}">${m.replace(/-/g, " ")}</option>`).join("")
+    : `<option value="">Nessuna mossa assegnata</option>`;
+}
+
+dmgAttackerSelect.addEventListener("change", renderMoveOptions);
+
+function setDmgResult(message, isError = false) {
+  dmgResult.textContent = message;
+  dmgResult.classList.toggle("error", isError);
+}
+
+dmgCalcBtn.addEventListener("click", async () => {
+  const mons = activeTeam().mons;
+  const attacker = mons[Number(dmgAttackerSelect.value)];
+  const moveName = dmgMoveSelect.value;
+  const defenderName = dmgDefenderInput.value.trim();
+
+  if (!attacker) { setDmgResult("Aggiungi un Pokémon al roster prima di calcolare.", true); return; }
+  if (!moveName) { setDmgResult("Assegna una mossa a questo Pokémon (pulsante Statistiche) prima di calcolare.", true); return; }
+  if (!defenderName) { setDmgResult("Scrivi il nome del Pokémon avversario.", true); return; }
+
+  dmgCalcBtn.disabled = true;
+  setDmgResult("Calcolo…");
+
+  try {
+    const [move, defender] = await Promise.all([fetchMoveDetail(moveName), fetchPokemon(defenderName)]);
+
+    if (!move.power) {
+      setDmgResult(`${move.name.replace(/-/g, " ")} è una mossa di stato: non infligge danno diretto.`, true);
+      return;
+    }
+
+    const atkKey = move.damageClass === "special" ? "special-attack" : "attack";
+    const defKey = move.damageClass === "special" ? "special-defense" : "defense";
+
+    // L'avversario non è nel roster e non ha EV/IV/natura propri: spread
+    // neutro di default (IV 31, EV 0, natura neutra), vedi nota in UI.
+    const atkStat = calcStat(atkKey, attacker.stats[atkKey], attacker.iv[atkKey], attacker.ev[atkKey], LEVEL, attacker.nature);
+    const defStat = calcStat(defKey, defender.stats[defKey], 31, 0, LEVEL, "Hardy");
+    const defHp = calcStat("hp", defender.stats.hp, 31, 0, LEVEL, "Hardy");
+
+    const result = calcDamage({
+      level: LEVEL, power: move.power, atk: atkStat, def: defStat,
+      attackerTypes: attacker.types, moveType: move.type, defenderTypes: defender.types,
+    });
+
+    const minPct = Math.min(100, Math.round((result.min / defHp) * 1000) / 10);
+    const maxPct = Math.min(100, Math.round((result.max / defHp) * 1000) / 10);
+    const effNote = result.eff === 0 ? " (immune)" : result.eff > 1 ? " (superefficace)" : result.eff < 1 ? " (poco efficace)" : "";
+
+    setDmgResult(`${attacker.name} usa ${move.name.replace(/-/g, " ")} contro ${defender.name}: ${minPct}%–${maxPct}% HP${effNote}.`);
+  } catch (err) {
+    setDmgResult(err.message || "Errore nel calcolo del danno.", true);
+  } finally {
+    dmgCalcBtn.disabled = false;
+  }
+});
 
 function setFeedback(message, isError = false) {
   feedback.textContent = message;
@@ -577,6 +928,12 @@ fetchPokemonNames().then((names) => {
 fetchItalianNameMap()
   .then((map) => Object.assign(nameLookup, map))
   .catch(() => {});
+
+fetchItemNames().then((names) => {
+  document.getElementById("item-names").innerHTML = names
+    .map((n) => `<option value="${n}"></option>`)
+    .join("");
+});
 
 renderTeamTabs();
 renderRoster();

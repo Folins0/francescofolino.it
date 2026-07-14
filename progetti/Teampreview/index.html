@@ -78,14 +78,53 @@
       <!-- Gli slot vengono generati da app.js -->
     </div>
   </section>
+
+  <section class="matchup">
+    <div class="roster-header">
+      <h2>Analisi matchup</h2>
+    </div>
+    <p class="hero-sub matchup-intro">Debolezze/resistenze del roster attivo (Lv.50) e copertura offensiva in base alle mosse assegnate a ogni Pokémon.</p>
+
+    <div id="matchup-defense" class="matchup-defense">
+      <!-- Riga debolezze/resistenze per Pokémon, generata da app.js -->
+    </div>
+
+    <div class="matchup-coverage">
+      <h3>Copertura offensiva del team</h3>
+      <div id="matchup-covered" class="matchup-group-list"></div>
+      <div id="matchup-uncovered" class="matchup-group-list"></div>
+    </div>
+
+    <div class="damage-calc">
+      <h3>Calcolatore danno</h3>
+      <p class="matchup-note">L'avversario non fa parte del roster: si assume IV 31/EV 0/natura neutra, Lv.50.</p>
+      <div class="damage-calc-row">
+        <select id="dmg-attacker-select"></select>
+        <select id="dmg-move-select"></select>
+        <span class="damage-calc-vs">vs</span>
+        <input type="text" id="dmg-defender-input" list="pokemon-names" placeholder="Pokémon avversario" autocomplete="off">
+        <button id="dmg-calc-btn" type="button">Calcola</button>
+      </div>
+      <p id="dmg-result" class="search-feedback" aria-live="polite"></p>
+    </div>
+  </section>
 </main>
 
+<datalist id="item-names"></datalist>
+
+<div id="modal-backdrop" class="modal-backdrop hidden"></div>
+<div id="stats-modal" class="stats-modal hidden" role="dialog" aria-modal="true" aria-label="Statistiche Pokémon">
+  <button id="stats-modal-close" class="modal-close" type="button" aria-label="Chiudi">✕</button>
+  <div id="stats-modal-body"><!-- generato da app.js --></div>
+</div>
+
 <footer class="page-footer">
-  Dati Pokémon forniti da <a href="https://pokeapi.co" target="_blank" rel="noopener">PokéAPI</a>. Fase 1 — nessun salvataggio, il roster si azzera al refresh.
+  Dati Pokémon forniti da <a href="https://pokeapi.co" target="_blank" rel="noopener">PokéAPI</a>. Fase 2 — nessun salvataggio, il roster si azzera al refresh.
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="pokeapi.js"></script>
+<script src="damage.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
