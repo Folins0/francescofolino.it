@@ -1121,6 +1121,27 @@ function cropStatRegions(img, card) {
   return canvases;
 }
 
+// Dopo il trattino, il piccolo numero di EV investiti: il gioco lo mostra in
+// una scala 0-32 (non 0-252), 32 = EV massimo. Stessa disposizione di
+// cropStatRegions.
+const EV_PIP_COL_LEFT = { left: 0.42, right: 0.475 };
+const EV_PIP_COL_RIGHT = { left: 0.89, right: 0.95 };
+
+function cropEvPipRegions(img, card) {
+  const canvases = [];
+  for (const col of [EV_PIP_COL_LEFT, EV_PIP_COL_RIGHT]) {
+    for (const row of STAT_ROWS) {
+      canvases.push(cropCardRegion(img, card, { left: col.left, right: col.right, top: row.top, bottom: row.bottom }));
+    }
+  }
+  return canvases;
+}
+
+// Scala 0-32 mostrata a schermo -> EV reale 0-252 (32 = 252, un pip = 7.875).
+function evFromPip(pipValue) {
+  return Math.min(252, Math.max(0, Math.round((pipValue * 252) / 32)));
+}
+
 // Tra la fine dell'etichetta e l'inizio del numero c'è, quando la natura non
 // è neutra, una doppia freccia colorata: rossa verso l'alto per la stat
 // aumentata (+10%), blu verso il basso per quella diminuita (-10%). Verificato
@@ -1300,6 +1321,7 @@ screenshotBuildBtn.addEventListener("click", async () => {
       for (let i = 0; i < Math.min(statCards.length, mons.length); i++) {
         const card = statCards[i];
         const statCanvases = cropStatRegions(statsImg, card);
+        const pipCanvases = cropEvPipRegions(statsImg, card);
         const arrowCanvases = cropNatureArrowRegions(statsImg, card);
 
         let boostedKey = null;
@@ -1312,11 +1334,22 @@ screenshotBuildBtn.addEventListener("click", async () => {
         mons[i].nature = natureFromArrows(boostedKey, loweredKey);
 
         for (let s = 0; s < STAT_KEYS.length; s++) {
+          const key = STAT_KEYS[s];
+
+          const pipText = await ocrCanvas(worker, pipCanvases[s]);
+          const pipValue = parseInt(pipText.replace(/[^0-9]/g, ""), 10);
+          if (Number.isFinite(pipValue) && pipValue <= 32) {
+            mons[i].ev[key] = evFromPip(pipValue);
+            continue;
+          }
+
+          // Pip EV non leggibile: risali dal valore finale della stat (meno
+          // preciso, l'arrotondamento della formula può nascondere l'EV reale).
           const digitsText = await ocrCanvas(worker, statCanvases[s]);
           const target = parseInt(digitsText.replace(/[^0-9]/g, ""), 10);
-          if (!Number.isFinite(target)) continue;
-          const key = STAT_KEYS[s];
-          mons[i].ev[key] = solveEvForStat(key, mons[i].stats[key], target, mons[i].nature);
+          if (Number.isFinite(target)) {
+            mons[i].ev[key] = solveEvForStat(key, mons[i].stats[key], target, mons[i].nature);
+          }
         }
       }
     }
