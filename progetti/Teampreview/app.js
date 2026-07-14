@@ -271,7 +271,7 @@ function renderRoster() {
     const itemLine = document.createElement("div");
     itemLine.className = "item-line";
     if (mon.item) {
-      itemLine.textContent = `Oggetto: ${mon.item.replace(/-/g, " ")}`;
+      itemLine.textContent = `Oggetto: ${itemDisplayName(mon.item)}`;
       const detail = getCachedItem(mon.item);
       if (detail) itemLine.dataset.tooltip = itemTooltipText(detail);
       else if (detail === undefined) fetchItemDetail(mon.item).then(() => renderRoster());
@@ -397,6 +397,16 @@ function spIvGridHtml(prefix, values, max) {
   return STAT_KEYS.map((k) => `<label>${STAT_LABELS[k]}<input type="number" min="0" max="${max}" step="1" data-${prefix}="${k}" value="${values[k]}"></label>`).join("");
 }
 
+// Oggetti raggruppati per categoria (Megapietre/Strumenti/Bacche, vedi
+// champions-roster.js) tramite <optgroup>: elenco chiuso, non testo libero.
+function itemOptionsHtml(selected) {
+  return Object.entries(CHAMPIONS_ITEM_CATEGORIES).map(([category, items]) => `
+    <optgroup label="${category}">
+      ${Object.entries(items).map(([slug, label]) => `<option value="${slug}" ${selected === slug ? "selected" : ""}>${label}</option>`).join("")}
+    </optgroup>
+  `).join("");
+}
+
 function closeStatsModal() {
   statsModalMon = null;
   statsModal.classList.add("hidden");
@@ -440,7 +450,10 @@ function renderStatsModal() {
         <input type="text" id="stats-ability-input" list="ability-names" autocomplete="off" placeholder="es. intimidate">
 
         <h4>Oggetto tenuto</h4>
-        <input type="text" id="stats-item-input" list="item-names" autocomplete="off" placeholder="es. choice-specs">
+        <select id="stats-item-input">
+          <option value="">— nessuno —</option>
+          ${itemOptionsHtml(mon.item)}
+        </select>
 
         <h4>Natura</h4>
         <select id="stats-nature-select">
@@ -469,10 +482,10 @@ function renderStatsModal() {
     </table>
   `;
 
-  // Valore dei campi testo (oggetto/abilità) impostato via .value (mai via
-  // HTML), il testo libero dell'utente non deve mai finire dentro un
-  // template innerHTML.
-  statsModalBody.querySelector("#stats-item-input").value = mon.item;
+  // Valore del campo testo abilità impostato via .value (mai via HTML): il
+  // testo libero dell'utente non deve mai finire dentro un template
+  // innerHTML. L'oggetto è un elenco chiuso (<select>), già selezionato nel
+  // template sopra.
   statsModalBody.querySelector("#stats-ability-input").value = mon.ability;
 
   wireStatsModalEvents();
@@ -494,7 +507,7 @@ function wireStatsModalEvents() {
     });
   });
 
-  statsModalBody.querySelector("#stats-item-input").addEventListener("input", (e) => {
+  statsModalBody.querySelector("#stats-item-input").addEventListener("change", (e) => {
     mon.item = e.target.value;
     renderRoster();
     saveState();
@@ -1036,6 +1049,15 @@ let abilityLookup = {};
 const moveNameIT = {};
 function moveDisplayName(moveName) {
   return moveNameIT[moveName] || moveName.replace(/-/g, " ");
+}
+
+// slug PokéAPI oggetto -> nome italiano ufficiale (da CHAMPIONS_ITEM_CATEGORIES).
+const itemNameIT = {};
+for (const items of Object.values(CHAMPIONS_ITEM_CATEGORIES)) {
+  Object.assign(itemNameIT, items);
+}
+function itemDisplayName(itemSlug) {
+  return itemNameIT[itemSlug] || itemSlug.replace(/-/g, " ");
 }
 
 function normalizeOcrText(s) {
@@ -1653,16 +1675,15 @@ fetchAbilityNames().then((names) => {
 });
 fetchItalianAbilityMap().then((map) => Object.assign(abilityLookup, map)).catch(() => {});
 
-Promise.all([fetchItemNames(), fetchMegaStoneNames()]).then(([names, megaStones]) => {
-  // Le megapietre non in CHAMPIONS_MEGA_STONES vengono escluse: tutti gli
-  // altri oggetti restano disponibili senza restrizioni.
-  const allowedNames = names.filter((n) => !megaStones.includes(n) || CHAMPIONS_MEGA_STONES.has(n));
-  addToLookup(itemLookup, allowedNames);
-  document.getElementById("item-names").innerHTML = allowedNames
-    .map((n) => `<option value="${n}"></option>`)
-    .join("");
-});
-fetchItalianItemMap().then((map) => Object.assign(itemLookup, map)).catch(() => {});
+// Oggetti: elenco chiuso (CHAMPIONS_ITEM_CATEGORIES in champions-roster.js),
+// niente fetch dell'intera lista PokéAPI. Il lookup OCR riconosce sia lo
+// slug inglese sia il nome italiano ufficiale, già noti in anticipo.
+for (const items of Object.values(CHAMPIONS_ITEM_CATEGORIES)) {
+  addToLookup(itemLookup, Object.keys(items));
+  for (const [slug, label] of Object.entries(items)) {
+    itemLookup[normalizeOcrText(label)] = slug;
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   loadState();

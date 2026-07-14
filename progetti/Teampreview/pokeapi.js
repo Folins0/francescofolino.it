@@ -169,22 +169,6 @@ function getCachedItem(name) {
   return key in itemCache ? itemCache[key] : undefined;
 }
 
-/** Lista nomi oggetti (per l'autocomplete del campo "oggetto tenuto"). */
-async function fetchItemNames() {
-  const res = await fetch(`${POKEAPI_BASE}/item?limit=3000`);
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.results.map((i) => i.name);
-}
-
-/** Tutte le megapietre note su PokéAPI (per filtrare quelle non in CHAMPIONS_MEGA_STONES). */
-async function fetchMegaStoneNames() {
-  const res = await fetch(`${POKEAPI_BASE}/item-category/mega-stones`);
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.items.map((i) => i.name);
-}
-
 /**
  * Scarica una volta la lista di tutti i nomi Pokémon (per l'autocomplete).
  * Usata per popolare una <datalist>, quindi basta il nome.
@@ -280,5 +264,4 @@ async function fetchItalianMap(entityTable, namesField, limit, displayMap) {
 }
 
 const fetchItalianMoveMap = (displayMap) => fetchItalianMap("pokemon_v2_move", "pokemon_v2_movenames", 1000, displayMap);
-const fetchItalianItemMap = () => fetchItalianMap("pokemon_v2_item", "pokemon_v2_itemnames", 2200);
 const fetchItalianAbilityMap = () => fetchItalianMap("pokemon_v2_ability", "pokemon_v2_abilitynames", 400);
