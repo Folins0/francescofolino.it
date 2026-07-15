@@ -134,3 +134,50 @@ const CHAMPIONS_ITEM_CATEGORIES = {
     "tanga-berry": "Baccaitan", "wacan-berry": "Baccaparmen", "yache-berry": "Baccamoya",
   },
 };
+
+// Megaevoluzione (punto "Mega Evolvi"): slug PokéAPI del Pokémon -> slug
+// della sua megapietra (da CHAMPIONS_ITEM_CATEGORIES.Megapietre), oppure
+// { x, y } per le due megapietre alternative (solo Charizard e Raichu in
+// questo roster). Derivata a mano incrociando le megapietre sopra con
+// CHAMPIONS_ROSTER: alcune megapietre (banettite, chandelurite, floettite,
+// latiasite, latiosite, mewtwonite-x/y, pidgeotite, salamencite) non hanno
+// un Pokémon corrispondente nel roster e sono escluse qui.
+const MEGA_STONE_BY_POKEMON = {
+  abomasnow: "abomasite", absol: "absolite", aerodactyl: "aerodactylite",
+  aggron: "aggronite", alakazam: "alakazite", altaria: "altarianite",
+  ampharos: "ampharosite", audino: "audinite", barbaracle: "barbaracite",
+  beedrill: "beedrillite", blastoise: "blastoisinite", blaziken: "blazikenite",
+  camerupt: "cameruptite", charizard: { x: "charizardite-x", y: "charizardite-y" },
+  chesnaught: "chesnaughtite", chimecho: "chimechite", clefable: "clefablite",
+  crabominable: "crabominite", delphox: "delphoxite", dragalge: "dragalgite",
+  dragonite: "dragoninite", drampa: "drampanite", eelektross: "eelektrossite",
+  emboar: "emboarite", excadrill: "excadrite", feraligatr: "feraligite",
+  froslass: "froslassite", gallade: "galladite", garchomp: "garchompite",
+  gardevoir: "gardevoirite", gengar: "gengarite", glalie: "glalitite",
+  glimmora: "glimmoranite", golurk: "golurkite", greninja: "greninjite",
+  gyarados: "gyaradosite", hawlucha: "hawluchanite", heracross: "heracronite",
+  houndoom: "houndoominite", kangaskhan: "kangaskhanite", lopunny: "lopunnite",
+  lucario: "lucarionite", malamar: "malamarite", manectric: "manectite",
+  mawile: "mawilite", medicham: "medichamite", meganium: "meganiumite",
+  "meowstic-male": "meowsticite", metagross: "metagrossite", pinsir: "pinsirite",
+  "pyroar-male": "pyroarite", raichu: { x: "raichunite-x", y: "raichunite-y" },
+  sableye: "sablenite", sceptile: "sceptilite", scizor: "scizorite",
+  scolipede: "scolipite", scovillain: "scovillainite", sharpedo: "sharpedonite",
+  skarmory: "skarmorite", slowbro: "slowbronite", staraptor: "staraptite",
+  starmie: "starminite", steelix: "steelixite", swampert: "swampertite",
+  tyranitar: "tyranitarite", venusaur: "venusaurite", victreebel: "victreebelite",
+};
+
+/**
+ * Se `mon` può megaevolversi e tiene la megapietra giusta, restituisce
+ * { variant } (variant = "x"/"y" per Charizard/Raichu, null altrimenti).
+ * Altrimenti null.
+ */
+function getMegaMatch(mon) {
+  const entry = MEGA_STONE_BY_POKEMON[mon.name];
+  if (!entry) return null;
+  if (typeof entry === "string") return mon.item === entry ? { variant: null } : null;
+  if (mon.item === entry.x) return { variant: "x" };
+  if (mon.item === entry.y) return { variant: "y" };
+  return null;
+}
