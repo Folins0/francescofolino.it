@@ -4,11 +4,10 @@ Team builder per Pokémon Champions VGC (Regulation M-B, doubles). Permette di
 cercare un Pokémon tramite [PokéAPI](https://pokeapi.co) (con autocomplete e
 suggerimento di correzione sui refusi) e aggiungerlo a un roster di 6 slot,
 mostrando sprite, tipi e stat base. Si possono gestire fino a 6 team in
-parallelo, ognuno con il proprio roster indipendente, condividerli tramite
-un codice testuale generato dall'app stessa (vedi nota sotto), oppure
-comporli automaticamente caricando 1-2 screenshot della schermata "team
-preview" del gioco (Gemini vision + OCR client-side, riconosce le 6 specie:
-vedi nota sotto).
+parallelo, ognuno con il proprio roster indipendente, oppure comporli
+automaticamente caricando 1-2 screenshot della schermata "team preview" del
+gioco (Gemini vision + OCR client-side, riconosce le 6 specie: vedi nota
+sotto).
 
 Ogni Pokémon del roster può avere fino a 4 mosse, un oggetto tenuto, EV/IV
 e natura (pannello "Statistiche" su ogni scheda), con stat finali calcolate
@@ -91,9 +90,9 @@ backend condiviso multi-dispositivo resta compito della Fase 3.
   editor EV/IV/natura per lui), il calcolatore gli assume uno spread
   neutro (31 IV, 0 EV, natura neutra) a Lv.50 — coerente con la nota di
   scope già presente in Fase 1.
-- Import da codice team e da screenshot restano limitati alla specie (le
-  mosse/oggetto/EV/IV/natura dei Pokémon importati partono dai default e
-  vanno impostate a mano); estendere quei formati è fuori scope qui.
+- Import da screenshot resta limitato alla specie (le mosse/oggetto/EV/IV/
+  natura dei Pokémon importati partono dai default e vanno impostate a
+  mano); estendere il formato è fuori scope qui.
 
 ## Roadmap (fasi successive)
 
@@ -165,17 +164,6 @@ restare in inglese/originale PokéAPI, sono già in inglese di default.
   L'accuratezza reale dipende dalla qualità/risoluzione dello screenshot; è
   stata testata con un'immagine sintetica (riconoscimento corretto), non
   ancora con uno screenshot reale del gioco.
-- **Codice team**: è un formato inventato da TeamPreview (ID PokéAPI di ogni
-  Pokémon in base36, tipo `ND-K7`), pensato per condividere un roster tra
-  utenti dell'app o tra dispositivi. Non è compatibile con i codici
-  "Replica Team" (Rental Team) di
-  Pokémon Champions/Scarlatto e Violetto: quei codici fanno riferimento a
-  dati salvati sui server Nintendo (non un blob autosufficiente decodificabile
-  offline) e il formato non è mai stato pubblicato ufficialmente, quindi non
-  c'è modo di leggerli o generarli da fuori dal gioco. Se serve tenere
-  traccia del codice Replica Team reale di un roster, l'opzione più onesta è
-  un campo di testo libero per appuntarlo accanto al team (nessuna
-  decodifica, solo promemoria) — da valutare in Fase 2+.
 - I colori dei badge tipo (`--type-fire`, `--type-water`, ecc. in
   `style.css`) seguono la palette convenzionale usata da quasi tutti i
   tool VGC/competitivi — non sono asset ufficiali Nintendo/Game Freak,

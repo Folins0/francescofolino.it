@@ -27,22 +27,30 @@ let suggestionCandidates = []; // possibili nomi corretti per il refuso corrente
 let suggestionIndex = 0; // candidato mostrato in questo momento
 let suggestionToken = 0; // invalida le fetch di suggerimento superate da un'azione più recente
 let editMode = false; // modalità "Modifica team" (punto 7): mostra il controllo per sostituire un Pokémon in uno slot
+let searchOpenIndex = null; // indice dello slot vuoto che sta mostrando la casella di ricerca (null = nessuno)
 
 const teamTabs = document.getElementById("team-tabs");
 const rosterGrid = document.getElementById("roster-grid");
 const rosterCount = document.getElementById("roster-count");
+const searchWidget = document.getElementById("search-widget");
 const searchInput = document.getElementById("search-input");
 const searchBtn = document.getElementById("search-btn");
+const searchCancelBtn = document.getElementById("search-cancel-btn");
 const feedback = document.getElementById("search-feedback");
 const confirmBox = document.getElementById("confirm-box");
 const confirmSprite = document.getElementById("confirm-sprite");
 const confirmName = document.getElementById("confirm-name");
 const confirmYesBtn = document.getElementById("confirm-yes");
 const confirmNoBtn = document.getElementById("confirm-no");
-const teamCodeInput = document.getElementById("team-code-input");
-const teamCodeImportBtn = document.getElementById("team-code-import-btn");
-const teamCodeExportBtn = document.getElementById("team-code-export-btn");
-const teamCodeFeedback = document.getElementById("team-code-feedback");
+// Conferma per l'autofill (vedi handleAutoCompleteTeam più sotto): elemento
+// dedicato perché confirm-box/pendingMon sopra vivono dentro lo slot vuoto
+// aperto dalla ricerca e non sono sempre presenti nel DOM visibile.
+const autofillConfirmBox = document.getElementById("autofill-confirm-box");
+const autofillConfirmSprite = document.getElementById("autofill-confirm-sprite");
+const autofillConfirmName = document.getElementById("autofill-confirm-name");
+const autofillConfirmReason = document.getElementById("autofill-confirm-reason");
+const autofillConfirmYesBtn = document.getElementById("autofill-confirm-yes");
+const autofillConfirmNoBtn = document.getElementById("autofill-confirm-no");
 const screenshot1Input = document.getElementById("screenshot-1");
 const screenshot2Input = document.getElementById("screenshot-2");
 const screenshotBuildBtn = document.getElementById("screenshot-build-btn");
@@ -87,6 +95,19 @@ function loadState() {
 
 function typeBadgeStyle(type) {
   return `background: var(--type-${type}, var(--muted));`;
+}
+
+// Sigle a 3 lettere per i badge di tipo (spazio stretto in tabella/roster).
+// Sigle scelte per essere distinguibili tra loro sui 18 tipi.
+const TYPE_ABBR = {
+  normal: "NOR", fire: "FIR", water: "WAT", electric: "ELE", grass: "GRA",
+  ice: "ICE", fighting: "FIG", poison: "POI", ground: "GRD", flying: "FLY",
+  psychic: "PSY", bug: "BUG", rock: "ROC", ghost: "GHO", dragon: "DRG",
+  dark: "DAR", steel: "STE", fairy: "FAI",
+};
+
+function typeAbbr(type) {
+  return TYPE_ABBR[type] || type.slice(0, 3).toUpperCase();
 }
 
 // --- Testo dei tooltip hover (via CSS [data-tooltip]) ---
@@ -136,11 +157,8 @@ function renderTeamTabs() {
     tab.textContent = t.name;
     tab.addEventListener("click", () => {
       state.activeTeamIndex = i;
-      hideConfirm();
-      searchInput.value = "";
-      setFeedback("");
+      closeSearchWidget();
       renderTeamTabs();
-      renderRoster();
       saveState();
     });
 
@@ -211,7 +229,18 @@ function renderRoster() {
     slot.appendChild(index);
 
     if (!mon) {
-      slot.appendChild(document.createTextNode("Slot vuoto"));
+      if (searchOpenIndex === i) {
+        slot.appendChild(searchWidget);
+        searchWidget.classList.remove("hidden");
+      } else {
+        const addBtn = document.createElement("button");
+        addBtn.type = "button";
+        addBtn.className = "slot-add-btn";
+        addBtn.textContent = "+";
+        addBtn.setAttribute("aria-label", "Cerca un Pokémon da aggiungere");
+        addBtn.addEventListener("click", () => openSearchWidget(slot, i));
+        slot.appendChild(addBtn);
+      }
       rosterGrid.appendChild(slot);
       continue;
     }
@@ -254,6 +283,7 @@ function renderRoster() {
     body.appendChild(img);
 
     const info = document.createElement("div");
+    info.className = "slot-info";
 
     const nameEl = document.createElement("div");
     nameEl.className = "slot-name";
@@ -267,7 +297,8 @@ function renderRoster() {
     mon.types.forEach((t) => {
       const badge = document.createElement("span");
       badge.className = "type-badge";
-      badge.textContent = t;
+      badge.textContent = typeAbbr(t);
+      badge.title = t;
       badge.style.cssText = typeBadgeStyle(t);
       typeRow.appendChild(badge);
     });
@@ -494,7 +525,7 @@ function renderStatsModal() {
       <img src="${mon.sprite}" alt="">
       <div>
         <h3>${pokemonDisplayName(mon.name)}</h3>
-        <div class="type-row">${mon.types.map((t) => `<span class="type-badge" style="${typeBadgeStyle(t)}">${t}</span>`).join("")}</div>
+        <div class="type-row">${mon.types.map((t) => `<span class="type-badge" title="${t}" style="${typeBadgeStyle(t)}">${typeAbbr(t)}</span>`).join("")}</div>
       </div>
     </div>
 
@@ -717,7 +748,8 @@ function buildTypeGroup(label, types, cls) {
   types.forEach((t) => {
     const badge = document.createElement("span");
     badge.className = "type-badge";
-    badge.textContent = t;
+    badge.textContent = typeAbbr(t);
+    badge.title = t;
     badge.style.cssText = typeBadgeStyle(t);
     wrap.appendChild(badge);
   });
@@ -741,15 +773,17 @@ function effClass(mult) {
 }
 
 // Tabella: prima riga = Pokémon del roster (sprite + nome), righe seguenti
-// = un tipo attaccante ciascuna. Header non sticky di proposito: scorrendo
-// la pagina deve scorrere via con il resto, non restare fissato in cima.
+// = un tipo attaccante ciascuna. Riga e colonna d'intestazione restano
+// fisse (sticky) durante lo scroll, vedi .matchup-table-wrap in style.css.
 function buildMatchupTable(mons) {
   const table = document.createElement("table");
   table.className = "matchup-table";
 
   const thead = document.createElement("thead");
   const headRow = document.createElement("tr");
-  headRow.appendChild(document.createElement("th"));
+  const corner = document.createElement("th");
+  corner.className = "matchup-corner";
+  headRow.appendChild(corner);
   mons.forEach((mon) => {
     const th = document.createElement("th");
     th.className = "matchup-mon-col";
@@ -770,7 +804,8 @@ function buildMatchupTable(mons) {
     const row = document.createElement("tr");
     const typeTh = document.createElement("th");
     typeTh.className = "matchup-type-col";
-    typeTh.textContent = atkType;
+    typeTh.textContent = typeAbbr(atkType);
+    typeTh.title = atkType;
     typeTh.style.cssText = typeBadgeStyle(atkType);
     row.appendChild(typeTh);
 
@@ -815,8 +850,10 @@ function renderMatchup() {
   renderAttackerOptions();
 }
 
-function renderCoverage() {
-  const mons = activeTeam().mons;
+// Tipi coperti/scoperti dalle mosse offensive assegnate al roster. Estratta
+// da renderCoverage per essere riusata anche dall'autofill (punto 2 sotto),
+// che sceglie i candidati anche in base ai tipi ancora scoperti.
+function computeCoverage(mons) {
   const attackMoves = [];
   mons.forEach((mon) => {
     mon.moves.forEach((name) => {
@@ -830,6 +867,12 @@ function renderCoverage() {
     const hits = attackMoves.some((m) => typeEffectiveness(m.type, [defType]) >= 2);
     (hits ? covered : uncovered).push(defType);
   });
+  return { covered, uncovered };
+}
+
+function renderCoverage() {
+  const mons = activeTeam().mons;
+  const { covered, uncovered } = computeCoverage(mons);
 
   matchupCovered.innerHTML = "";
   matchupCovered.appendChild(buildTypeGroup("Copertura buona", covered, "resist"));
@@ -928,6 +971,26 @@ function setFeedback(message, isError = false) {
   feedback.classList.toggle("error", isError);
 }
 
+// Sposta la casella di ricerca dentro lo slot vuoto cliccato (stessa
+// posizione del toggle mega sugli slot pieni), al posto del pulsante "+".
+function openSearchWidget(slot, index) {
+  searchOpenIndex = index;
+  const trigger = slot.querySelector(".slot-add-btn");
+  if (trigger) trigger.remove();
+  slot.appendChild(searchWidget);
+  searchWidget.classList.remove("hidden");
+  searchInput.focus();
+}
+
+function closeSearchWidget() {
+  searchOpenIndex = null;
+  searchWidget.classList.add("hidden");
+  hideConfirm();
+  searchInput.value = "";
+  setFeedback("");
+  renderRoster();
+}
+
 function addMonToTeam(mon) {
   const mons = activeTeam().mons;
   if (mons.length >= MAX_TEAM_SIZE) {
@@ -939,11 +1002,8 @@ function addMonToTeam(mon) {
     return;
   }
   mons.push(mon);
-  renderRoster();
+  closeSearchWidget();
   saveState();
-  setFeedback(`${pokemonDisplayName(mon.name)} aggiunto al roster.`);
-  searchInput.value = "";
-  hideConfirm();
 }
 
 async function handleAdd() {
@@ -1042,8 +1102,10 @@ async function checkForSuggestion() {
 }
 
 searchBtn.addEventListener("click", handleAdd);
+searchCancelBtn.addEventListener("click", closeSearchWidget);
 searchInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") handleAdd();
+  if (e.key === "Escape") closeSearchWidget();
 });
 searchInput.addEventListener("input", checkForSuggestion);
 
@@ -1060,84 +1122,6 @@ confirmNoBtn.addEventListener("click", () => {
     searchInput.value = "";
     setFeedback("Non riesco a trovare il Pokémon che mi hai chiesto, riprova a cercarlo.", true);
   }
-});
-
-// Codice team proprio di TeamPreview (non è il formato ufficiale del gioco,
-// che non è pubblico): l'ID PokéAPI di ogni Pokémon in base36, separati da
-// "-", per un codice corto e alfanumerico da condividere con un altro
-// utente di TeamPreview o da un dispositivo all'altro.
-function encodeTeamCode(mons) {
-  return mons.map((m) => m.id.toString(36).toUpperCase()).join("-");
-}
-
-function decodeTeamCode(code) {
-  const ids = code.trim().toUpperCase().split("-").filter(Boolean).map((part) => parseInt(part, 36));
-  if (!ids.length || ids.some((id) => Number.isNaN(id))) throw new Error("Codice non valido.");
-  return ids;
-}
-
-function setTeamCodeFeedback(message, isError = false) {
-  teamCodeFeedback.textContent = message;
-  teamCodeFeedback.classList.toggle("error", isError);
-}
-
-teamCodeExportBtn.addEventListener("click", async () => {
-  const mons = activeTeam().mons;
-  if (!mons.length) {
-    setTeamCodeFeedback("Il team attivo è vuoto: aggiungi almeno un Pokémon prima di esportare.", true);
-    return;
-  }
-  const code = encodeTeamCode(mons);
-  try {
-    await navigator.clipboard.writeText(code);
-    setTeamCodeFeedback("Codice copiato negli appunti!");
-  } catch {
-    teamCodeInput.value = code;
-    setTeamCodeFeedback("Copia manualmente il codice dal campo qui sopra.");
-  }
-});
-
-teamCodeImportBtn.addEventListener("click", async () => {
-  const raw = teamCodeInput.value.trim();
-  if (!raw) {
-    setTeamCodeFeedback("Incolla un codice team prima di importare.", true);
-    return;
-  }
-  if (state.teams.length >= MAX_TEAMS) {
-    setTeamCodeFeedback("Hai già 6 team: rimuovine uno prima di importarne un altro.", true);
-    return;
-  }
-
-  let ids;
-  try {
-    ids = decodeTeamCode(raw);
-  } catch {
-    setTeamCodeFeedback("Codice non valido o non riconosciuto.", true);
-    return;
-  }
-
-  teamCodeImportBtn.disabled = true;
-  setTeamCodeFeedback("Importo il team…");
-
-  const mons = [];
-  for (const id of ids.slice(0, MAX_TEAM_SIZE)) {
-    try {
-      mons.push(await fetchPokemon(String(id)));
-    } catch {
-      // ID non riconosciuto da PokéAPI: lo saltiamo
-    }
-  }
-
-  teamCodeImportBtn.disabled = false;
-
-  if (!mons.length) {
-    setTeamCodeFeedback("Nessun Pokémon valido trovato in questo codice.", true);
-    return;
-  }
-
-  addImportedTeam(mons);
-  teamCodeInput.value = "";
-  setTeamCodeFeedback(`Team importato con ${mons.length} Pokémon.`);
 });
 
 // Riconoscimento Pokémon da uno screenshot della team preview del gioco
@@ -1790,3 +1774,198 @@ async function handleCoachAnalysis() {
 }
 
 btnCoach.addEventListener("click", handleCoachAnalysis);
+
+// Mostra il rank nel meta di ogni Pokémon del roster attivo: solo lookup
+// locale in META_USAGE_REGMB (meta-usage.js), nessuna chiamata AI/rete.
+// mon.name è già lo slug PokéAPI (vedi fetchPokemon in pokeapi.js), quindi
+// combacia direttamente con META_USAGE_REGMB[].slug.
+function handleMetaUsageScreen() {
+  const rosterData = activeTeam().mons;
+
+  if (!rosterData.length) {
+    Scout.show();
+    Scout.say("Il tuo roster è vuoto. Aggiungi qualche Pokémon prima di chiedermi l'utilizzo nel meta!", 3000, "idle");
+    return;
+  }
+
+  const lines = rosterData.map((mon) => {
+    const entry = META_USAGE_REGMB.find((e) => e.slug === mon.name);
+    const displayName = pokemonDisplayName(mon.name);
+    const label = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+    return entry
+      ? `${label} è il #${entry.rank} del meta attuale.`
+      : `${label} non è tra i 25 più usati del meta attuale.`;
+  });
+
+  Scout.show();
+  Scout.say(lines.join("\n"), 5000, "speaking");
+}
+
+// --- "Consigli su questa schermata" (context-aware) --------------------------
+// Calcola in locale il massimo di contesto possibile su cosa l'utente sta
+// guardando/modificando in questo momento (stesso principio di buildMetaHints
+// sopra: solo fatti concreti, mai un prompt generico "aiutami" mandato
+// all'AI). Se il modal Statistiche è aperto per un Pokémon, il contesto è
+// quel singolo Pokémon (stat base, mosse/oggetto/SP assegnati, cosa manca);
+// altrimenti ripiega sulla vista d'insieme del roster, riusando le stesse
+// computeTeamWeakTypes/computeCoverage già usate per il rendering del matchup.
+function buildScreenContext() {
+  const modalOpen = statsModalMon && !statsModal.classList.contains("hidden");
+
+  if (modalOpen) {
+    const mon = statsModalMon;
+    const spTotal = STAT_KEYS.reduce((sum, k) => sum + mon.sp[k], 0);
+    return {
+      screen: "stats-modal",
+      pokemon: pokemonDisplayName(mon.name),
+      types: mon.types,
+      baseStats: mon.stats,
+      ability: mon.ability || null,
+      item: mon.item || null,
+      nature: mon.nature,
+      movesAssigned: mon.moves.filter(Boolean),
+      missingMoveSlots: mon.moves.filter((m) => !m).length,
+      spAssigned: mon.sp,
+      spTotal,
+      spRemaining: MAX_SP_TOTAL - spTotal,
+    };
+  }
+
+  const mons = activeTeam().mons;
+  const { uncovered } = computeCoverage(mons);
+  return {
+    screen: "roster",
+    teamSize: mons.length,
+    weakTypes: computeTeamWeakTypes(mons),
+    uncoveredOffensiveTypes: uncovered,
+  };
+}
+
+async function fetchContextualAdvice(context) {
+  const res = await fetch(AI_COACH_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "contextual", context }),
+  });
+  if (!res.ok) throw new Error("Errore di connessione al server locale.");
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.advice;
+}
+
+async function handleScreenAdvice() {
+  const modalOpen = statsModalMon && !statsModal.classList.contains("hidden");
+
+  if (!modalOpen && !activeTeam().mons.length) {
+    Scout.show();
+    Scout.say("Il tuo roster è vuoto e non hai nessuna scheda aperta: aggiungi un Pokémon o apri le sue Statistiche, poi richiedimi un consiglio.", 4000, "idle");
+    return;
+  }
+
+  Scout.show();
+  Scout.say("Fammi dare un'occhiata a cosa stai guardando...", 3000, "thinking");
+
+  try {
+    const context = buildScreenContext();
+    const advice = await fetchContextualAdvice(context);
+    Scout.say(advice, 5000, "speaking");
+  } catch {
+    Scout.say("Ops, c'è stato un problema di connessione col Server PC di Bill. Riprova più tardi!", 4000, "idle");
+  }
+}
+
+// --- "Completa il team automaticamente" (autofill) ----------------------------
+// Approccio ibrido come buildMetaHints sopra: la scelta del candidato è
+// 100% locale e deterministica (nessuna chiamata AI), l'AI serve solo a
+// formulare in una frase il perché della scelta già fatta. Punteggio per
+// candidato = quante debolezze di tipo del team (computeTeamWeakTypes)
+// resiste + quanti tipi offensivi ancora scoperti (computeCoverage)
+// potrebbe portare col suo STAB.
+async function computeAutofillCandidates(mons) {
+  const weakTypes = computeTeamWeakTypes(mons);
+  const { uncovered } = computeCoverage(mons);
+  const rosterSlugs = new Set(mons.map((m) => m.name));
+
+  await Promise.all(META_USAGE_REGMB.map((entry) => getMetaTypes(entry.slug)));
+
+  return META_USAGE_REGMB
+    .filter((entry) => !rosterSlugs.has(entry.slug))
+    .map((entry) => {
+      const types = metaTypesCache[entry.slug] || [];
+      const resistsWeak = weakTypes.filter((t) => typeEffectiveness(t, types) < 1).length;
+      const addsCoverage = uncovered.filter((t) => types.includes(t)).length;
+      return { entry, types, resistsWeak, addsCoverage, score: resistsWeak * 2 + addsCoverage };
+    })
+    .sort((a, b) => b.score - a.score || a.entry.rank - b.entry.rank);
+}
+
+async function fetchAutofillReason(mons, candidate) {
+  const context = {
+    weakTypes: computeTeamWeakTypes(mons),
+    candidate: { name: candidate.entry.name, rank: candidate.entry.rank, types: candidate.types },
+  };
+  const res = await fetch(AI_COACH_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "autofill", context }),
+  });
+  if (!res.ok) throw new Error("Errore di connessione al server locale.");
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.advice;
+}
+
+// Conferma prima di aggiungere il candidato al roster (mai un push silenzioso
+// allo stato): stesso pattern del confirm-box del flusso di ricerca, su un
+// elemento dedicato (vedi commento sopra su autofillConfirmBox).
+let autofillPendingMon = null;
+
+function hideAutofillConfirm() {
+  autofillPendingMon = null;
+  autofillConfirmBox.classList.add("hidden");
+}
+
+function showAutofillConfirm(mon, reasonText) {
+  autofillPendingMon = mon;
+  autofillConfirmSprite.src = mon.sprite;
+  autofillConfirmName.textContent = pokemonDisplayName(mon.name);
+  autofillConfirmReason.textContent = reasonText;
+  autofillConfirmBox.classList.remove("hidden");
+}
+
+autofillConfirmYesBtn.addEventListener("click", () => {
+  if (autofillPendingMon) addMonToTeam(autofillPendingMon);
+  hideAutofillConfirm();
+});
+autofillConfirmNoBtn.addEventListener("click", hideAutofillConfirm);
+
+async function handleAutoCompleteTeam() {
+  const mons = activeTeam().mons;
+
+  if (mons.length >= MAX_TEAM_SIZE) {
+    Scout.show();
+    Scout.say("Il roster è già al completo (6/6): non c'è spazio per aggiungere altri Pokémon.", 3500, "idle");
+    return;
+  }
+
+  Scout.show();
+  Scout.say("Controllo il meta per trovare un buon candidato...", 3000, "thinking");
+
+  try {
+    const candidates = await computeAutofillCandidates(mons);
+    if (!candidates.length) {
+      Scout.say("Non ho trovato candidati utili nel meta attuale per completare la squadra.", 4000, "idle");
+      return;
+    }
+
+    const best = candidates[0];
+    const mon = await fetchPokemon(best.entry.slug);
+    const fallbackReason = `Ti consiglio ${best.entry.name} (#${best.entry.rank} del meta): aiuta a coprire i punti deboli del tuo team.`;
+    const reason = await fetchAutofillReason(mons, best).catch(() => fallbackReason);
+
+    Scout.say(reason, 5000, "speaking");
+    showAutofillConfirm(mon, reason);
+  } catch {
+    Scout.say("Ops, qualcosa è andato storto mentre cercavo un candidato. Riprova più tardi!", 4000, "idle");
+  }
+}

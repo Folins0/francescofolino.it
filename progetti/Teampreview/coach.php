@@ -26,7 +26,99 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Chiamata Groq comune a tutte le modalità sotto: stampa la risposta JSON
+// (o l'errore) e termina, così non va duplicata la gestione curl/errori per
+// ogni modalità.
+function callGroqAndRespond($apiKey, $payload) {
+    $ch = curl_init('https://api.groq.com/openai/v1/chat/completions');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            "Authorization: Bearer {$apiKey}",
+        ],
+        CURLOPT_TIMEOUT => 30,
+    ]);
+
+    $response = curl_exec($ch);
+    $curlError = curl_error($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($response === false) {
+        http_response_code(502);
+        echo json_encode(['error' => "Errore di connessione a Groq: {$curlError}"]);
+        exit;
+    }
+
+    if ($httpCode !== 200) {
+        http_response_code(502);
+        echo json_encode(['error' => "Groq ha risposto con errore (HTTP {$httpCode}): {$response}"]);
+        exit;
+    }
+
+    $data = json_decode($response, true);
+    $advice = $data['choices'][0]['message']['content'] ?? null;
+
+    if (!$advice) {
+        http_response_code(502);
+        echo json_encode(['error' => 'Risposta di Groq in un formato inatteso.']);
+        exit;
+    }
+
+    echo json_encode(['advice' => $advice]);
+    exit;
+}
+
 $body = json_decode(file_get_contents('php://input'), true);
+$mode = $body['mode'] ?? 'team';
+
+// Tre modalità, stesso endpoint (nessuna cache qui: a differenza di
+// server.js, coach.php gira su hosting condiviso senza processo persistente,
+// quindi una cache in memoria non sopravviverebbe tra una richiesta e l'altra).
+// - "team" (default, retrocompatibile): analisi generale del roster.
+// - "contextual": consiglio mirato su ciò che l'utente sta guardando in
+//   questo momento (app.js: buildScreenContext/handleScreenAdvice).
+// - "autofill": giustifica in una frase un candidato già scelto in locale
+//   (app.js: computeAutofillCandidates/handleAutoCompleteTeam).
+if ($mode === 'contextual' || $mode === 'autofill') {
+    $context = $body['context'] ?? null;
+    if (!$context) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Contesto mancante.']);
+        exit;
+    }
+
+    $systemPrompt = $mode === 'contextual'
+        ? "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). L'utente sta guardando una schermata "
+            . "specifica dell'app: dai un consiglio mirato e pratico su cosa manca in quella schermata (es. quali "
+            . "SP assegnare in base al ruolo suggerito dalle stat base, quale mossa o oggetto scegliere), in "
+            . "italiano, tono da mentore, massimo 3-4 frasi. IMPORTANTE: Pokémon Champions non usa gli EV classici "
+            . "(0-252 a stat, max 508 totali). Usa i \"SP\" (Stat Point): 0-32 per singola statistica, massimo 66 "
+            . "in totale su tutte le stat insieme. Se suggerisci uno spread, resta SEMPRE dentro questi limiti "
+            . "(es. \"32 SP in attacco e 32 in velocità\" è già il massimo assoluto per due stat, non puoi "
+            . "assegnarne di più). Basati ESCLUSIVAMENTE sui dati nel contesto fornito: non inventare mosse, "
+            . "abilità, tipi o statistiche non presenti."
+        : "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). Ti è già stato scelto, con dati reali "
+            . "(non da te), un Pokémon candidato per completare il roster. Giustifica la scelta in una frase breve "
+            . "e concreta, in italiano, tono da mentore, citando il suo nome. Non proporre alternative e non "
+            . "inventare dati assenti dal contesto.";
+
+    $userContent = ($mode === 'contextual' ? "Contesto schermata: " : "Contesto: ") . json_encode($context);
+
+    $payload = json_encode([
+        'model' => 'llama3-8b-8192',
+        'messages' => [
+            ['role' => 'system', 'content' => $systemPrompt],
+            ['role' => 'user', 'content' => $userContent],
+        ],
+    ]);
+
+    callGroqAndRespond($apiKey, $payload);
+}
+
 $roster = $body['roster'] ?? null;
 $metaHints = $body['metaHints'] ?? [];
 
@@ -63,42 +155,4 @@ $payload = json_encode([
     ],
 ]);
 
-$ch = curl_init('https://api.groq.com/openai/v1/chat/completions');
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => $payload,
-    CURLOPT_HTTPHEADER => [
-        'Content-Type: application/json',
-        "Authorization: Bearer {$apiKey}",
-    ],
-    CURLOPT_TIMEOUT => 30,
-]);
-
-$response = curl_exec($ch);
-$curlError = curl_error($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-
-if ($response === false) {
-    http_response_code(502);
-    echo json_encode(['error' => "Errore di connessione a Groq: {$curlError}"]);
-    exit;
-}
-
-if ($httpCode !== 200) {
-    http_response_code(502);
-    echo json_encode(['error' => "Groq ha risposto con errore (HTTP {$httpCode}): {$response}"]);
-    exit;
-}
-
-$data = json_decode($response, true);
-$advice = $data['choices'][0]['message']['content'] ?? null;
-
-if (!$advice) {
-    http_response_code(502);
-    echo json_encode(['error' => 'Risposta di Groq in un formato inatteso.']);
-    exit;
-}
-
-echo json_encode(['advice' => $advice]);
+callGroqAndRespond($apiKey, $payload);
