@@ -321,6 +321,7 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 
 .slot {
   position: relative;
+  z-index: 0;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -334,6 +335,13 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+/* :hover applica un transform, che crea un nuovo stacking context: senza
+   z-index esplicito la card finisce comunque dietro le successive nel DOM
+   quando il suo tooltip (popup) trabocca sopra di loro. */
+.slot:hover,
+.slot:has(.tap-tooltip) {
+  z-index: 5;
 }
 .slot:hover {
   transform: translateY(-3px);
@@ -596,17 +604,59 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 .matchup { margin-top: 2.5rem; }
 .matchup-intro { margin-bottom: 1.4rem; }
 
-.matchup-defense { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.8rem; }
-.matchup-mon-row {
-  background: var(--surface);
+.matchup-defense { margin-bottom: 1.8rem; }
+
+/* Tabella tipi attaccanti (righe) x Pokémon del roster (colonne). L'header
+   non è sticky: scorrendo la pagina deve scorrere via con il resto, non
+   restare fissato in cima mentre si scorrono i tipi. */
+.matchup-table-wrap {
+  overflow-x: auto;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 0.8rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  border-radius: 12px;
 }
-.matchup-mon-name { font-family: var(--font-display); font-weight: 600; text-transform: capitalize; }
+.matchup-table { width: 100%; border-collapse: collapse; }
+.matchup-table th, .matchup-table td {
+  padding: 0.45rem 0.6rem;
+  text-align: center;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.matchup-table thead th { border-top: none; background: var(--surface-raised); }
+
+.matchup-mon-col { min-width: 74px; }
+.matchup-mon-col img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  display: block;
+  margin: 0 auto 0.25rem;
+}
+.matchup-mon-col span {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: capitalize;
+}
+
+.matchup-type-col {
+  text-align: left;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #14151a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.matchup-table td.eff-weak { color: var(--danger); font-weight: 700; background: rgba(230, 88, 79, 0.12); }
+.matchup-table td.eff-resist { color: #7ac74c; font-weight: 700; background: rgba(122, 199, 76, 0.1); }
+.matchup-table td.eff-immune { color: var(--muted); background: rgba(255, 255, 255, 0.05); }
+.matchup-table td.eff-neutral { color: var(--muted); }
+
+.matchup-table-legend { margin: 0.5rem 0 0; font-family: var(--font-mono); font-size: 0.72rem; }
 
 .matchup-group { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; font-size: 0.85rem; }
 .matchup-group-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); min-width: 5.5rem; }
