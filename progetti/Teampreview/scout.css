@@ -65,10 +65,58 @@
   font-family: var(--font-body);
   font-size: 0.85rem;
   line-height: 1.4;
+  white-space: pre-line; /* permette a "Mostra utilizzo nel meta" di andare a capo per ogni Pokémon */
   opacity: 0;
   transform: translateY(6px) scale(0.96);
   transition: opacity 0.2s ease, transform 0.2s ease;
   pointer-events: auto; /* serve per poter scrollare il testo lungo, a differenza del resto dell'overlay */
+}
+
+/* Menu di scelta che appare sopra la sprite al tocco: stessa "carta" del
+   fumetto (bordo/sfondo), ma ancorato in alto a destra dell'overlay invece
+   che nel flusso flex, così non sposta bubble/sprite quando compare. */
+.scout-menu {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.scout-menu.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.scout-menu button {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  padding: 0.45rem 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.scout-menu button:hover,
+.scout-menu button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
 }
 
 .scout-bubble.visible {

@@ -24,6 +24,7 @@ const SCOUT_TYPE_SPEED = 30; // ms per carattere
 const scoutOverlay = document.getElementById('overlay-scout');
 const scoutSprite = document.getElementById('scout-sprite');
 const scoutBubble = document.getElementById('scout-bubble');
+const scoutMenu = document.getElementById('scout-menu');
 let scoutTypeTimer = null; // interval del typewriter in corso
 let scoutIdleTimer = null; // timeout che riporta Scout a "idle" a fine typing
 
@@ -104,14 +105,60 @@ window.setExpression = setExpression; // retrocompatibilità con l'uso già pres
 
 setExpression('idle');
 
-// Tocca la sprite = stessa azione del bottone "Chiedi alla Professoressa"
-// (handleCoachAnalysis è definita in app.js, caricato prima di questo script:
-// le funzioni dichiarate a livello globale negli script classici sono condivise).
-if (scoutSprite) {
-  scoutSprite.addEventListener('click', () => {
-    if (typeof handleCoachAnalysis === 'function') handleCoachAnalysis();
+// Menu di scelta al tocco della sprite: ogni voce chiama una funzione globale
+// definita in app.js (stesso schema già usato per handleCoachAnalysis — gli
+// script classici condividono lo scope globale, caricati prima di questo).
+// Le voci 3 e 4 puntano a placeholder finché non arriva l'implementazione
+// reale da un'altra sessione: nessuna modifica al menu servirà per agganciarle.
+const SCOUT_MENU_ITEMS = [
+  { label: 'Analizza il team', fn: 'handleCoachAnalysis' },
+  { label: 'Mostra utilizzo nel meta', fn: 'handleMetaUsageScreen' },
+  { label: 'Consigli su questa schermata', fn: 'handleScreenAdvice' },
+  { label: 'Completa il team automaticamente', fn: 'handleAutoCompleteTeam' },
+];
+
+function closeScoutMenu() {
+  if (!scoutMenu) return;
+  scoutMenu.classList.remove('visible');
+  scoutMenu.setAttribute('aria-hidden', 'true');
+}
+
+function toggleScoutMenu() {
+  if (!scoutMenu) return;
+  const opening = !scoutMenu.classList.contains('visible');
+  scoutMenu.classList.toggle('visible', opening);
+  scoutMenu.setAttribute('aria-hidden', opening ? 'false' : 'true');
+}
+
+if (scoutMenu) {
+  SCOUT_MENU_ITEMS.forEach((item) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('role', 'menuitem');
+    btn.textContent = item.label;
+    btn.addEventListener('click', () => {
+      closeScoutMenu();
+      const fn = window[item.fn];
+      if (typeof fn === 'function') fn();
+    });
+    scoutMenu.appendChild(btn);
   });
 }
+
+if (scoutSprite) {
+  // stopPropagation: evita che il click qui sotto (chiusura al tocco fuori
+  // dal menu) si attivi nello stesso momento in cui il menu viene aperto.
+  scoutSprite.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleScoutMenu();
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if (scoutMenu && scoutMenu.classList.contains('visible') && !scoutOverlay.contains(e.target)) {
+    closeScoutMenu();
+  }
+});
 
 // Avviso una tantum al primo avvio: fa scoprire che si può toccare la Prof
 // per chiedere aiuto, invece di dover trovare il bottone in fondo alla pagina.
