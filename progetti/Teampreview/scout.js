@@ -18,10 +18,13 @@ const SCOUT_EXPRESSIONS = {
   smug: { row: 2, col: 3 },
 };
 
+const SCOUT_TYPE_SPEED = 30; // ms per carattere
+
 const scoutOverlay = document.getElementById('overlay-scout');
 const scoutSprite = document.getElementById('scout-sprite');
 const scoutBubble = document.getElementById('scout-bubble');
-let scoutBubbleTimer = null;
+let scoutTypeTimer = null; // interval del typewriter in corso
+let scoutIdleTimer = null; // timeout che riporta Scout a "idle" a fine typing
 
 function setExpression(emotion) {
   if (!scoutSprite) return;
@@ -48,12 +51,35 @@ function hide() {
   scoutOverlay.setAttribute('aria-hidden', 'true');
 }
 
+// durationMs = tempo minimo di attesa dopo la fine del typing prima che
+// Scout torni a "idle" (non è più la durata di visibilità del fumetto).
 function say(text, durationMs = 3000) {
   if (!scoutBubble) return;
-  clearTimeout(scoutBubbleTimer);
-  scoutBubble.textContent = text;
+
+  // un say() in corso viene interrotto subito: niente testo mischiato tra due chiamate
+  clearInterval(scoutTypeTimer);
+  clearTimeout(scoutIdleTimer);
+
+  scoutBubble.textContent = '';
   scoutBubble.classList.add('visible');
-  scoutBubbleTimer = setTimeout(() => scoutBubble.classList.remove('visible'), durationMs);
+  setExpression('speaking');
+
+  if (!text) {
+    setExpression('idle');
+    return;
+  }
+
+  let i = 0;
+  scoutTypeTimer = setInterval(() => {
+    scoutBubble.textContent += text[i];
+    scoutBubble.scrollTop = scoutBubble.scrollHeight;
+    i++;
+    if (i >= text.length) {
+      clearInterval(scoutTypeTimer);
+      scoutTypeTimer = null;
+      scoutIdleTimer = setTimeout(() => setExpression('idle'), durationMs);
+    }
+  }, SCOUT_TYPE_SPEED);
 }
 
 window.Scout = { show, hide, setExpression, say };

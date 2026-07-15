@@ -49,6 +49,8 @@
 
 .scout-bubble {
   max-width: 220px;
+  max-height: 180px;
+  overflow-y: auto;
   margin-bottom: 0.75rem;
   padding: 0.6rem 0.85rem;
   background: var(--surface-raised);
@@ -61,10 +63,25 @@
   opacity: 0;
   transform: translateY(6px) scale(0.96);
   transition: opacity 0.2s ease, transform 0.2s ease;
-  pointer-events: none;
+  pointer-events: auto; /* serve per poter scrollare il testo lungo, a differenza del resto dell'overlay */
 }
 
 .scout-bubble.visible {
   opacity: 1;
   transform: translateY(0) scale(1);
+}
+
+/* Scrollbar pixel-art: stretta, squadrata, in tema con la palette dark. */
+.scout-bubble::-webkit-scrollbar {
+  width: 6px;
+}
+.scout-bubble::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+.scout-bubble::-webkit-scrollbar-thumb {
+  background: var(--accent-dim);
+  border-radius: 0;
+}
+.scout-bubble::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }

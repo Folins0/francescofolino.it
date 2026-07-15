@@ -39,7 +39,8 @@ $systemPrompt = "Sei un coach esperto di Pokémon VGC (Double Battles). Analizza
     . "Individua le principali debolezze di tipo e la mancanza di meccaniche chiave (es. Speed Control, "
     . "Fake Out, Redirect). Sii sintetico, diretto e strategico (massimo 3-4 frasi). Regola fondamentale: "
     . "basati ESCLUSIVAMENTE sui dati reali dei Pokémon, non inventare MAI mosse, abilità, tipi o statistiche "
-    . "inesistenti. Usa un tono professionale ma da mentore.";
+    . "inesistenti. Usa un tono professionale ma da mentore. Devi generare la risposta SEMPRE E SOLO in lingua "
+    . "italiana, usando il vocabolario ufficiale italiano del gioco.";
 
 $payload = json_encode([
     'model' => 'llama3-8b-8192', // Groq, gratuito. Fallback: 'gpt-3.5-turbo' su https://api.openai.com/v1/chat/completions
