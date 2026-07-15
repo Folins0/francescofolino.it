@@ -1567,3 +1567,36 @@ document.addEventListener("DOMContentLoaded", () => {
   renderTeamTabs();
   renderRoster();
 });
+
+// --- Assistente AI "Professoressa Pokémon" (Scout) --------------------------
+// Collega l'overlay Scout (scout.js) al roster attivo. fetchAICoachAdvice è
+// un mock isolato: in Sessione 3/4 basterà sostituire il suo corpo con la
+// vera chiamata API, senza toccare handleCoachAnalysis.
+const btnCoach = document.getElementById("btn-coach");
+
+// TODO: sostituire con vera chiamata API AI
+async function fetchAICoachAdvice(rosterData) {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  return "Analisi completata: fai attenzione alle mosse di tipo Terra!";
+}
+
+async function handleCoachAnalysis() {
+  const rosterData = activeTeam().mons;
+
+  if (!rosterData.length) {
+    Scout.show();
+    Scout.setExpression("idle");
+    Scout.say("Il tuo roster è vuoto. Aggiungi qualche Pokémon prima di chiedermi un parere!", 3000);
+    return;
+  }
+
+  Scout.show();
+  Scout.setExpression("thinking");
+  Scout.say("Mmh, fammi dare un'occhiata alle sinergie del tuo team...", 3000);
+
+  const advice = await fetchAICoachAdvice(rosterData);
+  Scout.setExpression("speaking");
+  Scout.say(advice, 5000);
+}
+
+btnCoach.addEventListener("click", handleCoachAnalysis);
