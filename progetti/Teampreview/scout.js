@@ -2,6 +2,13 @@
 // Sprite reale in img/scout-sprite.png, griglia 4 colonne x 3 righe.
 const SCOUT_FRAME_W = 165; // px, deve combaciare con .scout-sprite in scout.css
 const SCOUT_FRAME_H = 220;
+// Margine tagliato su ogni lato del frame mostrato: la sprite ha un'animazione
+// "breathe" che la scala via CSS transform, e vicino al bordo esatto del
+// frame il texture sampling della GPU può pescare qualche pixel del frame
+// adiacente nella griglia (si vede un pezzo di spalla/capelli). I frame hanno
+// un margine sfocato ampio attorno al soggetto, quindi tagliarne pochi px è
+// sicuro e invisibile.
+const SCOUT_FRAME_INSET = 3;
 const SCOUT_EXPRESSIONS = {
   idle: { row: 0, col: 0 },
   neutral: { row: 0, col: 0 },
@@ -20,12 +27,17 @@ const SCOUT_EXPRESSIONS = {
 };
 
 const SCOUT_TYPE_SPEED = 30; // ms per carattere
+// Il flap della bocca è a tempo fisso, indipendente dal typewriter: se
+// legato ai caratteri (ogni N char * SCOUT_TYPE_SPEED) diventa troppo veloce
+// e la sprite sembra glitchare invece di "parlare".
+const SCOUT_MOUTH_FLAP_MS = 180;
 
 const scoutOverlay = document.getElementById('overlay-scout');
 const scoutSprite = document.getElementById('scout-sprite');
 const scoutBubble = document.getElementById('scout-bubble');
 const scoutMenu = document.getElementById('scout-menu');
 let scoutTypeTimer = null; // interval del typewriter in corso
+let scoutMouthTimer = null; // interval del flap bocca in corso
 let scoutIdleTimer = null; // timeout che riporta Scout a "idle" a fine typing
 
 // Cambia solo il frame mostrato, senza il flash di "pop": usata per il
@@ -33,7 +45,7 @@ let scoutIdleTimer = null; // timeout che riporta Scout a "idle" a fine typing
 function setFrame(emotion) {
   if (!scoutSprite) return;
   const frame = SCOUT_EXPRESSIONS[emotion] || SCOUT_EXPRESSIONS.idle;
-  scoutSprite.style.backgroundPosition = `-${frame.col * SCOUT_FRAME_W}px -${frame.row * SCOUT_FRAME_H}px`;
+  scoutSprite.style.backgroundPosition = `-${frame.col * SCOUT_FRAME_W + SCOUT_FRAME_INSET}px -${frame.row * SCOUT_FRAME_H + SCOUT_FRAME_INSET}px`;
 }
 
 function setExpression(emotion) {
@@ -63,13 +75,14 @@ function hide() {
 // durationMs = tempo minimo di attesa dopo la fine del typing prima che
 // Scout torni a "idle" (non è più la durata di visibilità del fumetto).
 // emotion = espressione da mostrare mentre parla: cambia subito, prima che
-// il fumetto/testo compaia, non dopo. Con "speaking" la bocca "sbatte"
-// rapidamente a ogni carattere per un effetto di parlato più vivace.
+// il fumetto/testo compaia, non dopo. Con "speaking" la bocca "sbatte" a
+// intervalli fissi (SCOUT_MOUTH_FLAP_MS) per un effetto di parlato naturale.
 function say(text, durationMs = 3000, emotion = 'speaking') {
   if (!scoutBubble) return;
 
   // un say() in corso viene interrotto subito: niente testo mischiato tra due chiamate
   clearInterval(scoutTypeTimer);
+  clearInterval(scoutMouthTimer);
   clearTimeout(scoutIdleTimer);
 
   setExpression(emotion); // prima l'espressione, poi il fumetto/testo
@@ -82,19 +95,24 @@ function say(text, durationMs = 3000, emotion = 'speaking') {
   }
 
   const animateMouth = emotion === 'speaking';
-  let mouthOpen = true;
+  if (animateMouth) {
+    let mouthOpen = true;
+    scoutMouthTimer = setInterval(() => {
+      mouthOpen = !mouthOpen;
+      setFrame(mouthOpen ? 'speaking' : 'idle');
+    }, SCOUT_MOUTH_FLAP_MS);
+  }
+
   let i = 0;
   scoutTypeTimer = setInterval(() => {
     scoutBubble.textContent += text[i];
     scoutBubble.scrollTop = scoutBubble.scrollHeight;
     i++;
-    if (animateMouth && i % 2 === 0) {
-      mouthOpen = !mouthOpen;
-      setFrame(mouthOpen ? 'speaking' : 'idle');
-    }
     if (i >= text.length) {
       clearInterval(scoutTypeTimer);
       scoutTypeTimer = null;
+      clearInterval(scoutMouthTimer);
+      scoutMouthTimer = null;
       scoutIdleTimer = setTimeout(() => setExpression('idle'), durationMs);
     }
   }, SCOUT_TYPE_SPEED);
