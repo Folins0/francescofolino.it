@@ -7,10 +7,12 @@
 const MAX_TEAM_SIZE = 6; // Pokémon per team
 const MAX_TEAMS = 6; // team creabili in totale
 const STORAGE_KEY = "teampreview-state";
-// ponytail: URL del backend ai-vision (server.js), da aggiornare quando è
-// deployato altrove. Se irraggiungibile l'import da screenshot degrada
-// all'OCR client-side puro di prima, senza rompersi.
-const AI_VISION_ENDPOINT = "http://localhost:8787/api/analyze-screenshot";
+// URL del backend Node (server.js), deployato su Render. Se irraggiungibile
+// l'import da screenshot degrada all'OCR client-side puro di prima, senza
+// rompersi.
+const AI_BACKEND_BASE = "https://teampreview-backend.onrender.com";
+const AI_VISION_ENDPOINT = `${AI_BACKEND_BASE}/api/analyze-screenshot`;
+const AI_COACH_ENDPOINT = `${AI_BACKEND_BASE}/api/coach-advice`;
 
 const state = {
   teams: [{ name: "Team 1", mons: [] }],
@@ -1574,7 +1576,7 @@ const btnCoach = document.getElementById("btn-coach");
 
 async function fetchAICoachAdvice(rosterData) {
   try {
-    const res = await fetch("http://localhost:8787/api/coach-advice", {
+    const res = await fetch(AI_COACH_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ roster: rosterData }),

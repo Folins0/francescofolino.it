@@ -5,6 +5,8 @@ const crypto = require("node:crypto");
 
 const PORT = process.env.PORT || 8787;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const ALLOWED_ORIGINS = ["https://francescofolino.it", "https://www.francescofolino.it"];
+const isAllowedOrigin = (origin) => !!origin && (ALLOWED_ORIGINS.includes(origin) || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin));
 
 // Verifica di sicurezza all'avvio
 if (!GEMINI_API_KEY) {
@@ -35,7 +37,9 @@ async function callGeminiApi(payload) {
 
 const server = http.createServer(async (req, res) => {
     // CORS Headers
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    if (isAllowedOrigin(req.headers.origin)) {
+        res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+    }
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
