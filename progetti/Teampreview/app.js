@@ -7,6 +7,10 @@
 const MAX_TEAM_SIZE = 6; // Pokémon per team
 const MAX_TEAMS = 6; // team creabili in totale
 const STORAGE_KEY = "teampreview-state";
+// ponytail: URL del backend ai-vision (server.js), da aggiornare quando è
+// deployato altrove. Se irraggiungibile l'import da screenshot degrada
+// all'OCR client-side puro di prima, senza rompersi.
+const AI_VISION_ENDPOINT = "http://localhost:8787/api/analyze-screenshot";
 
 const state = {
   teams: [{ name: "Team 1", mons: [] }],
@@ -267,7 +271,7 @@ function renderRoster() {
     const itemLine = document.createElement("div");
     itemLine.className = "item-line";
     if (mon.item) {
-      itemLine.textContent = `Oggetto: ${mon.item.replace(/-/g, " ")}`;
+      itemLine.textContent = `Oggetto: ${itemDisplayName(mon.item)}`;
       const detail = getCachedItem(mon.item);
       if (detail) itemLine.dataset.tooltip = itemTooltipText(detail);
       else if (detail === undefined) fetchItemDetail(mon.item).then(() => renderRoster());
@@ -393,6 +397,16 @@ function spIvGridHtml(prefix, values, max) {
   return STAT_KEYS.map((k) => `<label>${STAT_LABELS[k]}<input type="number" min="0" max="${max}" step="1" data-${prefix}="${k}" value="${values[k]}"></label>`).join("");
 }
 
+// Oggetti raggruppati per categoria (Megapietre/Strumenti/Bacche, vedi
+// champions-roster.js) tramite <optgroup>: elenco chiuso, non testo libero.
+function itemOptionsHtml(selected) {
+  return Object.entries(CHAMPIONS_ITEM_CATEGORIES).map(([category, items]) => `
+    <optgroup label="${category}">
+      ${Object.entries(items).map(([slug, label]) => `<option value="${slug}" ${selected === slug ? "selected" : ""}>${label}</option>`).join("")}
+    </optgroup>
+  `).join("");
+}
+
 function closeStatsModal() {
   statsModalMon = null;
   statsModal.classList.add("hidden");
@@ -436,7 +450,10 @@ function renderStatsModal() {
         <input type="text" id="stats-ability-input" list="ability-names" autocomplete="off" placeholder="es. intimidate">
 
         <h4>Oggetto tenuto</h4>
-        <input type="text" id="stats-item-input" list="item-names" autocomplete="off" placeholder="es. choice-specs">
+        <select id="stats-item-input">
+          <option value="">— nessuno —</option>
+          ${itemOptionsHtml(mon.item)}
+        </select>
 
         <h4>Natura</h4>
         <select id="stats-nature-select">
@@ -465,10 +482,10 @@ function renderStatsModal() {
     </table>
   `;
 
-  // Valore dei campi testo (oggetto/abilità) impostato via .value (mai via
-  // HTML), il testo libero dell'utente non deve mai finire dentro un
-  // template innerHTML.
-  statsModalBody.querySelector("#stats-item-input").value = mon.item;
+  // Valore del campo testo abilità impostato via .value (mai via HTML): il
+  // testo libero dell'utente non deve mai finire dentro un template
+  // innerHTML. L'oggetto è un elenco chiuso (<select>), già selezionato nel
+  // template sopra.
   statsModalBody.querySelector("#stats-ability-input").value = mon.ability;
 
   wireStatsModalEvents();
@@ -490,7 +507,7 @@ function wireStatsModalEvents() {
     });
   });
 
-  statsModalBody.querySelector("#stats-item-input").addEventListener("input", (e) => {
+  statsModalBody.querySelector("#stats-item-input").addEventListener("change", (e) => {
     mon.item = e.target.value;
     renderRoster();
     saveState();
@@ -1034,6 +1051,15 @@ function moveDisplayName(moveName) {
   return moveNameIT[moveName] || moveName.replace(/-/g, " ");
 }
 
+// slug PokéAPI oggetto -> nome italiano ufficiale (da CHAMPIONS_ITEM_CATEGORIES).
+const itemNameIT = {};
+for (const items of Object.values(CHAMPIONS_ITEM_CATEGORIES)) {
+  Object.assign(itemNameIT, items);
+}
+function itemDisplayName(itemSlug) {
+  return itemNameIT[itemSlug] || itemSlug.replace(/-/g, " ");
+}
+
 function normalizeOcrText(s) {
   return s.toLowerCase().replace(/[^a-z]/g, "");
 }
@@ -1070,6 +1096,46 @@ function closestMatch(rawText, lookup, extraSuffixes = []) {
   }
   const threshold = Math.max(2, Math.round(query.length * 0.25));
   return bestDist <= threshold ? best : null;
+}
+
+// Manda lo screenshot "Info Pokémon" a Gemini (via backend, ai-vision.js)
+// prima di far partire l'OCR: l'AI vede l'immagine intera e indovina le 6
+// specie, l'OCR poi le userà come rosa ristretta per il match del nome
+// (vedi buildHintedLookup) invece di cercare su tutto il pokedex.
+async function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = () => reject(new Error("Impossibile leggere il file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function fetchVisionHints(file) {
+  const imageBase64 = await fileToBase64(file);
+  const res = await fetch(AI_VISION_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imageBase64, mimeType: file.type || "image/png" }),
+  });
+  if (!res.ok) throw new Error(`AI vision error ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data.pokemon) ? data.pokemon : [];
+}
+
+// Dizionario ristretto ai soli slug suggeriti dall'AI (risolti sul lookup
+// completo, che già capisce sia inglese che italiano). closestMatch cercherà
+// prima qui: 6 candidati invece di ~1000+ specie riduce di molto i falsi
+// positivi sui ritagli OCR rumorosi. Nomi non riconosciuti vengono scartati;
+// se la lista è vuota (AI irraggiungibile) il chiamante ricade sul lookup pieno.
+function buildHintedLookup(names, fullLookup) {
+  const hinted = {};
+  for (const name of names || []) {
+    if (!name) continue;
+    const slug = closestMatch(name, fullLookup, ["male"]);
+    if (slug) hinted[normalizeOcrText(slug)] = slug;
+  }
+  return hinted;
 }
 
 function loadImage(file) {
@@ -1459,7 +1525,8 @@ function solveSpForStat(statKey, base, target, natureName) {
 
 // Il ciclo Scatto -> Visione -> Analisi Tattica -> Update UI dell'import da
 // screenshot è coordinato da TeamPreviewOrchestrator (orchestrator.js), che
-// riusa le funzioni OCR/crop qui sopra e collega il click su screenshotBuildBtn.
+// riusa le funzioni OCR/AI-vision/crop qui sopra e collega il click su
+// screenshotBuildBtn.
 
 fetchPokemonNames().then((names) => {
   allNames = names;
@@ -1485,16 +1552,15 @@ fetchAbilityNames().then((names) => {
 });
 fetchItalianAbilityMap().then((map) => Object.assign(abilityLookup, map)).catch(() => {});
 
-Promise.all([fetchItemNames(), fetchMegaStoneNames()]).then(([names, megaStones]) => {
-  // Le megapietre non in CHAMPIONS_MEGA_STONES vengono escluse: tutti gli
-  // altri oggetti restano disponibili senza restrizioni.
-  const allowedNames = names.filter((n) => !megaStones.includes(n) || CHAMPIONS_MEGA_STONES.has(n));
-  addToLookup(itemLookup, allowedNames);
-  document.getElementById("item-names").innerHTML = allowedNames
-    .map((n) => `<option value="${n}"></option>`)
-    .join("");
-});
-fetchItalianItemMap().then((map) => Object.assign(itemLookup, map)).catch(() => {});
+// Oggetti: elenco chiuso (CHAMPIONS_ITEM_CATEGORIES in champions-roster.js),
+// niente fetch dell'intera lista PokéAPI. Il lookup OCR riconosce sia lo
+// slug inglese sia il nome italiano ufficiale, già noti in anticipo.
+for (const items of Object.values(CHAMPIONS_ITEM_CATEGORIES)) {
+  addToLookup(itemLookup, Object.keys(items));
+  for (const [slug, label] of Object.entries(items)) {
+    itemLookup[normalizeOcrText(label)] = slug;
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   loadState();

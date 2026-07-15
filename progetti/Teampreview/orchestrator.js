@@ -9,17 +9,32 @@ class TeamPreviewOrchestrator {
     this.worker = null;
   }
 
-  // Scatto: prende i file scelti dall'utente e li decodifica in immagini.
+  // Scatto: prende i file scelti dall'utente e li decodifica in immagini
+  // (mantiene anche il File originale di "Info Pokémon", serve tale e quale
+  // all'hint AI in Visione, che lo manda al backend come base64).
   async scatto(infoFile, statsFile) {
     if (!infoFile) throw new Error('Carica almeno lo screenshot della tab "Info Pokémon".');
     const infoImg = await loadImage(infoFile);
     const statsImg = statsFile ? await loadImage(statsFile) : null;
-    return { infoImg, statsImg };
+    return { infoFile, infoImg, statsImg };
   }
 
-  // Visione (Sessione 2): OCR delle schede -> specie, abilità, oggetto, mosse,
-  // e se presente lo screenshot Statistiche, anche natura e SP.
-  async visione({ infoImg, statsImg }) {
+  // Visione (Sessione 2): hint AI (Gemini, via server.js/ai-vision.js) sulle
+  // specie presenti, poi OCR delle schede -> specie, abilità, oggetto, mosse,
+  // e se presente lo screenshot Statistiche, anche natura e SP. Se il backend
+  // AI non è raggiungibile si procede con il solo OCR, senza rompersi.
+  async visione({ infoFile, infoImg, statsImg }) {
+    setScreenshotFeedback("Analizzo lo screenshot con l'AI…");
+    let hintedLookup = {};
+    try {
+      const hints = await fetchVisionHints(infoFile);
+      console.log("[TeamPreview AI] specie suggerite:", hints);
+      hintedLookup = buildHintedLookup(hints, nameLookup);
+    } catch (err) {
+      console.log(`[TeamPreview AI] analisi vision non disponibile, procedo solo con OCR: ${err.message}`);
+    }
+    setScreenshotFeedback("Leggo le immagini… la prima volta scarica il modulo OCR, può richiedere qualche secondo.");
+
     this.worker = await getOcrWorker();
     const cards = detectCardBoxes(infoImg);
     console.log(`[TeamPreview OCR] schede rilevate: ${cards.length}`);
@@ -32,7 +47,7 @@ class TeamPreviewOrchestrator {
     for (let i = 0; i < Math.min(cards.length, MAX_TEAM_SIZE); i++) {
       const card = cards[i];
       const nameText = await ocrCanvas(this.worker, cropCardRegion(infoImg, card, NAME_REGION));
-      const speciesSlug = closestMatch(nameText, nameLookup, ["male"]);
+      const speciesSlug = closestMatch(nameText, hintedLookup, ["male"]) || closestMatch(nameText, nameLookup, ["male"]);
       console.log(`[TeamPreview OCR] scheda ${i + 1}: letto "${nameText.trim()}" -> ${speciesSlug || "NESSUN MATCH"}`);
       if (!speciesSlug) continue;
 
@@ -155,7 +170,6 @@ class TeamPreviewOrchestrator {
     }
 
     screenshotBuildBtn.disabled = true;
-    setScreenshotFeedback("Leggo le immagini… la prima volta scarica il modulo OCR, può richiedere qualche secondo.");
 
     try {
       const shot = await this.scatto(infoFile, statsFile);

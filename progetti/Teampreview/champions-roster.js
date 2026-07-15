@@ -19,7 +19,7 @@ const CHAMPIONS_ROSTER = new Set([
   "delphox", "diggersby", "ditto", "dondozo", "dragalge", "dragapult",
   "dragonite", "drampa", "eelektross", "emboar", "emolga", "empoleon",
   "espeon", "excadrill", "falinks", "farigiraf", "feraligatr", "flareon",
-  "florges", "froslass", "furfrou", "gallade", "garbodor", "garchomp",
+  "flapple", "florges", "froslass", "furfrou", "gallade", "garbodor", "garchomp",
   "gardevoir", "garganacl", "gengar", "gholdengo", "glaceon", "glalie",
   "glimmora", "gliscor", "golurk", "goodra", "gourgeist-average", "greninja",
   "grimmsnarl", "gyarados", "hatterene", "hawlucha", "heracross", "hippowdon",
@@ -54,19 +54,66 @@ const CHAMPIONS_ROSTER = new Set([
   "zoroark-hisui", "zorua-hisui",
 ]);
 
-// Megapietre disponibili (punto Mega, aggiunto 2026-07-14): solo quelle dei
-// Pokémon con Megaevoluzione elencati sopra come disponibili in Pokémon
-// Champions. Filtra il campo "oggetto tenuto": le megapietre non in questo
-// elenco vengono escluse dall'autocomplete, gli altri oggetti restano tutti
-// disponibili.
-const CHAMPIONS_MEGA_STONES = new Set([
-  "abomasite", "absolite", "aerodactylite", "aggronite", "alakazite",
-  "altarianite", "ampharosite", "audinite", "beedrillite", "blastoisinite",
-  "blazikenite", "cameruptite", "charizardite-x", "charizardite-y",
-  "galladite", "garchompite", "gardevoirite", "gengarite", "glalitite",
-  "gyaradosite", "heracronite", "houndoominite", "kangaskhanite",
-  "lopunnite", "lucarionite", "manectite", "mawilite", "medichamite",
-  "metagrossite", "pinsirite", "pyroarite", "raichunite-x", "raichunite-y",
-  "sablenite", "sceptilite", "scizorite", "sharpedonite", "slowbronite",
-  "steelixite", "swampertite", "tyranitarite", "venusaurite",
-]);
+// Oggetti disponibili in Pokémon Champions (aggiunto 2026-07-14): elenco
+// CHIUSO fornito dall'utente, non "tutti gli oggetti PokéAPI meno quelli
+// esclusi" — a differenza del roster Pokémon, qui l'assunzione è che se un
+// oggetto non è in questa lista non esiste nel gioco. Raggruppati per
+// categoria (usato per gli <optgroup> del menu "oggetto tenuto"): slug
+// PokéAPI -> nome italiano ufficiale. Aggiornare qui, categoria per
+// categoria, quando l'elenco cambia.
+//
+// Nota: "Distintivo Esperto" (strumenti) e alcune bacche del messaggio
+// originale (Abilcoro, Amarena, Asqua, Kiwano, Lamber, Nespola, Radice,
+// Baccasalm) non corrispondono a nessun oggetto reale di PokéAPI né a un
+// nome italiano ufficiale conosciuto: non sono incluse, da verificare.
+const CHAMPIONS_ITEM_CATEGORIES = {
+  "Megapietre": {
+    "abomasite": "Abomasnowite", "absolite": "Absolite", "aerodactylite": "Aerodactylite",
+    "aggronite": "Aggronite", "alakazite": "Alakazamite", "altarianite": "Altarite",
+    "ampharosite": "Ampharosite", "audinite": "Audinite", "beedrillite": "Beedrillite",
+    "blastoisinite": "Blastoisite", "blazikenite": "Blazikenite", "cameruptite": "Cameruptite",
+    "charizardite-x": "Charizardite X", "charizardite-y": "Charizardite Y",
+    "galladite": "Galladite", "garchompite": "Garchompite", "gardevoirite": "Gardevoirite",
+    "gengarite": "Gengarite", "glalitite": "Glalite", "gyaradosite": "Gyaradosite",
+    "heracronite": "Heracrossite", "houndoominite": "Houndoomite",
+    "kangaskhanite": "Kangaskhanite", "lopunnite": "Lopunnite", "lucarionite": "Lucarite",
+    "manectite": "Manectricite", "mawilite": "Mawilite", "medichamite": "Medichamite",
+    "metagrossite": "Metagrossite", "pinsirite": "Pinsirite", "pyroarite": "Pyroarite",
+    "raichunite-x": "Raichunite X", "raichunite-y": "Raichunite Y", "sablenite": "Sableyite",
+    "sceptilite": "Sceptilite", "scizorite": "Scizorite", "sharpedonite": "Sharpedite",
+    "slowbronite": "Slowbroite", "steelixite": "Steelixite", "swampertite": "Swampertite",
+    "tyranitarite": "Tyranitarite", "venusaurite": "Venusaurite",
+  },
+  "Strumenti e oggetti lotta": {
+    "expert-belt": "Abilcintura", "mystic-water": "Acqua Magica", "silver-powder": "Argenpolvere",
+    "life-orb": "Assorbisfera", "leftovers": "Avanzi", "sharp-beak": "Beccaffilato",
+    "magnet": "Calamita", "charcoal": "Carbonella", "black-belt": "Cinturanera",
+    "shell-bell": "Conchinella", "light-clay": "Creta Luce", "twisted-spoon": "Cucchiaio Torto",
+    "dragon-fang": "Dentedidrago", "shed-shell": "Disfoguscio", "light-ball": "Elettropalla",
+    "iron-ball": "Ferropalla", "focus-sash": "Focalnastro", "never-melt-ice": "Gelomai",
+    "big-root": "Granradice", "bright-powder": "Luminpolvere", "mental-herb": "Mentalerba",
+    "metal-coat": "Metalcoperta", "miracle-seed": "Miracolseme", "scope-lens": "Mirino",
+    "muscle-band": "Muscolbanda", "black-glasses": "Occhialineri", "fairy-feather": "Piuma Fatata",
+    "metronome": "Plessimetro", "quick-claw": "Rapidartigli", "heat-rock": "Rocciacalda",
+    "kings-rock": "Roccia di Re", "icy-rock": "Rocciafredda", "damp-rock": "Rocciaumida",
+    "smooth-rock": "Roccialiscia", "soft-sand": "Sabbia Soffice", "choice-scarf": "Stolascelta",
+    "silk-scarf": "Sciarpa Seta", "spell-tag": "Spettrotarga", "poison-barb": "Velenaculeo",
+    "white-herb": "Erbachiara",
+  },
+  "Bacche": {
+    "kelpsy-berry": "Baccalga", "pinap-berry": "Baccananas", "watmel-berry": "Baccacomero",
+    "oran-berry": "Baccarancia", "babiri-berry": "Baccababiri", "custap-berry": "Baccacrela",
+    "coba-berry": "Baccababa", "lum-berry": "Baccaprugna", "nanab-berry": "Baccabana",
+    "chesto-berry": "Baccastagna", "sitrus-berry": "Baccacedro", "chilan-berry": "Baccacinlan",
+    "chople-berry": "Baccarosmel", "colbur-berry": "Baccaxan", "rawst-berry": "Baccafrago",
+    "pomeg-berry": "Baccagrana", "grepa-berry": "Baccauva", "haban-berry": "Baccahaban",
+    "kasib-berry": "Baccacitrus", "kebia-berry": "Baccakebia", "wiki-berry": "Baccakiwi",
+    "razz-berry": "Baccalampon", "leppa-berry": "Baccamela", "liechi-berry": "Baccalici",
+    "nomel-berry": "Baccalemon", "qualot-berry": "Baccaloquat", "hondew-berry": "Baccamelon",
+    "belue-berry": "Baccartillo", "bluk-berry": "Baccamora", "occa-berry": "Baccacao",
+    "passho-berry": "Baccapasflo", "payapa-berry": "Baccapayapa", "pecha-berry": "Baccapesca",
+    "persim-berry": "Baccaki", "wepear-berry": "Baccapera", "tamato-berry": "Baccamodoro",
+    "rindo-berry": "Baccarindo", "roseli-berry": "Baccarcadè", "shuca-berry": "Baccanaca",
+    "tanga-berry": "Baccaitan", "wacan-berry": "Baccaparmen", "yache-berry": "Baccamoya",
+  },
+};
