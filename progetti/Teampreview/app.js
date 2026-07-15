@@ -106,21 +106,25 @@ function itemTooltipText(detail) {
 }
 
 // Su desktop il tooltip si mostra col mouse (:hover in CSS). Su un
-// dispositivo senza hover reale (touch) lo mostriamo al tap, tramite una
-// classe che il CSS tratta come l'hover: un tap altrove lo richiude.
+// dispositivo senza hover reale (touch) lo mostriamo per la durata della
+// pressione: tieni premuto -> compare, rilasci -> sparisce.
 const isTouchOnly = window.matchMedia("(hover: none)").matches;
+const TAP_HOLD_MS = 300; // sopra questa soglia il tap è "tenuto premuto" (solo peek, niente apertura modale)
 
 if (isTouchOnly) {
-  document.addEventListener("click", (e) => {
+  let activeTooltip = null;
+  document.addEventListener("touchstart", (e) => {
     const target = e.target.closest("[data-tooltip]");
-    document.querySelectorAll(".tap-tooltip").forEach((el) => {
-      if (el !== target) el.classList.remove("tap-tooltip");
-    });
-    // I chip mossa gestiscono da soli il proprio tap-tooltip (vedi
-    // renderRoster): qui si occupa solo degli elementi non a bottone
-    // (riga abilità/oggetto).
-    if (target && target.tagName !== "BUTTON") target.classList.add("tap-tooltip");
-  });
+    if (activeTooltip && activeTooltip !== target) activeTooltip.classList.remove("tap-tooltip");
+    activeTooltip = target || null;
+    if (target) target.classList.add("tap-tooltip");
+  }, { passive: true });
+  const releaseTooltip = () => {
+    if (activeTooltip) activeTooltip.classList.remove("tap-tooltip");
+    activeTooltip = null;
+  };
+  document.addEventListener("touchend", releaseTooltip);
+  document.addEventListener("touchcancel", releaseTooltip);
 }
 function renderTeamTabs() {
   teamTabs.innerHTML = "";
@@ -214,7 +218,7 @@ function renderRoster() {
 
     const removeBtn = document.createElement("button");
     removeBtn.className = "slot-remove";
-    removeBtn.setAttribute("aria-label", `Rimuovi ${mon.name} dal roster`);
+    removeBtn.setAttribute("aria-label", `Rimuovi ${pokemonDisplayName(mon.name)} dal roster`);
     removeBtn.textContent = "✕";
     removeBtn.addEventListener("click", () => removeFromTeam(i));
     slot.appendChild(removeBtn);
@@ -224,7 +228,7 @@ function renderRoster() {
 
     const img = document.createElement("img");
     img.src = mon.sprite;
-    img.alt = mon.name;
+    img.alt = pokemonDisplayName(mon.name);
     body.appendChild(img);
 
     const info = document.createElement("div");
@@ -232,8 +236,8 @@ function renderRoster() {
     const nameEl = document.createElement("div");
     nameEl.className = "slot-name";
     nameEl.textContent = mon.isMega
-      ? `Mega-${mon.name}${mon.megaVariant ? ` ${mon.megaVariant.toUpperCase()}` : ""}`
-      : mon.name;
+      ? `Mega-${pokemonDisplayName(mon.name)}${mon.megaVariant ? ` ${mon.megaVariant.toUpperCase()}` : ""}`
+      : pokemonDisplayName(mon.name);
     info.appendChild(nameEl);
 
     const typeRow = document.createElement("div");
@@ -289,18 +293,20 @@ function renderRoster() {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "move-chip";
-      chip.addEventListener("click", () => {
-        // Su touch, il primo tap su una mossa assegnata mostra solo il
-        // tooltip (punto 3/mobile); il secondo tap apre il modal. Su
-        // desktop (mouse) il tooltip è già visibile via hover: il click
-        // apre subito il modal, come prima.
-        if (isTouchOnly && moveName && !chip.classList.contains("tap-tooltip")) {
-          document.querySelectorAll(".tap-tooltip").forEach((el) => el.classList.remove("tap-tooltip"));
-          chip.classList.add("tap-tooltip");
-          return;
-        }
-        openStatsModal(mon);
-      });
+      if (isTouchOnly) {
+        // Il tooltip (se la mossa è assegnata) è già gestito dal listener
+        // touchstart/touchend globale sopra. Qui decidiamo solo se il tap è
+        // stato un tocco rapido (apre il modal) o una pressione prolungata
+        // (solo peek del tooltip, nessuna apertura).
+        let pressStart = 0;
+        chip.addEventListener("touchstart", () => { pressStart = Date.now(); }, { passive: true });
+        chip.addEventListener("touchend", (e) => {
+          e.preventDefault();
+          if (Date.now() - pressStart < TAP_HOLD_MS) openStatsModal(mon);
+        });
+      } else {
+        chip.addEventListener("click", () => openStatsModal(mon));
+      }
       if (moveName) {
         const detail = getCachedMove(moveName);
         if (detail) {
@@ -410,7 +416,7 @@ function buildReplaceControl(index) {
       activeTeam().mons[index] = newMon;
       renderRoster();
       saveState();
-      setFeedback(`${oldName} sostituito con ${newMon.name}.`);
+      setFeedback(`${pokemonDisplayName(oldName)} sostituito con ${pokemonDisplayName(newMon.name)}.`);
     } catch (err) {
       setFeedback(err.message, true);
       btn.disabled = false;
@@ -475,7 +481,7 @@ function renderStatsModal() {
     <div class="stats-modal-header">
       <img src="${mon.sprite}" alt="">
       <div>
-        <h3>${mon.name}</h3>
+        <h3>${pokemonDisplayName(mon.name)}</h3>
         <div class="type-row">${mon.types.map((t) => `<span class="type-badge" style="${typeBadgeStyle(t)}">${t}</span>`).join("")}</div>
       </div>
     </div>
@@ -706,6 +712,80 @@ function buildTypeGroup(label, types, cls) {
   return wrap;
 }
 
+// Etichetta/classe cella per il moltiplicatore di danno subito (riga tipo
+// attaccante x colonna Pokémon del roster).
+function effLabel(mult) {
+  if (mult === 0) return "0×";
+  if (mult === 0.25) return "¼×";
+  if (mult === 0.5) return "½×";
+  if (mult === 1) return "—";
+  return `${mult}×`;
+}
+function effClass(mult) {
+  if (mult === 0) return "eff-immune";
+  if (mult > 1) return "eff-weak";
+  if (mult < 1) return "eff-resist";
+  return "eff-neutral";
+}
+
+// Tabella: prima riga = Pokémon del roster (sprite + nome), righe seguenti
+// = un tipo attaccante ciascuna. Header non sticky di proposito: scorrendo
+// la pagina deve scorrere via con il resto, non restare fissato in cima.
+function buildMatchupTable(mons) {
+  const table = document.createElement("table");
+  table.className = "matchup-table";
+
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  headRow.appendChild(document.createElement("th"));
+  mons.forEach((mon) => {
+    const th = document.createElement("th");
+    th.className = "matchup-mon-col";
+    const img = document.createElement("img");
+    img.src = mon.sprite;
+    img.alt = pokemonDisplayName(mon.name);
+    th.appendChild(img);
+    const name = document.createElement("span");
+    name.textContent = pokemonDisplayName(mon.name);
+    th.appendChild(name);
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  TYPES.forEach((atkType) => {
+    const row = document.createElement("tr");
+    const typeTh = document.createElement("th");
+    typeTh.className = "matchup-type-col";
+    typeTh.textContent = atkType;
+    typeTh.style.cssText = typeBadgeStyle(atkType);
+    row.appendChild(typeTh);
+
+    mons.forEach((mon) => {
+      const mult = typeEffectiveness(atkType, mon.types);
+      const td = document.createElement("td");
+      td.className = effClass(mult);
+      td.textContent = effLabel(mult);
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+
+  const wrap = document.createElement("div");
+  wrap.className = "matchup-table-wrap";
+  wrap.appendChild(table);
+
+  const frag = document.createDocumentFragment();
+  frag.appendChild(wrap);
+  const legend = document.createElement("p");
+  legend.className = "muted-note matchup-table-legend";
+  legend.textContent = "0× immune · ¼×/½× poco efficace · — danno normale · 2× super efficace · 4× iperefficace";
+  frag.appendChild(legend);
+  return frag;
+}
+
 function renderMatchup() {
   const mons = activeTeam().mons;
   matchupDefense.innerHTML = "";
@@ -715,31 +795,9 @@ function renderMatchup() {
     empty.className = "muted-note";
     empty.textContent = "Aggiungi almeno un Pokémon al roster per vedere l'analisi.";
     matchupDefense.appendChild(empty);
+  } else {
+    matchupDefense.appendChild(buildMatchupTable(mons));
   }
-
-  mons.forEach((mon) => {
-    const row = document.createElement("div");
-    row.className = "matchup-mon-row";
-
-    const label = document.createElement("span");
-    label.className = "matchup-mon-name";
-    label.textContent = mon.name;
-    row.appendChild(label);
-
-    const weak = [], resist = [], immune = [];
-    TYPES.forEach((atkType) => {
-      const mult = typeEffectiveness(atkType, mon.types);
-      if (mult === 0) immune.push(atkType);
-      else if (mult > 1) weak.push(atkType);
-      else if (mult < 1) resist.push(atkType);
-    });
-
-    row.appendChild(buildTypeGroup("Debole", weak, "weak"));
-    row.appendChild(buildTypeGroup("Resiste", resist, "resist"));
-    if (immune.length) row.appendChild(buildTypeGroup("Immune", immune, "immune"));
-
-    matchupDefense.appendChild(row);
-  });
 
   renderCoverage();
   renderAttackerOptions();
@@ -770,7 +828,7 @@ function renderCoverage() {
 function renderAttackerOptions() {
   const mons = activeTeam().mons;
   dmgAttackerSelect.innerHTML = mons.length
-    ? mons.map((m, i) => `<option value="${i}">${m.name}</option>`).join("")
+    ? mons.map((m, i) => `<option value="${i}">${pokemonDisplayName(m.name)}</option>`).join("")
     : `<option value="">Nessun Pokémon nel roster</option>`;
   renderMoveOptions();
 }
@@ -845,7 +903,7 @@ dmgCalcBtn.addEventListener("click", async () => {
       eff = worstCase.eff; // dipende solo dai tipi, uguale in entrambi i casi
     }
 
-    setDmgResult(`${attacker.name} usa ${moveDisplayName(move.name)} contro ${defender.name}: ${minPct}%–${maxPct}% HP${effectivenessNote(eff)}.`);
+    setDmgResult(`${pokemonDisplayName(attacker.name)} usa ${moveDisplayName(move.name)} contro ${pokemonDisplayName(defender.name)}: ${minPct}%–${maxPct}% HP${effectivenessNote(eff)}.`);
   } catch (err) {
     setDmgResult(err.message || "Errore nel calcolo del danno.", true);
   } finally {
@@ -865,13 +923,13 @@ function addMonToTeam(mon) {
     return;
   }
   if (mons.some((m) => m.name === mon.name)) {
-    setFeedback(`${mon.name} è già nel roster.`, true);
+    setFeedback(`${pokemonDisplayName(mon.name)} è già nel roster.`, true);
     return;
   }
   mons.push(mon);
   renderRoster();
   saveState();
-  setFeedback(`${mon.name} aggiunto al roster.`);
+  setFeedback(`${pokemonDisplayName(mon.name)} aggiunto al roster.`);
   searchInput.value = "";
   hideConfirm();
 }
@@ -905,7 +963,7 @@ function hideConfirm() {
 function showConfirm(mon) {
   pendingMon = mon;
   confirmSprite.src = mon.sprite;
-  confirmName.textContent = mon.name;
+  confirmName.textContent = pokemonDisplayName(mon.name);
   confirmBox.classList.remove("hidden");
 }
 
@@ -1104,6 +1162,23 @@ for (const items of Object.values(CHAMPIONS_ITEM_CATEGORIES)) {
 }
 function itemDisplayName(itemSlug) {
   return itemNameIT[itemSlug] || itemSlug.replace(/-/g, " ");
+}
+
+// Molti slug PokéAPI hanno un "-suffisso" dopo il nome specie: forme
+// regionali (da mantenere per intero, es. "ninetales-alola") oppure varianti
+// interne al gioco (forma di default, sesso, ecc., da nascondere: mostriamo
+// solo la prima parte, es. "tatsugiri-curly" -> "tatsugiri"). Poche specie
+// hanno invece un "-" che fa parte del nome vero e proprio: se il roster in
+// champions-roster.js si allarga con altre specie così, aggiungerle qui.
+const DASH_IS_PART_OF_SPECIES_NAME = new Set(["kommo-o", "mr-rime"]);
+const REGIONAL_FORM_TAGS = ["alola", "galar", "hisui", "paldea"];
+function pokemonDisplayName(name) {
+  if (!name) return name;
+  if (DASH_IS_PART_OF_SPECIES_NAME.has(name)) return name;
+  const dash = name.indexOf("-");
+  if (dash === -1) return name;
+  const isRegional = REGIONAL_FORM_TAGS.some((tag) => name.slice(dash + 1).startsWith(tag));
+  return isRegional ? name : name.slice(0, dash);
 }
 
 function normalizeOcrText(s) {
@@ -1619,19 +1694,61 @@ document.addEventListener("DOMContentLoaded", () => {
 // locale (server.js).
 const btnCoach = document.getElementById("btn-coach");
 
-async function fetchAICoachAdvice(rosterData) {
+// --- Meta hints: incrocia le debolezze del team con META_USAGE_REGMB
+// (meta-usage.js) per dare all'AI dei fatti reali da citare ("occhio, sei
+// debole a Terra e Garchomp è molto usato nel meta"), invece di lasciarle
+// indovinare cosa è forte adesso. Tutto il calcolo è locale/gratis: l'unica
+// rete coinvolta è il fetch dei tipi delle ~20 specie della lista meta
+// (via fetchPokemon, già usato per il roster), messo in cache una volta sola.
+const metaTypesCache = {}; // slug -> string[] tipi
+
+function computeTeamWeakTypes(mons) {
+  return TYPES.filter((atkType) => mons.some((mon) => typeEffectiveness(atkType, mon.types) > 1));
+}
+
+async function getMetaTypes(slug) {
+  if (metaTypesCache[slug]) return metaTypesCache[slug];
+  try {
+    const mon = await fetchPokemon(slug);
+    metaTypesCache[slug] = mon.types;
+  } catch (err) {
+    console.log(`[TeamPreview meta] "${slug}" non risolto (${err.message}), lo salto.`);
+    metaTypesCache[slug] = [];
+  }
+  return metaTypesCache[slug];
+}
+
+// Per ogni tipo a cui il team è debole, trova il Pokémon più usato nel meta
+// (rank più basso in META_USAGE_REGMB) che ha quel tipo. Al massimo 3 hint,
+// per non appesantire il prompt mandato al backend.
+async function buildMetaHints(mons) {
+  const weakTypes = computeTeamWeakTypes(mons);
+  if (!weakTypes.length || typeof META_USAGE_REGMB === "undefined") return [];
+
+  await Promise.all(META_USAGE_REGMB.map((entry) => getMetaTypes(entry.slug)));
+
+  const sorted = [...META_USAGE_REGMB].sort((a, b) => a.rank - b.rank);
+  const hints = [];
+  for (const type of weakTypes) {
+    const entry = sorted.find((e) => (metaTypesCache[e.slug] || []).includes(type));
+    if (entry) hints.push({ type, name: entry.name, rank: entry.rank });
+  }
+  return hints.slice(0, 3);
+}
+
+async function fetchAICoachAdvice(rosterData, metaHints) {
   try {
     const res = await fetch(AI_COACH_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roster: rosterData }),
+      body: JSON.stringify({ roster: rosterData, metaHints }),
     });
-    
+
     if (!res.ok) throw new Error("Errore di connessione al server locale.");
-    
+
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    
+
     return data.advice;
   } catch (err) {
     console.error("Errore Coach:", err);
@@ -1644,22 +1761,19 @@ async function handleCoachAnalysis() {
 
   if (!rosterData.length) {
     Scout.show();
-    Scout.setExpression("idle");
-    Scout.say("Il tuo roster è vuoto. Aggiungi qualche Pokémon prima di chiedermi un parere!", 3000);
+    Scout.say("Il tuo roster è vuoto. Aggiungi qualche Pokémon prima di chiedermi un parere!", 3000, "idle");
     return;
   }
 
   Scout.show();
-  Scout.setExpression("thinking");
-  Scout.say("Mmh, fammi dare un'occhiata alle sinergie del tuo team...", 3000);
+  Scout.say("Mmh, fammi dare un'occhiata alle sinergie del tuo team...", 3000, "thinking");
 
   try {
-    const advice = await fetchAICoachAdvice(rosterData);
-    Scout.setExpression("speaking");
-    Scout.say(advice, 5000);
+    const metaHints = await buildMetaHints(rosterData);
+    const advice = await fetchAICoachAdvice(rosterData, metaHints);
+    Scout.say(advice, 5000, "speaking");
   } catch {
-    Scout.setExpression("idle");
-    Scout.say("Ops, c'è stato un problema di connessione col Server PC di Bill. Riprova più tardi!", 4000);
+    Scout.say("Ops, c'è stato un problema di connessione col Server PC di Bill. Riprova più tardi!", 4000, "idle");
   }
 }
 

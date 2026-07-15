@@ -86,13 +86,24 @@ const server = http.createServer(async (req, res) => {
             }
             // Endpoint 2: Coaching Tattico
             else if (req.url === "/api/coach-advice") {
-                const hash = generateHash(data.roster);
+                // data.metaHints arriva già calcolato dal client (app.js:
+                // buildMetaHints), incrociando le debolezze del team con
+                // META_USAGE_REGMB (meta-usage.js). Qui non si inventa nulla:
+                // si passa solo all'LLM per la formulazione del consiglio.
+                const hash = generateHash({ roster: data.roster, metaHints: data.metaHints });
                 if (cache.has(hash)) {
                     response = { advice: cache.get(hash) };
                 } else {
+                    const metaHints = Array.isArray(data.metaHints) ? data.metaHints : [];
+                    const metaContext = metaHints.length
+                        ? `Debolezze di tipo del team sfruttate da Pokémon molto usati nel meta attuale (Pokemon Champions Reg. M-B): ${metaHints.map(h => `${h.type} → ${h.name} (#${h.rank} del meta)`).join(", ")}. Se ha senso, avvisa l'utente citando questi Pokémon per nome. Non citarne altri: se non sono in questa lista non sai se sono davvero usati nel meta attuale.`
+                        : "Nessun dato sul meta attuale disponibile per questo roster: non citare nomi di Pokémon del meta.";
                     const advice = await callGroqApi({
                         model: "llama-3.3-70b-versatile",
-                        messages: [{ role: "user", content: `Sei un coach VGC esperto. Analizza questo roster e dai consigli tattici sintetici (massimo 4 frasi): ${JSON.stringify(data.roster)}` }]
+                        messages: [
+                            { role: "system", content: "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). Analizza il roster e dai consigli tattici sintetici (massimo 4 frasi), in italiano, tono da mentore. Basati ESCLUSIVAMENTE sui dati forniti: non inventare mai mosse, abilità, tipi o Pokémon del meta non elencati nel contesto." },
+                            { role: "user", content: `Roster: ${JSON.stringify(data.roster)}\n${metaContext}` }
+                        ]
                     });
                     response = { advice };
                     cache.set(hash, advice);

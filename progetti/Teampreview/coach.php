@@ -28,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $body = json_decode(file_get_contents('php://input'), true);
 $roster = $body['roster'] ?? null;
+$metaHints = $body['metaHints'] ?? [];
 
 if (!is_array($roster) || count($roster) === 0) {
     http_response_code(400);
@@ -42,11 +43,23 @@ $systemPrompt = "Sei un coach esperto di Pokémon VGC (Double Battles). Analizza
     . "inesistenti. Usa un tono professionale ma da mentore. Devi generare la risposta SEMPRE E SOLO in lingua "
     . "italiana, usando il vocabolario ufficiale italiano del gioco.";
 
+// metaHints arriva già calcolato dal client (app.js: buildMetaHints), che
+// incrocia le debolezze del team con META_USAGE_REGMB (meta-usage.js, lista
+// statica curata a mano da Pikalytics). Qui non si inventa nulla: si passa
+// solo per la formulazione del consiglio, con l'ordine esplicito di non
+// citare Pokémon del meta al di fuori di questa lista.
+$metaContext = is_array($metaHints) && count($metaHints) > 0
+    ? "Debolezze di tipo del team sfruttate da Pokémon molto usati nel meta attuale (Pokemon Champions Reg. M-B): "
+        . implode(", ", array_map(fn($h) => "{$h['type']} → {$h['name']} (#{$h['rank']} del meta)", $metaHints))
+        . ". Se ha senso, avvisa l'utente citando questi Pokémon per nome. Non citarne altri: se non sono in "
+        . "questa lista non sai se sono davvero usati nel meta attuale."
+    : "Nessun dato sul meta attuale disponibile per questo roster: non citare nomi di Pokémon del meta.";
+
 $payload = json_encode([
     'model' => 'llama3-8b-8192', // Groq, gratuito. Fallback: 'gpt-3.5-turbo' su https://api.openai.com/v1/chat/completions
     'messages' => [
         ['role' => 'system', 'content' => $systemPrompt],
-        ['role' => 'user', 'content' => json_encode($roster)],
+        ['role' => 'user', 'content' => "Roster: " . json_encode($roster) . "\n" . $metaContext],
     ],
 ]);
 
