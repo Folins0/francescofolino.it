@@ -118,7 +118,22 @@ function say(text, durationMs = 3000, emotion = 'speaking') {
   }, SCOUT_TYPE_SPEED);
 }
 
-window.Scout = { show, hide, setExpression, say };
+// Interrompe il fumetto in corso e lo nasconde, senza nascondere l'intero
+// overlay (a differenza di hide()): usata quando l'utente tocca la sprite
+// mentre Scout sta ancora parlando, per "silenziarla" a comando invece di
+// aspettare il timeout automatico.
+function hideBubble() {
+  if (!scoutBubble) return;
+  clearInterval(scoutTypeTimer);
+  clearInterval(scoutMouthTimer);
+  clearTimeout(scoutIdleTimer);
+  scoutTypeTimer = null;
+  scoutMouthTimer = null;
+  scoutBubble.classList.remove('visible');
+  setExpression('idle');
+}
+
+window.Scout = { show, hide, setExpression, say, hideBubble };
 window.setExpression = setExpression; // retrocompatibilità con l'uso già presente in orchestrator/app
 
 setExpression('idle');
@@ -133,6 +148,7 @@ const SCOUT_MENU_ITEMS = [
   { label: 'Mostra utilizzo nel meta', fn: 'handleMetaUsageScreen' },
   { label: 'Consigli su questa schermata', fn: 'handleScreenAdvice' },
   { label: 'Completa il team automaticamente', fn: 'handleAutoCompleteTeam' },
+  { label: 'Vorrei un aiuto migliore', fn: 'handleExternalPrompt' },
 ];
 
 function closeScoutMenu() {
@@ -166,9 +182,16 @@ if (scoutMenu) {
 if (scoutSprite) {
   // stopPropagation: evita che il click qui sotto (chiusura al tocco fuori
   // dal menu) si attivi nello stesso momento in cui il menu viene aperto.
+  // Se Scout sta parlando, il primo tocco sulla sprite la zittisce (soluzione
+  // più intuitiva di una x separata: si tocca lo stesso personaggio che sta
+  // parlando per farlo tacere); solo a fumetto chiuso il tocco apre il menu.
   scoutSprite.addEventListener('click', (e) => {
     e.stopPropagation();
-    toggleScoutMenu();
+    if (scoutBubble.classList.contains('visible')) {
+      hideBubble();
+    } else {
+      toggleScoutMenu();
+    }
   });
 }
 
