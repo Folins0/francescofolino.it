@@ -463,6 +463,8 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   cursor: pointer;
 }
 .stats-btn:hover { border-color: var(--accent); color: var(--accent); }
+.mega-btn { border-color: #a259ff; color: #a259ff; }
+.mega-btn:hover { background: #a259ff; color: #fff; }
 
 /* --- Tooltip hover, solo desktop (punto 3): CSS puro via [data-tooltip],
    :hover non scatta in modo affidabile su touch quindi non serve rilevare

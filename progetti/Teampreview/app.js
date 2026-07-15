@@ -231,7 +231,9 @@ function renderRoster() {
 
     const nameEl = document.createElement("div");
     nameEl.className = "slot-name";
-    nameEl.textContent = mon.name;
+    nameEl.textContent = mon.isMega
+      ? `Mega-${mon.name}${mon.megaVariant ? ` ${mon.megaVariant.toUpperCase()}` : ""}`
+      : mon.name;
     info.appendChild(nameEl);
 
     const typeRow = document.createElement("div");
@@ -324,6 +326,16 @@ function renderRoster() {
     statsBtn.addEventListener("click", () => openStatsModal(mon));
     slot.appendChild(statsBtn);
 
+    const megaMatch = getMegaMatch(mon);
+    if (mon.isMega || megaMatch) {
+      const megaBtn = document.createElement("button");
+      megaBtn.type = "button";
+      megaBtn.className = "stats-btn mega-btn";
+      megaBtn.textContent = mon.isMega ? "Torna alla forma base" : "Mega Evolvi";
+      megaBtn.addEventListener("click", () => megaEvolve(mon, megaMatch));
+      slot.appendChild(megaBtn);
+    }
+
     if (editMode) slot.appendChild(buildReplaceControl(i));
 
     rosterGrid.appendChild(slot);
@@ -335,6 +347,39 @@ function renderRoster() {
 
 function removeFromTeam(index) {
   activeTeam().mons.splice(index, 1);
+  renderRoster();
+  saveState();
+}
+
+// Megaevolve/ripristina `mon` in-place. Se PokéAPI conosce la forma Mega
+// reale (sprite/tipi/stats/abilità) la usa; altrimenti (megaevoluzioni
+// inventate da Pokémon Champions, non presenti su PokéAPI) applica un boost
+// sintetico +20 a ogni statistica, tenendo sprite/abilità invariati.
+// ponytail: boost sintetico è una stima, non i valori ufficiali del gioco.
+async function megaEvolve(mon, match) {
+  if (mon.isMega) {
+    Object.assign(mon, mon._base);
+    delete mon._base;
+    mon.isMega = false;
+    mon.megaVariant = null;
+    renderRoster();
+    saveState();
+    return;
+  }
+  if (!match) return;
+
+  const real = await fetchMegaForm(mon.name, match.variant).catch(() => null);
+  mon._base = { sprite: mon.sprite, types: mon.types, stats: { ...mon.stats }, ability: mon.ability };
+  if (real) {
+    mon.sprite = real.sprite || mon.sprite;
+    mon.types = real.types;
+    mon.stats = real.stats;
+    mon.ability = real.ability || mon.ability;
+  } else {
+    STAT_KEYS.forEach((k) => { mon.stats[k] += 20; });
+  }
+  mon.isMega = true;
+  mon.megaVariant = match.variant;
   renderRoster();
   saveState();
 }
