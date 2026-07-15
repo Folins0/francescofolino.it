@@ -1,0 +1,70 @@
+/* Overlay "Professoressa Pokémon": mascotte fissa in basso a destra,
+   sempre sopra il contenuto della pagina. Layout flex: fumetto a sinistra,
+   sprite ancorato all'angolo. */
+
+#overlay-scout {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 500;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#overlay-scout.scout-hidden {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.scout-sprite {
+  flex: none;
+  width: 110px;
+  height: 110px;
+  border-radius: 14px;
+  background-image: url('img/scout-sprite.png');
+  background-size: 440px 330px; /* sheet 4 col x 3 righe, 110px per frame */
+  background-position: 0 0; /* default: idle */
+  background-repeat: no-repeat;
+  animation: scout-breathe 2.6s ease-in-out infinite;
+  transition: filter 0.15s ease;
+}
+
+.scout-sprite.scout-pop {
+  filter: brightness(1.25);
+}
+
+@keyframes scout-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scout-sprite { animation: none; }
+}
+
+.scout-bubble {
+  max-width: 220px;
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 12px 12px 4px 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.scout-bubble.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}

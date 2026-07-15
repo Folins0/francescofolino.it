@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="scout.css">
 </head>
 <body>
 
@@ -140,7 +141,10 @@
   Dati Pokémon forniti da <a href="https://pokeapi.co" target="_blank" rel="noopener">PokéAPI</a>. Fase 2 — il roster viene salvato in locale nel browser.
 </footer>
 
-<div id="overlay-scout" aria-hidden="true"></div>
+<div id="overlay-scout" aria-hidden="false">
+  <div class="scout-bubble" id="scout-bubble"></div>
+  <div class="scout-sprite" id="scout-sprite"></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="champions-roster.js"></script>
