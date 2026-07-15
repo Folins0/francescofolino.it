@@ -1569,15 +1569,23 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- Assistente AI "Professoressa Pokémon" (Scout) --------------------------
-// Collega l'overlay Scout (scout.js) al roster attivo. fetchAICoachAdvice è
-// un mock isolato: in Sessione 3/4 basterà sostituire il suo corpo con la
-// vera chiamata API, senza toccare handleCoachAnalysis.
+// Collega l'overlay Scout (scout.js) al roster attivo, via il proxy PHP
+// coach.php (Sessione 3).
 const btnCoach = document.getElementById("btn-coach");
 
-// TODO: sostituire con vera chiamata API AI
+// TODO: GitHub Pages non esegue PHP. Una volta caricato coach.php su un
+// server PHP separato (hosting condiviso, VPS...), sostituire 'coach.php'
+// con l'URL assoluto, es. 'https://api.tuodominio.it/coach.php'.
 async function fetchAICoachAdvice(rosterData) {
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-  return "Analisi completata: fai attenzione alle mosse di tipo Terra!";
+  const res = await fetch("coach.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ roster: rosterData }),
+  });
+  if (!res.ok) throw new Error("network");
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.advice;
 }
 
 async function handleCoachAnalysis() {
@@ -1594,9 +1602,14 @@ async function handleCoachAnalysis() {
   Scout.setExpression("thinking");
   Scout.say("Mmh, fammi dare un'occhiata alle sinergie del tuo team...", 3000);
 
-  const advice = await fetchAICoachAdvice(rosterData);
-  Scout.setExpression("speaking");
-  Scout.say(advice, 5000);
+  try {
+    const advice = await fetchAICoachAdvice(rosterData);
+    Scout.setExpression("speaking");
+    Scout.say(advice, 5000);
+  } catch {
+    Scout.setExpression("idle");
+    Scout.say("Ops, c'è stato un problema di connessione col Server PC di Bill. Riprova più tardi!", 4000);
+  }
 }
 
 btnCoach.addEventListener("click", handleCoachAnalysis);
