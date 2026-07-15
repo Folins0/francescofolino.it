@@ -223,6 +223,28 @@ function renderRoster() {
     removeBtn.addEventListener("click", () => removeFromTeam(i));
     slot.appendChild(removeBtn);
 
+    const megaMatch = getMegaMatch(mon);
+    if (mon.isMega || megaMatch) {
+      const megaToggle = document.createElement("div");
+      megaToggle.className = "mega-toggle";
+
+      const megaIcon = document.createElement("span");
+      megaIcon.className = "mega-icon";
+      megaIcon.textContent = "◆";
+      megaToggle.appendChild(megaIcon);
+
+      const megaSwitch = document.createElement("button");
+      megaSwitch.type = "button";
+      megaSwitch.className = "mega-switch" + (mon.isMega ? " on" : "");
+      megaSwitch.title = mon.isMega ? "Torna alla forma base" : "Mega Evolvi";
+      megaSwitch.setAttribute("aria-label", megaSwitch.title);
+      megaSwitch.setAttribute("aria-pressed", String(!!mon.isMega));
+      megaSwitch.addEventListener("click", () => megaEvolve(mon, megaMatch));
+      megaToggle.appendChild(megaSwitch);
+
+      slot.appendChild(megaToggle);
+    }
+
     const body = document.createElement("div");
     body.className = "slot-body";
 
@@ -331,16 +353,6 @@ function renderRoster() {
     statsBtn.textContent = "Statistiche";
     statsBtn.addEventListener("click", () => openStatsModal(mon));
     slot.appendChild(statsBtn);
-
-    const megaMatch = getMegaMatch(mon);
-    if (mon.isMega || megaMatch) {
-      const megaBtn = document.createElement("button");
-      megaBtn.type = "button";
-      megaBtn.className = "stats-btn mega-btn";
-      megaBtn.textContent = mon.isMega ? "Torna alla forma base" : "Mega Evolvi";
-      megaBtn.addEventListener("click", () => megaEvolve(mon, megaMatch));
-      slot.appendChild(megaBtn);
-    }
 
     if (editMode) slot.appendChild(buildReplaceControl(i));
 

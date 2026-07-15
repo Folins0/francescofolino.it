@@ -471,8 +471,40 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   cursor: pointer;
 }
 .stats-btn:hover { border-color: var(--accent); color: var(--accent); }
-.mega-btn { border-color: #a259ff; color: #a259ff; }
-.mega-btn:hover { background: #a259ff; color: #fff; }
+
+.mega-toggle {
+  position: absolute;
+  top: 0.55rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.mega-icon { font-size: 0.75rem; color: #a259ff; line-height: 1; }
+.mega-switch {
+  position: relative;
+  width: 28px;
+  height: 15px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  cursor: pointer;
+}
+.mega-switch::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.mega-switch.on { border-color: #a259ff; background: rgba(162, 89, 255, 0.25); }
+.mega-switch.on::after { transform: translateX(13px); background: #a259ff; }
 
 /* --- Tooltip hover, solo desktop (punto 3): CSS puro via [data-tooltip],
    :hover non scatta in modo affidabile su touch quindi non serve rilevare
