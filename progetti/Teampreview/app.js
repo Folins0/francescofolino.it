@@ -223,6 +223,28 @@ function renderRoster() {
     removeBtn.addEventListener("click", () => removeFromTeam(i));
     slot.appendChild(removeBtn);
 
+    const megaMatch = getMegaMatch(mon);
+    if (mon.isMega || megaMatch) {
+      const megaToggle = document.createElement("div");
+      megaToggle.className = "mega-toggle";
+
+      const megaIcon = document.createElement("span");
+      megaIcon.className = "mega-icon";
+      megaIcon.textContent = "◆";
+      megaToggle.appendChild(megaIcon);
+
+      const megaSwitch = document.createElement("button");
+      megaSwitch.type = "button";
+      megaSwitch.className = "mega-switch" + (mon.isMega ? " on" : "");
+      megaSwitch.title = mon.isMega ? "Torna alla forma base" : "Mega Evolvi";
+      megaSwitch.setAttribute("aria-label", megaSwitch.title);
+      megaSwitch.setAttribute("aria-pressed", String(!!mon.isMega));
+      megaSwitch.addEventListener("click", () => megaEvolve(mon, megaMatch));
+      megaToggle.appendChild(megaSwitch);
+
+      slot.appendChild(megaToggle);
+    }
+
     const body = document.createElement("div");
     body.className = "slot-body";
 
@@ -235,7 +257,9 @@ function renderRoster() {
 
     const nameEl = document.createElement("div");
     nameEl.className = "slot-name";
-    nameEl.textContent = pokemonDisplayName(mon.name);
+    nameEl.textContent = mon.isMega
+      ? `Mega-${pokemonDisplayName(mon.name)}${mon.megaVariant ? ` ${mon.megaVariant.toUpperCase()}` : ""}`
+      : pokemonDisplayName(mon.name);
     info.appendChild(nameEl);
 
     const typeRow = document.createElement("div");
@@ -341,6 +365,39 @@ function renderRoster() {
 
 function removeFromTeam(index) {
   activeTeam().mons.splice(index, 1);
+  renderRoster();
+  saveState();
+}
+
+// Megaevolve/ripristina `mon` in-place. Se PokéAPI conosce la forma Mega
+// reale (sprite/tipi/stats/abilità) la usa; altrimenti (megaevoluzioni
+// inventate da Pokémon Champions, non presenti su PokéAPI) applica un boost
+// sintetico +20 a ogni statistica, tenendo sprite/abilità invariati.
+// ponytail: boost sintetico è una stima, non i valori ufficiali del gioco.
+async function megaEvolve(mon, match) {
+  if (mon.isMega) {
+    Object.assign(mon, mon._base);
+    delete mon._base;
+    mon.isMega = false;
+    mon.megaVariant = null;
+    renderRoster();
+    saveState();
+    return;
+  }
+  if (!match) return;
+
+  const real = await fetchMegaForm(mon.name, match.variant).catch(() => null);
+  mon._base = { sprite: mon.sprite, types: mon.types, stats: { ...mon.stats }, ability: mon.ability };
+  if (real) {
+    mon.sprite = real.sprite || mon.sprite;
+    mon.types = real.types;
+    mon.stats = real.stats;
+    mon.ability = real.ability || mon.ability;
+  } else {
+    STAT_KEYS.forEach((k) => { mon.stats[k] += 20; });
+  }
+  mon.isMega = true;
+  mon.megaVariant = match.variant;
   renderRoster();
   saveState();
 }

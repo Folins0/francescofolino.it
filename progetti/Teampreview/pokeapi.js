@@ -64,6 +64,29 @@ async function fetchPokemon(name) {
   };
 }
 
+/**
+ * Dati reali della forma Mega di un Pokémon (sprite, tipi, stats, abilità),
+ * se PokéAPI la conosce. Alcune megaevoluzioni di Pokémon Champions sono
+ * inventate e non esistono su PokéAPI: in quel caso restituisce null, e il
+ * chiamante applica un boost sintetico (vedi megaEvolve in app.js).
+ */
+async function fetchMegaForm(baseName, variant) {
+  const slug = `${baseName}-mega${variant ? `-${variant}` : ""}`;
+  const res = await fetch(`${POKEAPI_BASE}/pokemon/${slug}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+
+  return {
+    sprite:
+      data.sprites?.front_default ||
+      data.sprites?.other?.["official-artwork"]?.front_default ||
+      "",
+    types: data.types.map((t) => t.type.name),
+    stats: Object.fromEntries(data.stats.map((s) => [s.stat.name, s.base_stat])),
+    ability: data.abilities?.find((a) => !a.is_hidden)?.ability.name || data.abilities?.[0]?.ability.name || "",
+  };
+}
+
 // Cache in memoria dei dettagli mossa (tipo, potenza, categoria): evitiamo
 // di richiamare PokéAPI ogni volta che una mossa viene mostrata o ricalcolata.
 const moveCache = {};
