@@ -475,6 +475,14 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 /* --- Tooltip hover, solo desktop (punto 3): CSS puro via [data-tooltip],
    :hover non scatta in modo affidabile su touch quindi non serve rilevare
    il device. --- */
+/* Senza questo, tenere premuto su un elemento con tooltip fa scattare la
+   selezione testo/menu contestuale nativo del telefono, che interrompe il
+   touch e chiude il tooltip prima del previsto. */
+[data-tooltip], .move-chip {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
 [data-tooltip] { position: relative; }
 [data-tooltip]:hover::after,
 [data-tooltip].tap-tooltip::after {
