@@ -308,11 +308,12 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 
 .roster-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
-@media (max-width: 640px) { .roster-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 480px) { .roster-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (min-width: 768px) {
+  .roster-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 
 .slot {
   position: relative;
@@ -322,8 +323,11 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   padding: 1rem 0.9rem 0.9rem;
   min-height: 150px;
   min-width: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -442,7 +446,6 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   font-size: 0.85rem;
   color: var(--text);
   cursor: pointer;
-  align-self: flex-start;
 }
 .stats-btn:hover { border-color: var(--accent); color: var(--accent); }
 
