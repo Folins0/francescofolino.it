@@ -7,6 +7,10 @@
 const MAX_TEAM_SIZE = 6; // Pokémon per team
 const MAX_TEAMS = 6; // team creabili in totale
 const STORAGE_KEY = "teampreview-state";
+// ponytail: URL del backend ai-vision (server.js), da aggiornare quando è
+// deployato altrove. Se irraggiungibile l'import da screenshot degrada
+// all'OCR client-side puro di prima, senza rompersi.
+const AI_VISION_ENDPOINT = "http://localhost:8787/api/analyze-screenshot";
 
 const state = {
   teams: [{ name: "Team 1", mons: [] }],
@@ -1094,6 +1098,46 @@ function closestMatch(rawText, lookup, extraSuffixes = []) {
   return bestDist <= threshold ? best : null;
 }
 
+// Manda lo screenshot "Info Pokémon" a Gemini (via backend, ai-vision.js)
+// prima di far partire l'OCR: l'AI vede l'immagine intera e indovina le 6
+// specie, l'OCR poi le userà come rosa ristretta per il match del nome
+// (vedi buildHintedLookup) invece di cercare su tutto il pokedex.
+async function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = () => reject(new Error("Impossibile leggere il file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function fetchVisionHints(file) {
+  const imageBase64 = await fileToBase64(file);
+  const res = await fetch(AI_VISION_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imageBase64, mimeType: file.type || "image/png" }),
+  });
+  if (!res.ok) throw new Error(`AI vision error ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data.pokemon) ? data.pokemon : [];
+}
+
+// Dizionario ristretto ai soli slug suggeriti dall'AI (risolti sul lookup
+// completo, che già capisce sia inglese che italiano). closestMatch cercherà
+// prima qui: 6 candidati invece di ~1000+ specie riduce di molto i falsi
+// positivi sui ritagli OCR rumorosi. Nomi non riconosciuti vengono scartati;
+// se la lista è vuota (AI irraggiungibile) il chiamante ricade sul lookup pieno.
+function buildHintedLookup(names, fullLookup) {
+  const hinted = {};
+  for (const name of names || []) {
+    if (!name) continue;
+    const slug = closestMatch(name, fullLookup, ["male"]);
+    if (slug) hinted[normalizeOcrText(slug)] = slug;
+  }
+  return hinted;
+}
+
 function loadImage(file) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -1492,6 +1536,17 @@ screenshotBuildBtn.addEventListener("click", async () => {
   }
 
   screenshotBuildBtn.disabled = true;
+  setScreenshotFeedback("Analizzo lo screenshot con l'AI…");
+
+  let hintedLookup = {};
+  try {
+    const hints = await fetchVisionHints(infoFile);
+    console.log("[TeamPreview AI] specie suggerite:", hints);
+    hintedLookup = buildHintedLookup(hints, nameLookup);
+  } catch (err) {
+    console.log(`[TeamPreview AI] analisi vision non disponibile, procedo solo con OCR: ${err.message}`);
+  }
+
   setScreenshotFeedback("Leggo le immagini… la prima volta scarica il modulo OCR, può richiedere qualche secondo.");
 
   try {
@@ -1510,7 +1565,7 @@ screenshotBuildBtn.addEventListener("click", async () => {
     for (let cardIndex = 0; cardIndex < Math.min(cards.length, MAX_TEAM_SIZE); cardIndex++) {
       const card = cards[cardIndex];
       const nameText = await ocrCanvas(worker, cropCardRegion(infoImg, card, NAME_REGION));
-      const speciesSlug = closestMatch(nameText, nameLookup, ["male"]);
+      const speciesSlug = closestMatch(nameText, hintedLookup, ["male"]) || closestMatch(nameText, nameLookup, ["male"]);
       console.log(`[TeamPreview OCR] scheda ${cardIndex + 1}: letto "${nameText.trim()}" -> ${speciesSlug || "NESSUN MATCH"}`);
       if (!speciesSlug) continue;
 
