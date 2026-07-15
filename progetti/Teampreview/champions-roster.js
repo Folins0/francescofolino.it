@@ -19,7 +19,7 @@ const CHAMPIONS_ROSTER = new Set([
   "delphox", "diggersby", "ditto", "dondozo", "dragalge", "dragapult",
   "dragonite", "drampa", "eelektross", "emboar", "emolga", "empoleon",
   "espeon", "excadrill", "falinks", "farigiraf", "feraligatr", "flareon",
-  "florges", "froslass", "furfrou", "gallade", "garbodor", "garchomp",
+  "flapple", "florges", "froslass", "furfrou", "gallade", "garbodor", "garchomp",
   "gardevoir", "garganacl", "gengar", "gholdengo", "glaceon", "glalie",
   "glimmora", "gliscor", "golurk", "goodra", "gourgeist-average", "greninja",
   "grimmsnarl", "gyarados", "hatterene", "hawlucha", "heracross", "hippowdon",
