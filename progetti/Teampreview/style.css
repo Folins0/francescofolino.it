@@ -88,6 +88,11 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 
 .search-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
+/* La X di annullamento sta sempre in fondo a destra della casella di
+   ricerca, mai dentro la riga input/Aggiungi: così resta nello stesso punto
+   qualunque cosa venga mostrata sopra (feedback, conferma nome). */
+.search-widget-footer { display: flex; justify-content: flex-end; margin-top: 0.5rem; }
+
 #search-input {
   flex: 1;
   min-width: 0;
@@ -157,6 +162,26 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 #confirm-yes:hover { background: #ffd85c; }
 #confirm-no:hover { border-color: var(--danger); color: var(--danger); }
 
+/* Box del prompt per AI esterna: stessa "carta" del confirm-box, ma in
+   colonna (sprite+testo+azioni in riga non serve qui) per fare spazio alla
+   textarea a piena larghezza. */
+.external-prompt-box { flex-direction: column; align-items: stretch; }
+.external-prompt-text { width: 100%; }
+#external-prompt-textarea {
+  width: 100%;
+  margin-top: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.6rem;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+.external-prompt-box .confirm-actions { justify-content: flex-end; }
+
 .team-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
 .team-tab {
   display: flex;
@@ -196,12 +221,27 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 .screenshot-help { margin-bottom: 0.8rem; font-size: 0.82rem; }
 .screenshot-help summary {
   cursor: pointer;
-  color: var(--muted);
+  color: var(--accent);
   font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.02em;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  list-style: none; /* niente triangolo di default del browser: usiamo la nostra freccina qui sotto */
 }
-.screenshot-help summary:hover { color: var(--accent); }
+.screenshot-help summary::-webkit-details-marker { display: none; }
+/* Freccina che ruota all'apertura: rende evidente che la scritta è cliccabile
+   (non solo un titolo) e comunica lo stato aperto/chiuso senza altro testo. */
+.screenshot-help summary::after {
+  content: '▸';
+  font-size: 0.7em;
+  transition: transform 0.15s ease;
+}
+.screenshot-help[open] summary::after { transform: rotate(90deg); }
+.screenshot-help summary:hover { color: #ffd85c; }
 .screenshot-help[open] summary { color: var(--text); margin-bottom: 0.5rem; }
 .screenshot-help-case { margin: 0.7rem 0 0.3rem; color: var(--text); font-weight: 600; }
 .screenshot-help ol { margin: 0 0 0 1.1rem; padding: 0; color: var(--muted); }

@@ -31,7 +31,6 @@
         <input type="text" id="search-input" list="pokemon-names" placeholder="es. flapple, banette, incineroar…" autocomplete="off">
         <datalist id="pokemon-names"></datalist>
         <button id="search-btn">Aggiungi</button>
-        <button id="search-cancel-btn" type="button" aria-label="Annulla ricerca">✕</button>
       </div>
       <p id="search-feedback" class="search-feedback" aria-live="polite"></p>
       <div id="confirm-box" class="confirm-box hidden">
@@ -44,6 +43,12 @@
           <button id="confirm-yes" type="button">Sì, aggiungi</button>
           <button id="confirm-no" type="button">No</button>
         </div>
+      </div>
+      <!-- Sempre in fondo a destra, in una posizione fissa: così l'utente sa
+           sempre dove trovarla per chiudere la ricerca, indipendentemente da
+           quanto testo/feedback/conferma sia mostrato sopra. -->
+      <div class="search-widget-footer">
+        <button id="search-cancel-btn" type="button" aria-label="Annulla ricerca">✕</button>
       </div>
     </div>
 
@@ -104,6 +109,21 @@
       <div class="confirm-actions">
         <button id="autofill-confirm-yes" type="button">Sì, aggiungi</button>
         <button id="autofill-confirm-no" type="button">No</button>
+      </div>
+    </div>
+
+    <!-- Prompt pronto da incollare in un'AI esterna più potente (Claude,
+         ChatGPT, Gemini...), attivato dal menu di Scout (vedi
+         handleExternalPrompt in app.js). Generato e mostrato tutto in
+         locale: nessun dato lasciato il sito per costruirlo. -->
+    <div id="external-prompt-box" class="confirm-box external-prompt-box hidden">
+      <div class="confirm-text external-prompt-text">
+        <span>Prompt per un'AI esterna</span>
+        <textarea id="external-prompt-textarea" readonly rows="8"></textarea>
+      </div>
+      <div class="confirm-actions">
+        <button id="external-prompt-copy-btn" type="button">Copia testo</button>
+        <button id="external-prompt-close-btn" type="button">Chiudi</button>
       </div>
     </div>
   </section>
