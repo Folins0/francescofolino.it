@@ -17,22 +17,31 @@ if (!GEMINI_API_KEY) {
 const cache = new Map();
 const generateHash = (data) => crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
 
-// Funzione helper per chiamare le API di Google
+const GEMINI_MODEL = "gemini-flash-latest";
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Funzione helper per chiamare le API di Google. Se il modello è
+// sovraccarico (503), riprova una volta dopo una breve pausa.
 async function callGeminiApi(payload) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
-    const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
-    
-    if (!response.ok) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    for (let attempt = 0; attempt < 2; attempt++) {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
         const errorText = await response.text();
-        throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+        if (response.status !== 503 || attempt === 1) {
+            throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+        }
+        await sleep(2000);
     }
-    
-    const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
 }
 
 const server = http.createServer(async (req, res) => {
