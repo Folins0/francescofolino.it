@@ -25,34 +25,53 @@
     <p class="hero-sub">Team builder per Pokémon Champions VGC. Cerca un Pokémon, aggiungilo al roster, controlla tipi e stat base — senza aprire dieci schede diverse.</p>
   </section>
 
-  <section class="search-panel">
-    <label for="search-input" class="search-label">Cerca Pokémon</label>
-    <div class="search-row">
-      <input type="text" id="search-input" list="pokemon-names" placeholder="es. flapple, banette, incineroar…" autocomplete="off">
-      <datalist id="pokemon-names"></datalist>
-      <button id="search-btn">Aggiungi al roster</button>
-    </div>
-    <p id="search-feedback" class="search-feedback" aria-live="polite"></p>
-    <div id="confirm-box" class="confirm-box hidden">
-      <img id="confirm-sprite" alt="">
-      <div class="confirm-text">
-        <span id="confirm-name"></span>
-        <p>È questo il Pokémon che cercavi?</p>
-      </div>
-      <div class="confirm-actions">
-        <button id="confirm-yes" type="button">Sì, aggiungi</button>
-        <button id="confirm-no" type="button">No</button>
-      </div>
-    </div>
-  </section>
-
   <section class="roster">
+    <div id="search-widget" class="search-widget hidden">
+      <div class="search-row">
+        <input type="text" id="search-input" list="pokemon-names" placeholder="es. flapple, banette, incineroar…" autocomplete="off">
+        <datalist id="pokemon-names"></datalist>
+        <button id="search-btn">Aggiungi</button>
+        <button id="search-cancel-btn" type="button" aria-label="Annulla ricerca">✕</button>
+      </div>
+      <p id="search-feedback" class="search-feedback" aria-live="polite"></p>
+      <div id="confirm-box" class="confirm-box hidden">
+        <img id="confirm-sprite" alt="">
+        <div class="confirm-text">
+          <span id="confirm-name"></span>
+          <p>È questo il Pokémon che cercavi?</p>
+        </div>
+        <div class="confirm-actions">
+          <button id="confirm-yes" type="button">Sì, aggiungi</button>
+          <button id="confirm-no" type="button">No</button>
+        </div>
+      </div>
+    </div>
+
     <div class="team-tabs" id="team-tabs">
       <!-- Tab dei team generati da app.js -->
     </div>
 
     <div class="screenshot-panel">
       <label class="search-label">Componi un team da screenshot della schermata team preview</label>
+      <details class="screenshot-help">
+        <summary>Dove trovo questi screenshot in gioco?</summary>
+        <p class="screenshot-help-case">Se non hai mai condiviso questo team prima:</p>
+        <ol>
+          <li>Allenamento</li>
+          <li>Squadre calibrate</li>
+          <li>Condivisione squadre lotta</li>
+          <li>Condividi nuova</li>
+          <li>Scegli squadra lotta</li>
+          <li>Seleziona</li>
+          <li>Il gioco mostra il team: fai uno screenshot della schermata "Info Pokémon" e uno della schermata "Statistiche"</li>
+        </ol>
+        <p class="screenshot-help-case">Se il team era già stato condiviso in precedenza:</p>
+        <ol>
+          <li>Tocca il team</li>
+          <li>Info squadra lotta</li>
+          <li>Fai uno screenshot della schermata "Info Pokémon" e uno della schermata "Statistiche"</li>
+        </ol>
+      </details>
       <div class="screenshot-inputs">
         <label class="screenshot-file">Screenshot tab "Info Pokémon"<input type="file" id="screenshot-1" accept="image/*"></label>
         <label class="screenshot-file">Screenshot tab "Statistiche" (opzionale)<input type="file" id="screenshot-2" accept="image/*"></label>
@@ -70,6 +89,22 @@
     </div>
     <div class="roster-grid" id="roster-grid">
       <!-- Gli slot vengono generati da app.js -->
+    </div>
+
+    <!-- Conferma prima di aggiungere il candidato scelto da "Completa il team
+         automaticamente" (Scout, vedi handleAutoCompleteTeam in app.js). Stesse
+         classi del confirm-box del flusso di ricerca qui sopra, ma elemento
+         proprio: quello è dentro lo slot vuoto aperto, non sempre nel DOM. -->
+    <div id="autofill-confirm-box" class="confirm-box hidden">
+      <img id="autofill-confirm-sprite" alt="">
+      <div class="confirm-text">
+        <span id="autofill-confirm-name"></span>
+        <p id="autofill-confirm-reason"></p>
+      </div>
+      <div class="confirm-actions">
+        <button id="autofill-confirm-yes" type="button">Sì, aggiungi</button>
+        <button id="autofill-confirm-no" type="button">No</button>
+      </div>
     </div>
   </section>
 
@@ -92,30 +127,29 @@
       <div id="matchup-uncovered" class="matchup-group-list"></div>
     </div>
 
-    <div class="team-code-panel">
-      <label for="team-code-input" class="search-label">Codice team TeamPreview (formato nostro, non il codice ufficiale del gioco)</label>
-      <div class="search-row">
-        <input type="text" id="team-code-input" placeholder="es. ND-K7-3F…" autocomplete="off">
-        <button id="team-code-import-btn" type="button">Importa come nuovo team</button>
-      </div>
-      <button id="team-code-export-btn" type="button" class="team-code-export">Copia codice del team attivo</button>
-      <p id="team-code-feedback" class="search-feedback" aria-live="polite"></p>
-    </div>
-
     <div class="damage-calc">
       <h3>Calcolatore danno</h3>
       <p class="matchup-note">L'avversario non fa parte del roster: scegli come stimarne lo spread difensivo, Lv.50.</p>
       <div class="damage-calc-row">
-        <select id="dmg-attacker-select"></select>
-        <select id="dmg-move-select"></select>
+        <div class="dmg-field">
+          <span class="dmg-field-label">Attaccante</span>
+          <select id="dmg-attacker-select"></select>
+        </div>
+        <div class="dmg-field">
+          <span class="dmg-field-label">Mossa</span>
+          <select id="dmg-move-select"></select>
+        </div>
         <span class="damage-calc-vs">vs</span>
-        <input type="text" id="dmg-defender-input" list="pokemon-names" placeholder="Pokémon avversario" autocomplete="off">
+        <div class="dmg-field dmg-field-grow">
+          <span class="dmg-field-label">Avversario</span>
+          <input type="text" id="dmg-defender-input" list="pokemon-names" placeholder="Pokémon avversario" autocomplete="off">
+        </div>
         <button id="dmg-calc-btn" type="button">Calcola</button>
       </div>
 
       <div class="dmg-defender-mode">
-        <label><input type="radio" name="dmg-defender-mode" value="auto" checked> Range automatico (min–max su tutti gli SP possibili)</label>
-        <label><input type="radio" name="dmg-defender-mode" value="custom"> Spread personalizzato</label>
+        <label><input type="radio" name="dmg-defender-mode" value="auto" checked><span>Range automatico<small>min–max su tutti gli SP possibili</small></span></label>
+        <label><input type="radio" name="dmg-defender-mode" value="custom"><span>Spread personalizzato<small>imposta natura, SP e IV</small></span></label>
       </div>
 
       <div id="dmg-defender-custom" class="stats-modal-section dmg-defender-custom hidden">
@@ -127,7 +161,7 @@
         <div class="sp-iv-grid" id="dmg-defender-iv"></div>
       </div>
 
-      <p id="dmg-result" class="search-feedback" aria-live="polite"></p>
+      <p id="dmg-result" class="search-feedback dmg-result" aria-live="polite"></p>
     </div>
   </section>
 </main>
@@ -146,6 +180,8 @@
 
 <div id="overlay-scout" aria-hidden="false">
   <div class="scout-bubble" id="scout-bubble"></div>
+  <!-- Voci generate da scout.js al caricamento -->
+  <div class="scout-menu" id="scout-menu" role="menu" aria-hidden="true"></div>
   <div class="scout-sprite" id="scout-sprite"></div>
 </div>
 

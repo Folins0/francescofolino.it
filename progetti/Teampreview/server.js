@@ -84,29 +84,75 @@ const server = http.createServer(async (req, res) => {
                     cache.set(hash, response);
                 }
             }
-            // Endpoint 2: Coaching Tattico
+            // Endpoint 2: Coaching Tattico. tre modalità, stessa cache in
+            // memoria per tutte (hash diverso perché include sempre "mode"):
+            // - "team" (default, retrocompatibile): analisi generale del roster.
+            // - "contextual": consiglio mirato su ciò che l'utente sta guardando
+            //   in questo momento (app.js: buildScreenContext/handleScreenAdvice).
+            // - "autofill": giustifica in una frase un candidato già scelto in
+            //   locale (app.js: computeAutofillCandidates/handleAutoCompleteTeam).
             else if (req.url === "/api/coach-advice") {
-                // data.metaHints arriva già calcolato dal client (app.js:
-                // buildMetaHints), incrociando le debolezze del team con
-                // META_USAGE_REGMB (meta-usage.js). Qui non si inventa nulla:
-                // si passa solo all'LLM per la formulazione del consiglio.
-                const hash = generateHash({ roster: data.roster, metaHints: data.metaHints });
-                if (cache.has(hash)) {
-                    response = { advice: cache.get(hash) };
+                const mode = data.mode || "team";
+
+                if (mode === "contextual") {
+                    // data.context arriva già calcolato dal client: solo fatti
+                    // concreti su cosa l'utente sta guardando (stat base, mosse/
+                    // oggetto/SP assegnati, o la vista d'insieme del roster).
+                    const hash = generateHash({ mode, context: data.context });
+                    if (cache.has(hash)) {
+                        response = { advice: cache.get(hash) };
+                    } else {
+                        const advice = await callGroqApi({
+                            model: "llama-3.3-70b-versatile",
+                            messages: [
+                                { role: "system", content: "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). L'utente sta guardando una schermata specifica dell'app: dai un consiglio mirato e pratico su cosa manca in quella schermata (es. quali SP assegnare in base al ruolo suggerito dalle stat base, quale mossa o oggetto scegliere), in italiano, tono da mentore, massimo 3-4 frasi. IMPORTANTE: Pokémon Champions non usa gli EV classici (0-252 a stat, max 508 totali). Usa i \"SP\" (Stat Point): 0-32 per singola statistica, massimo 66 in totale su tutte le stat insieme. Se suggerisci uno spread, resta SEMPRE dentro questi limiti (es. \"32 SP in attacco e 32 in velocità\" è già il massimo assoluto per due stat, non puoi assegnarne di più). Basati ESCLUSIVAMENTE sui dati nel contesto fornito: non inventare mosse, abilità, tipi o statistiche non presenti." },
+                                { role: "user", content: `Contesto schermata: ${JSON.stringify(data.context)}` }
+                            ]
+                        });
+                        response = { advice };
+                        cache.set(hash, advice);
+                    }
+                } else if (mode === "autofill") {
+                    // Il candidato è già scelto in locale (tipi/copertura reali,
+                    // non inventati dall'AI): qui si chiede solo la frase di
+                    // giustificazione.
+                    const hash = generateHash({ mode, context: data.context });
+                    if (cache.has(hash)) {
+                        response = { advice: cache.get(hash) };
+                    } else {
+                        const advice = await callGroqApi({
+                            model: "llama-3.3-70b-versatile",
+                            messages: [
+                                { role: "system", content: "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). Ti è già stato scelto, con dati reali (non da te), un Pokémon candidato per completare il roster. Giustifica la scelta in una frase breve e concreta, in italiano, tono da mentore, citando il suo nome. Non proporre alternative e non inventare dati assenti dal contesto." },
+                                { role: "user", content: `Contesto: ${JSON.stringify(data.context)}` }
+                            ]
+                        });
+                        response = { advice };
+                        cache.set(hash, advice);
+                    }
                 } else {
-                    const metaHints = Array.isArray(data.metaHints) ? data.metaHints : [];
-                    const metaContext = metaHints.length
-                        ? `Debolezze di tipo del team sfruttate da Pokémon molto usati nel meta attuale (Pokemon Champions Reg. M-B): ${metaHints.map(h => `${h.type} → ${h.name} (#${h.rank} del meta)`).join(", ")}. Se ha senso, avvisa l'utente citando questi Pokémon per nome. Non citarne altri: se non sono in questa lista non sai se sono davvero usati nel meta attuale.`
-                        : "Nessun dato sul meta attuale disponibile per questo roster: non citare nomi di Pokémon del meta.";
-                    const advice = await callGroqApi({
-                        model: "llama-3.3-70b-versatile",
-                        messages: [
-                            { role: "system", content: "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). Analizza il roster e dai consigli tattici sintetici (massimo 4 frasi), in italiano, tono da mentore. Basati ESCLUSIVAMENTE sui dati forniti: non inventare mai mosse, abilità, tipi o Pokémon del meta non elencati nel contesto." },
-                            { role: "user", content: `Roster: ${JSON.stringify(data.roster)}\n${metaContext}` }
-                        ]
-                    });
-                    response = { advice };
-                    cache.set(hash, advice);
+                    // data.metaHints arriva già calcolato dal client (app.js:
+                    // buildMetaHints), incrociando le debolezze del team con
+                    // META_USAGE_REGMB (meta-usage.js). Qui non si inventa nulla:
+                    // si passa solo all'LLM per la formulazione del consiglio.
+                    const hash = generateHash({ mode, roster: data.roster, metaHints: data.metaHints });
+                    if (cache.has(hash)) {
+                        response = { advice: cache.get(hash) };
+                    } else {
+                        const metaHints = Array.isArray(data.metaHints) ? data.metaHints : [];
+                        const metaContext = metaHints.length
+                            ? `Debolezze di tipo del team sfruttate da Pokémon molto usati nel meta attuale (Pokemon Champions Reg. M-B): ${metaHints.map(h => `${h.type} → ${h.name} (#${h.rank} del meta)`).join(", ")}. Se ha senso, avvisa l'utente citando questi Pokémon per nome. Non citarne altri: se non sono in questa lista non sai se sono davvero usati nel meta attuale.`
+                            : "Nessun dato sul meta attuale disponibile per questo roster: non citare nomi di Pokémon del meta.";
+                        const advice = await callGroqApi({
+                            model: "llama-3.3-70b-versatile",
+                            messages: [
+                                { role: "system", content: "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). Analizza il roster e dai consigli tattici sintetici (massimo 4 frasi), in italiano, tono da mentore. Basati ESCLUSIVAMENTE sui dati forniti: non inventare mai mosse, abilità, tipi o Pokémon del meta non elencati nel contesto." },
+                                { role: "user", content: `Roster: ${JSON.stringify(data.roster)}\n${metaContext}` }
+                            ]
+                        });
+                        response = { advice };
+                        cache.set(hash, advice);
+                    }
                 }
             } else {
                 res.writeHead(404); res.end(JSON.stringify({ error: "Endpoint non trovato" })); return;

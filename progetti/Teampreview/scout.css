@@ -23,15 +23,19 @@
 
 .scout-sprite {
   flex: none;
-  width: 165px;
-  height: 220px;
+  /* 165x220 è il passo della griglia (background-size / 4 e / 3); la box
+     visibile è più piccola di SCOUT_FRAME_INSET*2 px per lato, per non far
+     vedere il bordo del frame adiacente. Vedi SCOUT_FRAME_INSET in scout.js,
+     che deve combaciare con questo valore. */
+  width: 159px;
+  height: 214px;
   border-radius: 14px;
   background-image: url('img/scout-sprite.png');
   /* Il sheet sorgente è quadrato (1024x1024, griglia 4 col x 3 righe): la
      scala dev'essere identica su entrambi gli assi, altrimenti ogni frame
      (che è già più alto che largo) viene schiacciato verticalmente. */
   background-size: 660px 660px;
-  background-position: 0 0; /* default: idle */
+  background-position: -3px -3px; /* default: idle, spostato di SCOUT_FRAME_INSET */
   background-repeat: no-repeat;
   animation: scout-breathe 2.6s ease-in-out infinite;
   transition: filter 0.15s ease;
@@ -65,10 +69,58 @@
   font-family: var(--font-body);
   font-size: 0.85rem;
   line-height: 1.4;
+  white-space: pre-line; /* permette a "Mostra utilizzo nel meta" di andare a capo per ogni Pokémon */
   opacity: 0;
   transform: translateY(6px) scale(0.96);
   transition: opacity 0.2s ease, transform 0.2s ease;
   pointer-events: auto; /* serve per poter scrollare il testo lungo, a differenza del resto dell'overlay */
+}
+
+/* Menu di scelta che appare sopra la sprite al tocco: stessa "carta" del
+   fumetto (bordo/sfondo), ma ancorato in alto a destra dell'overlay invece
+   che nel flusso flex, così non sposta bubble/sprite quando compare. */
+.scout-menu {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.scout-menu.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.scout-menu button {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  padding: 0.45rem 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.scout-menu button:hover,
+.scout-menu button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
 }
 
 .scout-bubble.visible {
