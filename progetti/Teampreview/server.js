@@ -1,75 +1,96 @@
-// Backend minimo: espone POST /api/analyze-screenshot, che inoltra lo
-// screenshot a Gemini (ai-vision.js) e risponde con i nomi riconosciuti.
-// Un solo endpoint -> http nativo di Node basta, niente framework.
-"use strict";
-
+// server.js - Backend unificato con Gemini Flash 1.5 e Cache
+require('dotenv').config();
 const http = require("node:http");
-const { analyzeScreenshot } = require("./ai-vision.js");
+const crypto = require("node:crypto");
 
 const PORT = process.env.PORT || 8787;
-// ponytail: CORS aperto, l'endpoint è read-only e non gestisce dati utente.
-// Restringi ALLOWED_ORIGIN se in futuro passa a gestire dati sensibili.
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "*";
-const MAX_BODY_BYTES = 10 * 1024 * 1024; // 10MB, ci sta largo uno screenshot compresso
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-function readJsonBody(req) {
-  return new Promise((resolve, reject) => {
-    let size = 0;
-    const chunks = [];
-    req.on("data", (chunk) => {
-      size += chunk.length;
-      if (size > MAX_BODY_BYTES) {
-        req.destroy();
-        reject(new Error("Payload troppo grande."));
-        return;
-      }
-      chunks.push(chunk);
+// Verifica di sicurezza all'avvio
+if (!GEMINI_API_KEY) {
+    console.error("ERRORE: GEMINI_API_KEY non trovata nel file .env");
+    process.exit(1);
+}
+
+const cache = new Map();
+const generateHash = (data) => crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
+
+// Funzione helper per chiamare le API di Google
+async function callGeminiApi(payload) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+    const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
     });
-    req.on("end", () => {
-      try {
-        resolve(JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}"));
-      } catch {
-        reject(new Error("JSON non valido."));
-      }
-    });
-    req.on("error", reject);
-  });
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+    }
+    
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text;
 }
 
 const server = http.createServer(async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    // CORS Headers
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") {
-    res.writeHead(204);
-    res.end();
-    return;
-  }
+    if (req.method === "OPTIONS") { res.writeHead(204); res.end(); return; }
 
-  if (req.method !== "POST" || req.url !== "/api/analyze-screenshot") {
-    res.writeHead(404, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "Not found" }));
-    return;
-  }
+    let body = "";
+    req.on("data", chunk => body += chunk);
+    req.on("end", async () => {
+        try {
+            const data = JSON.parse(body || "{}");
+            let response = null;
 
-  try {
-    const { imageBase64, mimeType } = await readJsonBody(req);
-    if (!imageBase64) {
-      res.writeHead(400, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "imageBase64 mancante." }));
-      return;
-    }
+            // Endpoint 1: Analisi Screenshot
+            if (req.url === "/api/analyze-screenshot") {
+                const hash = generateHash(data.imageBase64);
+                if (cache.has(hash)) {
+                    response = cache.get(hash);
+                } else {
+                    const text = await callGeminiApi({
+                        contents: [{ parts: [
+                            { text: 'Individua i 6 Pokemon nello screenshot. Rispondi SOLO con questo formato JSON: {"pokemon": ["Nome1", "Nome2", "Nome3", "Nome4", "Nome5", "Nome6"]}' },
+                            { inline_data: { mime_type: data.mimeType, data: data.imageBase64 } }
+                        ]}],
+                        generationConfig: { response_mime_type: "application/json" }
+                    });
+                    response = JSON.parse(text);
+                    cache.set(hash, response);
+                }
+            } 
+            // Endpoint 2: Coaching Tattico
+            else if (req.url === "/api/coach-advice") {
+                const hash = generateHash(data.roster);
+                if (cache.has(hash)) {
+                    response = { advice: cache.get(hash) };
+                } else {
+                    const advice = await callGeminiApi({
+                        contents: [{ parts: [{ text: `Sei un coach VGC esperto. Analizza questo roster e dai consigli tattici sintetici (massimo 4 frasi): ${JSON.stringify(data.roster)}` }] }]
+                    });
+                    response = { advice };
+                    cache.set(hash, advice);
+                }
+            } else {
+                res.writeHead(404); res.end(JSON.stringify({ error: "Endpoint non trovato" })); return;
+            }
 
-    const result = await analyzeScreenshot(Buffer.from(imageBase64, "base64"), { mimeType });
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify(result));
-  } catch (err) {
-    res.writeHead(502, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: err.message }));
-  }
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(response));
+        } catch (err) {
+            console.error("Errore server:", err);
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: err.message }));
+        }
+    });
 });
 
 server.listen(PORT, () => {
-  console.log(`ai-vision backend in ascolto su http://localhost:${PORT}`);
+    console.log(`Server unificato attivo su http://localhost:${PORT}`);
 });

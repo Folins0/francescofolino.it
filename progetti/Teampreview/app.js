@@ -120,7 +120,6 @@ if (isTouchOnly) {
     if (target && target.tagName !== "BUTTON") target.classList.add("tap-tooltip");
   });
 }
-
 function renderTeamTabs() {
   teamTabs.innerHTML = "";
 
@@ -1569,23 +1568,28 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- Assistente AI "Professoressa Pokémon" (Scout) --------------------------
-// Collega l'overlay Scout (scout.js) al roster attivo, via il proxy PHP
-// coach.php (Sessione 3).
+// Collega l'overlay Scout (scout.js) al roster attivo, via il server Node.js
+// locale (server.js).
 const btnCoach = document.getElementById("btn-coach");
 
-// TODO: GitHub Pages non esegue PHP. Una volta caricato coach.php su un
-// server PHP separato (hosting condiviso, VPS...), sostituire 'coach.php'
-// con l'URL assoluto, es. 'https://api.tuodominio.it/coach.php'.
 async function fetchAICoachAdvice(rosterData) {
-  const res = await fetch("coach.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ roster: rosterData }),
-  });
-  if (!res.ok) throw new Error("network");
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return data.advice;
+  try {
+    const res = await fetch("http://localhost:8787/api/coach-advice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roster: rosterData }),
+    });
+    
+    if (!res.ok) throw new Error("Errore di connessione al server locale.");
+    
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    
+    return data.advice;
+  } catch (err) {
+    console.error("Errore Coach:", err);
+    throw err;
+  }
 }
 
 async function handleCoachAnalysis() {
