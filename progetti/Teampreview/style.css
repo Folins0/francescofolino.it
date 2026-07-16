@@ -883,7 +883,7 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 }
 .dmg-defender-mode label:has(input:checked) span { color: var(--accent); font-weight: 600; }
 
-.dmg-defender-custom { margin-top: 0.8rem; padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 10px; }
+.dmg-defender-custom { margin-top: 0.8rem; padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-raised); }
 .dmg-defender-custom.hidden { display: none; }
 .dmg-defender-custom select { max-width: 260px; }
 
@@ -902,6 +902,6 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   transition: border-color 0.15s ease;
 }
 .dmg-result:empty { display: none; }
-.dmg-result.error { border-left: 3px solid var(--danger); color: var(--danger); }
+.dmg-result.error { border-left-color: var(--danger); color: var(--danger); }
 
 /* Overlay Solana: stili in scout.css */
