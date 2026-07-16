@@ -1,6 +1,6 @@
 <?php
 // coach.php — proxy verso l'API Groq (compatibile OpenAI) per l'assistente
-// AI "Professoressa Pokémon" (Scout).
+// AI "Solana".
 //
 // ATTENZIONE: GitHub Pages serve solo file statici, non esegue PHP. Questo
 // file va caricato su un server PHP separato (hosting condiviso, VPS...).
@@ -92,15 +92,17 @@ if ($mode === 'contextual' || $mode === 'autofill') {
     }
 
     $systemPrompt = $mode === 'contextual'
-        ? "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). L'utente sta guardando una schermata "
-            . "specifica dell'app: dai un consiglio mirato e pratico su cosa manca in quella schermata (es. quali "
-            . "SP assegnare in base al ruolo suggerito dalle stat base, quale mossa o oggetto scegliere), in "
-            . "italiano, tono da mentore, massimo 3-4 frasi. Basati ESCLUSIVAMENTE sui dati nel contesto fornito: "
+        ? "Sei Solana, un'assistente esperta di Pokémon VGC (Regulation M-B, doubles) che parla come un'amica "
+            . "appassionata, non come un manuale. L'utente sta guardando una schermata specifica dell'app: dai un "
+            . "consiglio mirato e pratico su cosa manca in quella schermata (es. quali SP assegnare in base al "
+            . "ruolo suggerito dalle stat base, quale mossa o oggetto scegliere), in italiano, con un tono naturale, "
+            . "colloquiale ed empatico, massimo 3-4 frasi. Basati ESCLUSIVAMENTE sui dati nel contesto fornito: "
             . "non inventare mosse, abilità, tipi o statistiche non presenti."
-        : "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). Ti è già stato scelto, con dati reali "
-            . "(non da te), un Pokémon candidato per completare il roster. Giustifica la scelta in una frase breve "
-            . "e concreta, in italiano, tono da mentore, citando il suo nome. Non proporre alternative e non "
-            . "inventare dati assenti dal contesto.";
+        : "Sei Solana, un'assistente esperta di Pokémon VGC (Regulation M-B, doubles) che parla come un'amica "
+            . "appassionata, non come un manuale. Ti è già stato scelto, con dati reali (non da te), un Pokémon "
+            . "candidato per completare il roster. Giustifica la scelta in una frase breve e concreta, in "
+            . "italiano, con un tono naturale, colloquiale ed empatico, citando il suo nome. Non proporre "
+            . "alternative e non inventare dati assenti dal contesto.";
 
     $userContent = ($mode === 'contextual' ? "Contesto schermata: " : "Contesto: ") . json_encode($context);
 
@@ -124,12 +126,13 @@ if (!is_array($roster) || count($roster) === 0) {
     exit;
 }
 
-$systemPrompt = "Sei un coach esperto di Pokémon VGC (Double Battles). Analizza il roster fornito. "
-    . "Individua le principali debolezze di tipo e la mancanza di meccaniche chiave (es. Speed Control, "
-    . "Fake Out, Redirect). Sii sintetico, diretto e strategico (massimo 3-4 frasi). Regola fondamentale: "
-    . "basati ESCLUSIVAMENTE sui dati reali dei Pokémon, non inventare MAI mosse, abilità, tipi o statistiche "
-    . "inesistenti. Usa un tono professionale ma da mentore. Devi generare la risposta SEMPRE E SOLO in lingua "
-    . "italiana, usando il vocabolario ufficiale italiano del gioco.";
+$systemPrompt = "Sei Solana, un'assistente esperta di Pokémon VGC (Double Battles) che parla come un'amica "
+    . "appassionata, non come un manuale. Analizza il roster fornito. Individua le principali debolezze di "
+    . "tipo e la mancanza di meccaniche chiave (es. Speed Control, Fake Out, Redirect). Sii sintetica, diretta "
+    . "e strategica (massimo 3-4 frasi). Regola fondamentale: basati ESCLUSIVAMENTE sui dati reali dei Pokémon, "
+    . "non inventare MAI mosse, abilità, tipi o statistiche inesistenti. Usa un tono naturale, colloquiale ed "
+    . "empatico, mai robotico o da manuale. Devi generare la risposta SEMPRE E SOLO in lingua italiana, usando "
+    . "il vocabolario ufficiale italiano del gioco.";
 
 // metaHints arriva già calcolato dal client (app.js: buildMetaHints), che
 // incrocia le debolezze del team con META_USAGE_REGMB (meta-usage.js, lista

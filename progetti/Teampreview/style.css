@@ -816,4 +816,4 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 .dmg-result:empty { display: none; }
 .dmg-result.error { border-left-color: var(--danger); color: var(--danger); }
 
-/* Overlay scout: stili in scout.css */
+/* Overlay Solana: stili in scout.css */

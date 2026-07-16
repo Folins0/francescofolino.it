@@ -1685,8 +1685,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderRoster();
 });
 
-// --- Assistente AI "Professoressa Pokémon" (Scout) --------------------------
-// Collega l'overlay Scout (scout.js) al roster attivo, via il server Node.js
+// --- Assistente AI "Solana" ---------------------------------------------------
+// Collega l'overlay di Solana (scout.js) al roster attivo, via il server Node.js
 // locale (server.js).
 const btnCoach = document.getElementById("btn-coach");
 
@@ -1756,20 +1756,20 @@ async function handleCoachAnalysis() {
   const rosterData = activeTeam().mons;
 
   if (!rosterData.length) {
-    Scout.show();
-    Scout.say("Il tuo roster è vuoto. Aggiungi qualche Pokémon prima di chiedermi un parere!", 3000, "idle");
+    Solana.show();
+    Solana.say("Il tuo roster è ancora vuoto: aggiungi qualche Pokémon e poi chiedimi pure un parere!", 3000, "idle");
     return;
   }
 
-  Scout.show();
-  Scout.say("Mmh, fammi dare un'occhiata alle sinergie del tuo team...", 3000, "thinking");
+  Solana.show();
+  Solana.say("Mmh, fammi dare un'occhiata a come si incastra la tua squadra...", 3000, "thinking");
 
   try {
     const metaHints = await buildMetaHints(rosterData);
     const advice = await fetchAICoachAdvice(rosterData, metaHints);
-    Scout.say(advice, 5000, "speaking");
+    Solana.say(advice, 5000, "speaking");
   } catch {
-    Scout.say("Ops, c'è stato un problema di connessione col Server PC di Bill. Riprova più tardi!", 4000, "idle");
+    Solana.say("Ops, è saltata la connessione col Server PC di Bill... riprova tra un attimo!", 4000, "idle");
   }
 }
 
@@ -1783,8 +1783,8 @@ function handleMetaUsageScreen() {
   const rosterData = activeTeam().mons;
 
   if (!rosterData.length) {
-    Scout.show();
-    Scout.say("Il tuo roster è vuoto. Aggiungi qualche Pokémon prima di chiedermi l'utilizzo nel meta!", 3000, "idle");
+    Solana.show();
+    Solana.say("Il tuo roster è ancora vuoto: aggiungi qualche Pokémon e ti dico subito come se la cava nel meta!", 3000, "idle");
     return;
   }
 
@@ -1797,8 +1797,8 @@ function handleMetaUsageScreen() {
       : `${label} non è tra i 25 più usati del meta attuale.`;
   });
 
-  Scout.show();
-  Scout.say(lines.join("\n"), 5000, "speaking");
+  Solana.show();
+  Solana.say(lines.join("\n"), 5000, "speaking");
 }
 
 // --- "Consigli su questa schermata" (context-aware) --------------------------
@@ -1857,20 +1857,20 @@ async function handleScreenAdvice() {
   const modalOpen = statsModalMon && !statsModal.classList.contains("hidden");
 
   if (!modalOpen && !activeTeam().mons.length) {
-    Scout.show();
-    Scout.say("Il tuo roster è vuoto e non hai nessuna scheda aperta: aggiungi un Pokémon o apri le sue Statistiche, poi richiedimi un consiglio.", 4000, "idle");
+    Solana.show();
+    Solana.say("Non vedo ancora niente da analizzare: aggiungi un Pokémon o apri le sue Statistiche, poi ridimmi pure e ti do una mano.", 4000, "idle");
     return;
   }
 
-  Scout.show();
-  Scout.say("Fammi dare un'occhiata a cosa stai guardando...", 3000, "thinking");
+  Solana.show();
+  Solana.say("Aspetta, fammi dare un'occhiata a quello che stai guardando...", 3000, "thinking");
 
   try {
     const context = buildScreenContext();
     const advice = await fetchContextualAdvice(context);
-    Scout.say(advice, 5000, "speaking");
+    Solana.say(advice, 5000, "speaking");
   } catch {
-    Scout.say("Ops, c'è stato un problema di connessione col Server PC di Bill. Riprova più tardi!", 4000, "idle");
+    Solana.say("Ops, è saltata la connessione col Server PC di Bill... riprova tra un attimo!", 4000, "idle");
   }
 }
 
@@ -1943,29 +1943,29 @@ async function handleAutoCompleteTeam() {
   const mons = activeTeam().mons;
 
   if (mons.length >= MAX_TEAM_SIZE) {
-    Scout.show();
-    Scout.say("Il roster è già al completo (6/6): non c'è spazio per aggiungere altri Pokémon.", 3500, "idle");
+    Solana.show();
+    Solana.say("La squadra è già al completo (6/6): non c'è più spazio per aggiungerne altri.", 3500, "idle");
     return;
   }
 
-  Scout.show();
-  Scout.say("Controllo il meta per trovare un buon candidato...", 3000, "thinking");
+  Solana.show();
+  Solana.say("Fammi controllare il meta, cerco un buon candidato per te...", 3000, "thinking");
 
   try {
     const candidates = await computeAutofillCandidates(mons);
     if (!candidates.length) {
-      Scout.say("Non ho trovato candidati utili nel meta attuale per completare la squadra.", 4000, "idle");
+      Solana.say("Mmh, non ho trovato nessun candidato che mi convinca nel meta attuale.", 4000, "idle");
       return;
     }
 
     const best = candidates[0];
     const mon = await fetchPokemon(best.entry.slug);
-    const fallbackReason = `Ti consiglio ${best.entry.name} (#${best.entry.rank} del meta): aiuta a coprire i punti deboli del tuo team.`;
+    const fallbackReason = `Punterei su ${best.entry.name} (#${best.entry.rank} del meta): copre bene i punti deboli della tua squadra.`;
     const reason = await fetchAutofillReason(mons, best).catch(() => fallbackReason);
 
-    Scout.say(reason, 5000, "speaking");
+    Solana.say(reason, 5000, "speaking");
     showAutofillConfirm(mon, reason);
   } catch {
-    Scout.say("Ops, qualcosa è andato storto mentre cercavo un candidato. Riprova più tardi!", 4000, "idle");
+    Solana.say("Ops, qualcosa si è inceppato mentre cercavo un candidato: riprova tra un attimo!", 4000, "idle");
   }
 }

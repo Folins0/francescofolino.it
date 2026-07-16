@@ -1,4 +1,4 @@
-// Overlay "Scout" (Professoressa Pokémon): mascotte in basso a destra.
+// Overlay "Solana" (ex Professoressa Pokémon): mascotte in basso a destra.
 // Sprite reale in img/scout-sprite.png, griglia 4 colonne x 3 righe.
 const SCOUT_FRAME_W = 165; // px, deve combaciare con .scout-sprite in scout.css
 const SCOUT_FRAME_H = 220;
@@ -26,7 +26,7 @@ const scoutSprite = document.getElementById('scout-sprite');
 const scoutBubble = document.getElementById('scout-bubble');
 const scoutMenu = document.getElementById('scout-menu');
 let scoutTypeTimer = null; // interval del typewriter in corso
-let scoutIdleTimer = null; // timeout che riporta Scout a "idle" a fine typing
+let scoutIdleTimer = null; // timeout che riporta Solana a "idle" a fine typing
 
 // Cambia solo il frame mostrato, senza il flash di "pop": usata per il
 // flap veloce della bocca durante il typewriter, dove il pop sarebbe troppo.
@@ -61,7 +61,7 @@ function hide() {
 }
 
 // durationMs = tempo minimo di attesa dopo la fine del typing prima che
-// Scout torni a "idle" (non è più la durata di visibilità del fumetto).
+// Solana torni a "idle" (non è più la durata di visibilità del fumetto).
 // emotion = espressione da mostrare mentre parla: cambia subito, prima che
 // il fumetto/testo compaia, non dopo. Con "speaking" la bocca "sbatte"
 // rapidamente a ogni carattere per un effetto di parlato più vivace.
@@ -100,7 +100,7 @@ function say(text, durationMs = 3000, emotion = 'speaking') {
   }, SCOUT_TYPE_SPEED);
 }
 
-window.Scout = { show, hide, setExpression, say };
+window.Solana = { show, hide, setExpression, say };
 window.setExpression = setExpression; // retrocompatibilità con l'uso già presente in orchestrator/app
 
 setExpression('idle');
@@ -160,13 +160,13 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Avviso una tantum al primo avvio: fa scoprire che si può toccare la Prof
+// Avviso una tantum al primo avvio: fa scoprire che si può toccare Solana
 // per chiedere aiuto, invece di dover trovare il bottone in fondo alla pagina.
-const SCOUT_HINT_KEY = 'teampreview_scout_hint_seen';
+const SCOUT_HINT_KEY = 'teampreview_solana_hint_seen';
 if (!localStorage.getItem(SCOUT_HINT_KEY)) {
   setTimeout(() => {
     show();
-    say('Ciao! Se hai bisogno di una mano, toccami quando vuoi: sono qui per aiutarti.', 4500, 'happy');
+    say('Ciao, sono Solana! Se ti serve una mano toccami pure quando vuoi: sono qui apposta.', 4500, 'happy');
     localStorage.setItem(SCOUT_HINT_KEY, '1');
   }, 1200);
 }
