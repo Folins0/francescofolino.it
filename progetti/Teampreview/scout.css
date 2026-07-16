@@ -6,7 +6,10 @@
   position: fixed;
   right: 1.5rem;
   bottom: 1.5rem;
-  z-index: 500;
+  /* Sotto il modal-backdrop/stats-modal (z-index 20/21 in style.css): quando
+     l'utente apre il box di modifica delle statistiche, deve restare sopra
+     Solana, non sotto (era z-index 500, più alto del modal per errore). */
+  z-index: 15;
   display: flex;
   flex-direction: row;
   align-items: flex-end;
@@ -23,15 +26,19 @@
 
 .scout-sprite {
   flex: none;
-  width: 165px;
-  height: 220px;
+  /* 165x220 è il passo della griglia (background-size / 4 e / 3); la box
+     visibile è più piccola di SCOUT_FRAME_INSET*2 px per lato, per non far
+     vedere il bordo del frame adiacente. Vedi SCOUT_FRAME_INSET in scout.js,
+     che deve combaciare con questo valore. */
+  width: 159px;
+  height: 214px;
   border-radius: 14px;
   background-image: url('img/scout-sprite.png');
   /* Il sheet sorgente è quadrato (1024x1024, griglia 4 col x 3 righe): la
      scala dev'essere identica su entrambi gli assi, altrimenti ogni frame
      (che è già più alto che largo) viene schiacciato verticalmente. */
   background-size: 660px 660px;
-  background-position: 0 0; /* default: idle */
+  background-position: -3px -3px; /* default: idle, spostato di SCOUT_FRAME_INSET */
   background-repeat: no-repeat;
   animation: scout-breathe 2.6s ease-in-out infinite;
   transition: filter 0.15s ease;
