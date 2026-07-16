@@ -543,11 +543,11 @@ function renderStatsModal() {
       <section class="stats-modal-section">
         <h4>Mosse</h4>
         <div class="moves-edit-grid">
+          <datalist id="stats-move-options">
+            ${mon.learnset.slice().sort((a, b) => moveDisplayName(a).localeCompare(moveDisplayName(b))).map((name) => `<option value="${moveDisplayName(name)}">`).join("")}
+          </datalist>
           ${[0, 1, 2, 3].map((i) => `
-            <select data-move-slot="${i}">
-              <option value="">— nessuna —</option>
-              ${mon.learnset.slice().sort().map((name) => `<option value="${name}" ${mon.moves[i] === name ? "selected" : ""}>${moveDisplayName(name)}</option>`).join("")}
-            </select>
+            <input type="text" data-move-slot="${i}" list="stats-move-options" autocomplete="off" placeholder="es. lanciafiamme" value="${mon.moves[i] ? moveDisplayName(mon.moves[i]) : ""}">
           `).join("")}
         </div>
 
@@ -600,12 +600,25 @@ function renderStatsModal() {
 function wireStatsModalEvents() {
   const mon = statsModalMon;
 
-  statsModalBody.querySelectorAll("[data-move-slot]").forEach((sel) => {
-    sel.addEventListener("change", async () => {
-      const i = Number(sel.dataset.moveSlot);
-      mon.moves[i] = sel.value || null;
-      if (sel.value) {
-        try { await fetchMoveDetail(sel.value); } catch { /* badge tipo resterà assente */ }
+  // Testo libero ma vincolato al learnset: la <datalist> suggerisce solo le
+  // mosse imparabili da questo Pokémon, la mappa qui sotto risolve il nome
+  // italiano digitato/scelto allo slug interno (mon.moves salva sempre slug).
+  const moveNameToSlug = {};
+  for (const slug of mon.learnset) moveNameToSlug[moveDisplayName(slug).toLowerCase()] = slug;
+
+  statsModalBody.querySelectorAll("[data-move-slot]").forEach((input) => {
+    input.addEventListener("change", async () => {
+      const i = Number(input.dataset.moveSlot);
+      const typed = input.value.trim();
+      const slug = typed ? moveNameToSlug[typed.toLowerCase()] : null;
+      if (typed && !slug) {
+        // Mossa non nel learnset: ripristina l'ultima mossa valida, niente testo libero.
+        input.value = mon.moves[i] ? moveDisplayName(mon.moves[i]) : "";
+        return;
+      }
+      mon.moves[i] = slug;
+      if (slug) {
+        try { await fetchMoveDetail(slug); } catch { /* badge tipo resterà assente */ }
       }
       renderRoster();
       saveState();

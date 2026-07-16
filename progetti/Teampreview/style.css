@@ -684,7 +684,6 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 .stats-modal-section h4:first-child { margin-top: 0; }
 
 .moves-edit-grid { display: flex; flex-direction: column; gap: 0.5rem; }
-.moves-edit-grid select,
 .stats-modal-section input[type="text"],
 .stats-modal-section select {
   width: 100%;
