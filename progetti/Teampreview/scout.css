@@ -6,7 +6,10 @@
   position: fixed;
   right: 1.5rem;
   bottom: 1.5rem;
-  z-index: 500;
+  /* Sotto il modal-backdrop/stats-modal (z-index 20/21 in style.css): quando
+     l'utente apre il box di modifica delle statistiche, deve restare sopra
+     l'assistente, non sotto (era z-index 500, più alto del modal per errore). */
+  z-index: 15;
   display: flex;
   flex-direction: row;
   align-items: flex-end;

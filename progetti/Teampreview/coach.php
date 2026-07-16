@@ -75,15 +75,13 @@ function callGroqAndRespond($apiKey, $payload) {
 $body = json_decode(file_get_contents('php://input'), true);
 $mode = $body['mode'] ?? 'team';
 
-// Tre modalità, stesso endpoint (nessuna cache qui: a differenza di
+// Due modalità, stesso endpoint (nessuna cache qui: a differenza di
 // server.js, coach.php gira su hosting condiviso senza processo persistente,
 // quindi una cache in memoria non sopravviverebbe tra una richiesta e l'altra).
 // - "team" (default, retrocompatibile): analisi generale del roster.
-// - "contextual": consiglio mirato su ciò che l'utente sta guardando in
-//   questo momento (app.js: buildScreenContext/handleScreenAdvice).
 // - "autofill": giustifica in una frase un candidato già scelto in locale
 //   (app.js: computeAutofillCandidates/handleAutoCompleteTeam).
-if ($mode === 'contextual' || $mode === 'autofill') {
+if ($mode === 'autofill') {
     $context = $body['context'] ?? null;
     if (!$context) {
         http_response_code(400);
@@ -91,18 +89,12 @@ if ($mode === 'contextual' || $mode === 'autofill') {
         exit;
     }
 
-    $systemPrompt = $mode === 'contextual'
-        ? "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). L'utente sta guardando una schermata "
-            . "specifica dell'app: dai un consiglio mirato e pratico su cosa manca in quella schermata (es. quali "
-            . "SP assegnare in base al ruolo suggerito dalle stat base, quale mossa o oggetto scegliere), in "
-            . "italiano, tono da mentore, massimo 3-4 frasi. Basati ESCLUSIVAMENTE sui dati nel contesto fornito: "
-            . "non inventare mosse, abilità, tipi o statistiche non presenti."
-        : "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). Ti è già stato scelto, con dati reali "
-            . "(non da te), un Pokémon candidato per completare il roster. Giustifica la scelta in una frase breve "
-            . "e concreta, in italiano, tono da mentore, citando il suo nome. Non proporre alternative e non "
-            . "inventare dati assenti dal contesto.";
+    $systemPrompt = "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). Ti è già stato scelto, con dati reali "
+        . "(non da te), un Pokémon candidato per completare il roster. Giustifica la scelta in una frase breve "
+        . "e concreta, in italiano, tono da mentore, citando il suo nome. Non proporre alternative e non "
+        . "inventare dati assenti dal contesto.";
 
-    $userContent = ($mode === 'contextual' ? "Contesto schermata: " : "Contesto: ") . json_encode($context);
+    $userContent = "Contesto: " . json_encode($context);
 
     $payload = json_encode([
         'model' => 'llama3-8b-8192',

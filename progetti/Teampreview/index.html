@@ -55,22 +55,33 @@
       <label class="search-label">Componi un team da screenshot della schermata team preview</label>
       <details class="screenshot-help">
         <summary>Dove trovo questi screenshot in gioco?</summary>
-        <p class="screenshot-help-case">Se non hai mai condiviso questo team prima:</p>
-        <ol>
-          <li>Allenamento</li>
-          <li>Squadre calibrate</li>
-          <li>Condivisione squadre lotta</li>
-          <li>Condividi nuova</li>
-          <li>Scegli squadra lotta</li>
-          <li>Seleziona</li>
-          <li>Il gioco mostra il team: fai uno screenshot della schermata "Info Pokémon" e uno della schermata "Statistiche"</li>
-        </ol>
-        <p class="screenshot-help-case">Se il team era già stato condiviso in precedenza:</p>
-        <ol>
-          <li>Tocca il team</li>
-          <li>Info squadra lotta</li>
-          <li>Fai uno screenshot della schermata "Info Pokémon" e uno della schermata "Statistiche"</li>
-        </ol>
+        <div class="screenshot-carousel" id="screenshot-carousel">
+          <div class="screenshot-slide">
+            <p class="screenshot-help-case">Se non hai mai condiviso questo team prima:</p>
+            <ol>
+              <li>Allenamento</li>
+              <li>Squadre calibrate</li>
+              <li>Condivisione squadre lotta</li>
+              <li>Condividi nuova</li>
+              <li>Scegli squadra lotta</li>
+              <li>Seleziona</li>
+              <li>Il gioco mostra il team: fai uno screenshot della schermata "Info Pokémon" e uno della schermata "Statistiche"</li>
+            </ol>
+          </div>
+          <div class="screenshot-slide">
+            <p class="screenshot-help-case">Se il team era già stato condiviso in precedenza:</p>
+            <ol>
+              <li>Tocca il team</li>
+              <li>Info squadra lotta</li>
+              <li>Fai uno screenshot della schermata "Info Pokémon" e uno della schermata "Statistiche"</li>
+            </ol>
+          </div>
+        </div>
+        <div class="screenshot-carousel-nav">
+          <button type="button" class="carousel-arrow" id="screenshot-carousel-prev" aria-label="Caso precedente">‹</button>
+          <div class="carousel-dots" id="screenshot-carousel-dots"></div>
+          <button type="button" class="carousel-arrow" id="screenshot-carousel-next" aria-label="Caso successivo">›</button>
+        </div>
       </details>
       <div class="screenshot-inputs">
         <label class="screenshot-file">Screenshot tab "Info Pokémon"<input type="file" id="screenshot-1" accept="image/*"></label>

@@ -311,7 +311,12 @@ function renderRoster() {
     statRow.className = "stat-row";
     STAT_KEYS.forEach((key) => {
       const span = document.createElement("span");
-      span.innerHTML = `${STAT_LABELS[key]} <strong>${mon.stats[key] ?? "–"}</strong>`;
+      const base = mon.stats[key];
+      // Valore finale (stat base + IV/SP assegnati), non la stat base grezza:
+      // la stat base resta visibile solo nel popup di dettaglio (tabella
+      // "Base"/"Finali" in openStatsModal più sotto).
+      const final = base != null ? calcStat(key, base, mon.iv[key], mon.sp[key], LEVEL, mon.nature) : "–";
+      span.innerHTML = `${STAT_LABELS[key]} <strong>${final}</strong>`;
       statRow.appendChild(span);
     });
     slot.appendChild(statRow);
@@ -617,6 +622,7 @@ function wireStatsModalEvents() {
   statsModalBody.querySelector("#stats-nature-select").addEventListener("change", (e) => {
     mon.nature = e.target.value;
     updateFinalStats();
+    renderRoster(); // il roster mostra la stat finale: va aggiornato insieme al popup
     saveState();
   });
 
@@ -629,6 +635,7 @@ function wireStatsModalEvents() {
       mon.sp[key] = v;
       input.value = v;
       updateFinalStats();
+      renderRoster();
       saveState();
     });
   });
@@ -639,6 +646,7 @@ function wireStatsModalEvents() {
       mon.iv[input.dataset.iv] = v;
       input.value = v;
       updateFinalStats();
+      renderRoster();
       saveState();
     });
   });
@@ -1679,10 +1687,49 @@ for (const items of Object.values(CHAMPIONS_ITEM_CATEGORIES)) {
   }
 }
 
+// Carosello "Dove trovo questi screenshot in gioco?": CSS scroll-snap fa il
+// lavoro pesante (scroll fluido nativo, swipe orizzontale su mobile senza
+// codice dedicato), qui serve solo sincronizzare freccine/pallini con la
+// slide effettivamente visibile.
+function initScreenshotCarousel() {
+  const track = document.getElementById("screenshot-carousel");
+  const dotsEl = document.getElementById("screenshot-carousel-dots");
+  const prevBtn = document.getElementById("screenshot-carousel-prev");
+  const nextBtn = document.getElementById("screenshot-carousel-next");
+  if (!track || !dotsEl || !prevBtn || !nextBtn) return;
+
+  const slides = [...track.children];
+  slides.forEach((_, i) => {
+    const dot = document.createElement("span");
+    dot.addEventListener("click", () => slides[i].scrollIntoView({ behavior: "smooth", inline: "start" }));
+    dotsEl.appendChild(dot);
+  });
+  const dots = [...dotsEl.children];
+
+  const setActive = (index) => dots.forEach((d, i) => d.classList.toggle("active", i === index));
+
+  track.addEventListener("scroll", () => {
+    const index = Math.round(track.scrollLeft / track.clientWidth);
+    setActive(clamp(index, 0, slides.length - 1));
+  }, { passive: true });
+
+  prevBtn.addEventListener("click", () => {
+    const index = clamp(Math.round(track.scrollLeft / track.clientWidth) - 1, 0, slides.length - 1);
+    slides[index].scrollIntoView({ behavior: "smooth", inline: "start" });
+  });
+  nextBtn.addEventListener("click", () => {
+    const index = clamp(Math.round(track.scrollLeft / track.clientWidth) + 1, 0, slides.length - 1);
+    slides[index].scrollIntoView({ behavior: "smooth", inline: "start" });
+  });
+
+  setActive(0);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   loadState();
   renderTeamTabs();
   renderRoster();
+  initScreenshotCarousel();
 });
 
 // --- Assistente AI "Professoressa Pokémon" (Scout) --------------------------
@@ -1799,79 +1846,6 @@ function handleMetaUsageScreen() {
 
   Scout.show();
   Scout.say(lines.join("\n"), 5000, "speaking");
-}
-
-// --- "Consigli su questa schermata" (context-aware) --------------------------
-// Calcola in locale il massimo di contesto possibile su cosa l'utente sta
-// guardando/modificando in questo momento (stesso principio di buildMetaHints
-// sopra: solo fatti concreti, mai un prompt generico "aiutami" mandato
-// all'AI). Se il modal Statistiche è aperto per un Pokémon, il contesto è
-// quel singolo Pokémon (stat base, mosse/oggetto/SP assegnati, cosa manca);
-// altrimenti ripiega sulla vista d'insieme del roster, riusando le stesse
-// computeTeamWeakTypes/computeCoverage già usate per il rendering del matchup.
-function buildScreenContext() {
-  const modalOpen = statsModalMon && !statsModal.classList.contains("hidden");
-
-  if (modalOpen) {
-    const mon = statsModalMon;
-    const spTotal = STAT_KEYS.reduce((sum, k) => sum + mon.sp[k], 0);
-    return {
-      screen: "stats-modal",
-      pokemon: pokemonDisplayName(mon.name),
-      types: mon.types,
-      baseStats: mon.stats,
-      ability: mon.ability || null,
-      item: mon.item || null,
-      nature: mon.nature,
-      movesAssigned: mon.moves.filter(Boolean),
-      missingMoveSlots: mon.moves.filter((m) => !m).length,
-      spAssigned: mon.sp,
-      spTotal,
-      spRemaining: MAX_SP_TOTAL - spTotal,
-    };
-  }
-
-  const mons = activeTeam().mons;
-  const { uncovered } = computeCoverage(mons);
-  return {
-    screen: "roster",
-    teamSize: mons.length,
-    weakTypes: computeTeamWeakTypes(mons),
-    uncoveredOffensiveTypes: uncovered,
-  };
-}
-
-async function fetchContextualAdvice(context) {
-  const res = await fetch(AI_COACH_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mode: "contextual", context }),
-  });
-  if (!res.ok) throw new Error("Errore di connessione al server locale.");
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return data.advice;
-}
-
-async function handleScreenAdvice() {
-  const modalOpen = statsModalMon && !statsModal.classList.contains("hidden");
-
-  if (!modalOpen && !activeTeam().mons.length) {
-    Scout.show();
-    Scout.say("Il tuo roster è vuoto e non hai nessuna scheda aperta: aggiungi un Pokémon o apri le sue Statistiche, poi richiedimi un consiglio.", 4000, "idle");
-    return;
-  }
-
-  Scout.show();
-  Scout.say("Fammi dare un'occhiata a cosa stai guardando...", 3000, "thinking");
-
-  try {
-    const context = buildScreenContext();
-    const advice = await fetchContextualAdvice(context);
-    Scout.say(advice, 5000, "speaking");
-  } catch {
-    Scout.say("Ops, c'è stato un problema di connessione col Server PC di Bill. Riprova più tardi!", 4000, "idle");
-  }
 }
 
 // --- "Completa il team automaticamente" (autofill) ----------------------------

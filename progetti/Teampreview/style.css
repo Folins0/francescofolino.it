@@ -207,6 +207,52 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 .screenshot-help ol { margin: 0 0 0 1.1rem; padding: 0; color: var(--muted); }
 .screenshot-help li { margin-bottom: 0.2rem; }
 
+/* Carosello dei due casi ("mai condiviso" / "già condiviso"): CSS scroll-snap
+   nativo, scroll orizzontale con swipe libero su mobile, niente libreria. */
+.screenshot-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.screenshot-carousel::-webkit-scrollbar { display: none; }
+.screenshot-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.screenshot-carousel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: 0.6rem;
+}
+.carousel-arrow {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.carousel-arrow:hover { border-color: var(--accent); color: var(--accent); }
+.carousel-dots { display: flex; gap: 6px; }
+.carousel-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.carousel-dots span.active { background: var(--accent); }
+
 .screenshot-inputs { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
 .screenshot-file {
   display: flex;
@@ -409,12 +455,15 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
   color: var(--muted);
 }
 .stat-row span {
-  display: flex;
-  justify-content: space-between;
+  /* Colonne fisse (non flex/space-between): la larghezza dell'etichetta
+     variava con la sua lunghezza (HP vs SpA), spostando il valore di una
+     quantità diversa riga per riga e disallineando i numeri tra le card. */
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
   white-space: nowrap;
   font-size: 0.8rem;
 }
-.stat-row strong { color: var(--text); }
+.stat-row strong { color: var(--text); text-align: right; }
 
 .page-footer {
   text-align: center;

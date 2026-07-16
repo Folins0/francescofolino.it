@@ -84,35 +84,15 @@ const server = http.createServer(async (req, res) => {
                     cache.set(hash, response);
                 }
             }
-            // Endpoint 2: Coaching Tattico. tre modalità, stessa cache in
-            // memoria per tutte (hash diverso perché include sempre "mode"):
+            // Endpoint 2: Coaching Tattico. due modalità, stessa cache in
+            // memoria per entrambe (hash diverso perché include sempre "mode"):
             // - "team" (default, retrocompatibile): analisi generale del roster.
-            // - "contextual": consiglio mirato su ciò che l'utente sta guardando
-            //   in questo momento (app.js: buildScreenContext/handleScreenAdvice).
             // - "autofill": giustifica in una frase un candidato già scelto in
             //   locale (app.js: computeAutofillCandidates/handleAutoCompleteTeam).
             else if (req.url === "/api/coach-advice") {
                 const mode = data.mode || "team";
 
-                if (mode === "contextual") {
-                    // data.context arriva già calcolato dal client: solo fatti
-                    // concreti su cosa l'utente sta guardando (stat base, mosse/
-                    // oggetto/SP assegnati, o la vista d'insieme del roster).
-                    const hash = generateHash({ mode, context: data.context });
-                    if (cache.has(hash)) {
-                        response = { advice: cache.get(hash) };
-                    } else {
-                        const advice = await callGroqApi({
-                            model: "llama-3.3-70b-versatile",
-                            messages: [
-                                { role: "system", content: "Sei un coach esperto di Pokémon VGC (Regulation M-B, doubles). L'utente sta guardando una schermata specifica dell'app: dai un consiglio mirato e pratico su cosa manca in quella schermata (es. quali SP assegnare in base al ruolo suggerito dalle stat base, quale mossa o oggetto scegliere), in italiano, tono da mentore, massimo 3-4 frasi. Basati ESCLUSIVAMENTE sui dati nel contesto fornito: non inventare mosse, abilità, tipi o statistiche non presenti." },
-                                { role: "user", content: `Contesto schermata: ${JSON.stringify(data.context)}` }
-                            ]
-                        });
-                        response = { advice };
-                        cache.set(hash, advice);
-                    }
-                } else if (mode === "autofill") {
+                if (mode === "autofill") {
                     // Il candidato è già scelto in locale (tipi/copertura reali,
                     // non inventati dall'AI): qui si chiede solo la frase di
                     // giustificazione.

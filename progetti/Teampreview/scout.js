@@ -108,12 +108,9 @@ setExpression('idle');
 // Menu di scelta al tocco della sprite: ogni voce chiama una funzione globale
 // definita in app.js (stesso schema già usato per handleCoachAnalysis — gli
 // script classici condividono lo scope globale, caricati prima di questo).
-// Le voci 3 e 4 puntano a placeholder finché non arriva l'implementazione
-// reale da un'altra sessione: nessuna modifica al menu servirà per agganciarle.
 const SCOUT_MENU_ITEMS = [
   { label: 'Analizza il team', fn: 'handleCoachAnalysis' },
   { label: 'Mostra utilizzo nel meta', fn: 'handleMetaUsageScreen' },
-  { label: 'Consigli su questa schermata', fn: 'handleScreenAdvice' },
   { label: 'Completa il team automaticamente', fn: 'handleAutoCompleteTeam' },
 ];
 
