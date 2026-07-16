@@ -51,6 +51,11 @@ const autofillConfirmName = document.getElementById("autofill-confirm-name");
 const autofillConfirmReason = document.getElementById("autofill-confirm-reason");
 const autofillConfirmYesBtn = document.getElementById("autofill-confirm-yes");
 const autofillConfirmNoBtn = document.getElementById("autofill-confirm-no");
+// Box del prompt per un'AI esterna (vedi handleExternalPrompt più sotto).
+const externalPromptBox = document.getElementById("external-prompt-box");
+const externalPromptTextarea = document.getElementById("external-prompt-textarea");
+const externalPromptCopyBtn = document.getElementById("external-prompt-copy-btn");
+const externalPromptCloseBtn = document.getElementById("external-prompt-close-btn");
 const screenshot1Input = document.getElementById("screenshot-1");
 const screenshot2Input = document.getElementById("screenshot-2");
 const screenshotBuildBtn = document.getElementById("screenshot-build-btn");
@@ -1848,6 +1853,79 @@ function handleMetaUsageScreen() {
   Solana.say(lines.join("\n"), 5000, "speaking");
 }
 
+// --- "Consigli su questa schermata" (context-aware) --------------------------
+// Calcola in locale il massimo di contesto possibile su cosa l'utente sta
+// guardando/modificando in questo momento (stesso principio di buildMetaHints
+// sopra: solo fatti concreti, mai un prompt generico "aiutami" mandato
+// all'AI). Se il modal Statistiche è aperto per un Pokémon, il contesto è
+// quel singolo Pokémon (stat base, mosse/oggetto/SP assegnati, cosa manca);
+// altrimenti ripiega sulla vista d'insieme del roster, riusando le stesse
+// computeTeamWeakTypes/computeCoverage già usate per il rendering del matchup.
+function buildScreenContext() {
+  const modalOpen = statsModalMon && !statsModal.classList.contains("hidden");
+
+  if (modalOpen) {
+    const mon = statsModalMon;
+    const spTotal = STAT_KEYS.reduce((sum, k) => sum + mon.sp[k], 0);
+    return {
+      screen: "stats-modal",
+      pokemon: pokemonDisplayName(mon.name),
+      types: mon.types,
+      baseStats: mon.stats,
+      ability: mon.ability || null,
+      item: mon.item || null,
+      nature: mon.nature,
+      movesAssigned: mon.moves.filter(Boolean),
+      missingMoveSlots: mon.moves.filter((m) => !m).length,
+      spAssigned: mon.sp,
+      spTotal,
+      spRemaining: MAX_SP_TOTAL - spTotal,
+    };
+  }
+
+  const mons = activeTeam().mons;
+  const { uncovered } = computeCoverage(mons);
+  return {
+    screen: "roster",
+    teamSize: mons.length,
+    weakTypes: computeTeamWeakTypes(mons),
+    uncoveredOffensiveTypes: uncovered,
+  };
+}
+
+async function fetchContextualAdvice(context) {
+  const res = await fetch(AI_COACH_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "contextual", context }),
+  });
+  if (!res.ok) throw new Error("Errore di connessione al server locale.");
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.advice;
+}
+
+async function handleScreenAdvice() {
+  const modalOpen = statsModalMon && !statsModal.classList.contains("hidden");
+
+  if (!modalOpen && !activeTeam().mons.length) {
+    Solana.show();
+    Solana.say("Il tuo roster è vuoto e non hai nessuna scheda aperta: aggiungi un Pokémon o apri le sue Statistiche, poi richiedimi un consiglio.", 4000, "idle");
+    return;
+  }
+
+  Solana.show();
+  Solana.say("Fammi dare un'occhiata a cosa stai guardando...", 3000, "thinking");
+
+  try {
+    const context = buildScreenContext();
+    const advice = await fetchContextualAdvice(context);
+    Solana.say(advice, 5000, "speaking");
+  } catch {
+    Solana.say("Ops, c'è stato un problema di connessione col Server PC di Bill. Riprova più tardi!", 4000, "idle");
+  }
+}
+
 // --- "Completa il team automaticamente" (autofill) ----------------------------
 // Approccio ibrido come buildMetaHints sopra: la scelta del candidato è
 // 100% locale e deterministica (nessuna chiamata AI), l'AI serve solo a
@@ -1943,3 +2021,97 @@ async function handleAutoCompleteTeam() {
     Solana.say("Ops, qualcosa si è inceppato mentre cercavo un candidato: riprova tra un attimo!", 4000, "idle");
   }
 }
+
+// --- "Vorrei un aiuto migliore" (prompt per un'AI esterna) -------------------
+// L'AI del sito (Groq, veloce ma leggera) non regge un'analisi avanzata:
+// Solana lo ammette in prima persona e prepara un prompt di testo in inglese
+// (le AI esterne ragionano meglio in inglese su questi dati), in un formato
+// fisso concordato con l'utente, pronto da incollare in un'AI più potente
+// (Claude, ChatGPT, Gemini...). Riusa buildMetaHints/computeTeamWeakTypes già
+// scritte per il coach locale: stessi fatti, nessun dato mandato a un backend.
+function slugToTitleCase(slug) {
+  return slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+}
+
+function formatMonForExternalPrompt(mon, index) {
+  const name = slugToTitleCase(pokemonDisplayName(mon.name));
+  const ability = mon.ability ? slugToTitleCase(mon.ability) : "none";
+  const item = mon.item ? slugToTitleCase(mon.item) : "none";
+  const moves = mon.moves.filter(Boolean).map(slugToTitleCase).join(", ") || "none assigned yet";
+  const spTotal = STAT_KEYS.reduce((sum, k) => sum + mon.sp[k], 0);
+  const spLine = STAT_KEYS.map((k) => `${STAT_LABELS[k]} ${mon.sp[k]}`).join(", ");
+  return [
+    `${index + 1}. ${name} — Type: ${mon.types.join("/")}`,
+    `   Ability: ${ability} | Item: ${item} | Nature: ${mon.nature}`,
+    `   Moves: ${moves}`,
+    `   Stat Points: ${spLine} (total ${spTotal}/${MAX_SP_TOTAL})`,
+  ].join("\n");
+}
+
+async function buildExternalPrompt(mons) {
+  const weakTypes = computeTeamWeakTypes(mons).map(slugToTitleCase);
+  const metaHints = await buildMetaHints(mons);
+  const needsAutofill = mons.length < MAX_TEAM_SIZE; // ha senso chiederlo solo se mancano slot
+
+  const wantList = [
+    needsAutofill ? "- Autofill the team if you don't have all 6 Pokémon, choosing the right options based on the meta and good synergy." : null,
+    "- Assess synergy across the 6 Pokémon and flag offensive/defensive coverage gaps.",
+    "- Suggest move/item/stat-point adjustments if you think they'd improve the team.",
+    "- Point out the 2-3 scariest meta threats for this specific team and how to handle them.",
+    "- Suggest the lead for this team, considering the current meta.",
+  ].filter(Boolean);
+
+  return [
+    "I'm team-building for Pokémon Champions, Regulation M-B (doubles, VGC-style),",
+    "level 50. Here's my current team with assigned stats and some pre-computed",
+    "weakness/meta data. Give me an in-depth read on synergies, coverage gaps,",
+    "moves/items worth revisiting, and meta threats to watch for.",
+    "",
+    "## Team",
+    mons.map((m, i) => formatMonForExternalPrompt(m, i)).join("\n"),
+    "",
+    "## Team type weaknesses",
+    weakTypes.length ? weakTypes.join(", ") : "None identified.",
+    "",
+    "## Meta threats",
+    metaHints.length
+      ? metaHints.map((h) => `- ${h.name} (${slugToTitleCase(h.type)}, #${h.rank} in the current meta)`).join("\n")
+      : "No specific meta threats identified from the team's current weaknesses.",
+    "",
+    "## What I need from you",
+    wantList.join("\n"),
+  ].join("\n");
+}
+
+function hideExternalPromptBox() {
+  externalPromptBox.classList.add("hidden");
+}
+
+async function handleExternalPrompt() {
+  const mons = activeTeam().mons;
+
+  if (!mons.length) {
+    Solana.show();
+    Solana.say("Il tuo roster è vuoto. Aggiungi qualche Pokémon prima di chiedermi un prompt da portare altrove!", 3000, "idle");
+    return;
+  }
+
+  Solana.show();
+  Solana.say("Ehm, a dire il vero non mi sono ancora laureata in Teoria dei Tipi! Ma se premi \"Copia testo\" qui sotto, ti preparo un prompt con tutti i dati della tua squadra da incollare in un'AI più preparata di me (Claude, ChatGPT, Gemini...).", 6000, "worried");
+
+  const prompt = await buildExternalPrompt(mons);
+  externalPromptTextarea.value = prompt;
+  externalPromptBox.classList.remove("hidden");
+  externalPromptBox.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+externalPromptCopyBtn.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(externalPromptTextarea.value);
+    externalPromptCopyBtn.textContent = "Copiato!";
+    setTimeout(() => { externalPromptCopyBtn.textContent = "Copia testo"; }, 1500);
+  } catch {
+    externalPromptTextarea.select(); // clipboard API non disponibile: testo già selezionato per la copia manuale
+  }
+});
+externalPromptCloseBtn.addEventListener("click", hideExternalPromptBox);

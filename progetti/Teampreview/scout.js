@@ -26,11 +26,19 @@ const SCOUT_EXPRESSIONS = {
   smug: { row: 2, col: 3 },
 };
 
+const SCOUT_TYPE_SPEED = 30; // ms per carattere
+// Il flap della bocca è a tempo fisso, indipendente dal typewriter: se
+// legato ai caratteri (ogni N char * SCOUT_TYPE_SPEED) diventa troppo veloce
+// e la sprite sembra glitchare invece di "parlare".
+const SCOUT_MOUTH_FLAP_MS = 180;
+
 const scoutOverlay = document.getElementById('overlay-scout');
 const scoutSprite = document.getElementById('scout-sprite');
 const scoutBubble = document.getElementById('scout-bubble');
 const scoutMenu = document.getElementById('scout-menu');
-let scoutIdleTimer = null; // timeout che riporta Solana a "idle" a fine visualizzazione
+let scoutTypeTimer = null; // interval del typewriter in corso
+let scoutMouthTimer = null; // interval del flap bocca in corso
+let scoutIdleTimer = null; // timeout che riporta Solana a "idle" a fine typing
 
 // Cambia solo il frame mostrato, senza il flash di "pop" (usato da setExpression).
 function setFrame(emotion) {
@@ -63,30 +71,68 @@ function hide() {
   scoutOverlay.setAttribute('aria-hidden', 'true');
 }
 
-// durationMs = tempo di attesa dopo la comparsa del testo prima che Solana
-// torni a "idle" (il testo appare istantaneo, non più a macchina da scrivere).
+// durationMs = tempo minimo di attesa dopo la fine del typing prima che
+// Solana torni a "idle" (non è più la durata di visibilità del fumetto).
 // emotion = espressione da mostrare mentre parla: cambia subito, prima che
-// il fumetto/testo compaia, non dopo.
+// il fumetto/testo compaia, non dopo. Con "speaking" la bocca "sbatte" a
+// intervalli fissi (SCOUT_MOUTH_FLAP_MS) per un effetto di parlato naturale.
 function say(text, durationMs = 3000, emotion = 'speaking') {
   if (!scoutBubble) return;
 
   // un say() in corso viene interrotto subito: niente testo mischiato tra due chiamate
+  clearInterval(scoutTypeTimer);
+  clearInterval(scoutMouthTimer);
   clearTimeout(scoutIdleTimer);
 
   setExpression(emotion); // prima l'espressione, poi il fumetto/testo
-  scoutBubble.textContent = text || '';
+  scoutBubble.textContent = '';
   scoutBubble.classList.add('visible');
-  scoutBubble.scrollTop = scoutBubble.scrollHeight;
 
   if (!text) {
     setExpression('idle');
     return;
   }
 
-  scoutIdleTimer = setTimeout(() => setExpression('idle'), durationMs);
+  const animateMouth = emotion === 'speaking';
+  if (animateMouth) {
+    let mouthOpen = true;
+    scoutMouthTimer = setInterval(() => {
+      mouthOpen = !mouthOpen;
+      setFrame(mouthOpen ? 'speaking' : 'idle');
+    }, SCOUT_MOUTH_FLAP_MS);
+  }
+
+  let i = 0;
+  scoutTypeTimer = setInterval(() => {
+    scoutBubble.textContent += text[i];
+    scoutBubble.scrollTop = scoutBubble.scrollHeight;
+    i++;
+    if (i >= text.length) {
+      clearInterval(scoutTypeTimer);
+      scoutTypeTimer = null;
+      clearInterval(scoutMouthTimer);
+      scoutMouthTimer = null;
+      scoutIdleTimer = setTimeout(() => setExpression('idle'), durationMs);
+    }
+  }, SCOUT_TYPE_SPEED);
 }
 
-window.Solana = { show, hide, setExpression, say };
+// Interrompe il fumetto in corso e lo nasconde, senza nascondere l'intero
+// overlay (a differenza di hide()): usata quando l'utente tocca la sprite
+// mentre Solana sta ancora parlando, per "silenziarla" a comando invece di
+// aspettare il timeout automatico.
+function hideBubble() {
+  if (!scoutBubble) return;
+  clearInterval(scoutTypeTimer);
+  clearInterval(scoutMouthTimer);
+  clearTimeout(scoutIdleTimer);
+  scoutTypeTimer = null;
+  scoutMouthTimer = null;
+  scoutBubble.classList.remove('visible');
+  setExpression('idle');
+}
+
+window.Solana = { show, hide, setExpression, say, hideBubble };
 window.setExpression = setExpression; // retrocompatibilità con l'uso già presente in orchestrator/app
 
 setExpression('idle');
@@ -97,7 +143,9 @@ setExpression('idle');
 const SCOUT_MENU_ITEMS = [
   { label: 'Analizza il team', fn: 'handleCoachAnalysis' },
   { label: 'Mostra utilizzo nel meta', fn: 'handleMetaUsageScreen' },
+  { label: 'Consigli su questa schermata', fn: 'handleScreenAdvice' },
   { label: 'Completa il team automaticamente', fn: 'handleAutoCompleteTeam' },
+  { label: 'Vorrei un aiuto migliore', fn: 'handleExternalPrompt' },
 ];
 
 function closeScoutMenu() {
@@ -131,9 +179,16 @@ if (scoutMenu) {
 if (scoutSprite) {
   // stopPropagation: evita che il click qui sotto (chiusura al tocco fuori
   // dal menu) si attivi nello stesso momento in cui il menu viene aperto.
+  // Se Solana sta parlando, il primo tocco sulla sprite la zittisce (soluzione
+  // più intuitiva di una x separata: si tocca lo stesso personaggio che sta
+  // parlando per farlo tacere); solo a fumetto chiuso il tocco apre il menu.
   scoutSprite.addEventListener('click', (e) => {
     e.stopPropagation();
-    toggleScoutMenu();
+    if (scoutBubble.classList.contains('visible')) {
+      hideBubble();
+    } else {
+      toggleScoutMenu();
+    }
   });
 }
 

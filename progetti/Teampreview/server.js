@@ -84,15 +84,35 @@ const server = http.createServer(async (req, res) => {
                     cache.set(hash, response);
                 }
             }
-            // Endpoint 2: Coaching Tattico. due modalità, stessa cache in
-            // memoria per entrambe (hash diverso perché include sempre "mode"):
+            // Endpoint 2: Coaching Tattico. tre modalità, stessa cache in
+            // memoria per tutte (hash diverso perché include sempre "mode"):
             // - "team" (default, retrocompatibile): analisi generale del roster.
+            // - "contextual": consiglio mirato su ciò che l'utente sta guardando
+            //   in questo momento (app.js: buildScreenContext/handleScreenAdvice).
             // - "autofill": giustifica in una frase un candidato già scelto in
             //   locale (app.js: computeAutofillCandidates/handleAutoCompleteTeam).
             else if (req.url === "/api/coach-advice") {
                 const mode = data.mode || "team";
 
-                if (mode === "autofill") {
+                if (mode === "contextual") {
+                    // data.context arriva già calcolato dal client: solo fatti
+                    // concreti su cosa l'utente sta guardando (stat base, mosse/
+                    // oggetto/SP assegnati, o la vista d'insieme del roster).
+                    const hash = generateHash({ mode, context: data.context });
+                    if (cache.has(hash)) {
+                        response = { advice: cache.get(hash) };
+                    } else {
+                        const advice = await callGroqApi({
+                            model: "llama-3.3-70b-versatile",
+                            messages: [
+                                { role: "system", content: "Sei Solana, un'assistente esperta di Pokémon VGC (Regulation M-B, doubles) che parla come un'amica appassionata, non come un manuale. L'utente sta guardando una schermata specifica dell'app: dai un consiglio mirato e pratico su cosa manca in quella schermata (es. quali SP assegnare in base al ruolo suggerito dalle stat base, quale mossa o oggetto scegliere), in italiano, con un tono naturale, colloquiale ed empatico, massimo 3-4 frasi. IMPORTANTE: Pokémon Champions non usa gli EV classici (0-252 a stat, max 508 totali). Usa i \"SP\" (Stat Point): 0-32 per singola statistica, massimo 66 in totale su tutte le stat insieme. Se suggerisci uno spread, resta SEMPRE dentro questi limiti (es. \"32 SP in attacco e 32 in velocità\" è già il massimo assoluto per due stat, non puoi assegnarne di più). Basati ESCLUSIVAMENTE sui dati nel contesto fornito: non inventare mosse, abilità, tipi o statistiche non presenti." },
+                                { role: "user", content: `Contesto schermata: ${JSON.stringify(data.context)}` }
+                            ]
+                        });
+                        response = { advice };
+                        cache.set(hash, advice);
+                    }
+                } else if (mode === "autofill") {
                     // Il candidato è già scelto in locale (tipi/copertura reali,
                     // non inventati dall'AI): qui si chiede solo la frase di
                     // giustificazione.

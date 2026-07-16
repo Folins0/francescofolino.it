@@ -75,13 +75,15 @@ function callGroqAndRespond($apiKey, $payload) {
 $body = json_decode(file_get_contents('php://input'), true);
 $mode = $body['mode'] ?? 'team';
 
-// Due modalità, stesso endpoint (nessuna cache qui: a differenza di
+// Tre modalità, stesso endpoint (nessuna cache qui: a differenza di
 // server.js, coach.php gira su hosting condiviso senza processo persistente,
 // quindi una cache in memoria non sopravviverebbe tra una richiesta e l'altra).
 // - "team" (default, retrocompatibile): analisi generale del roster.
+// - "contextual": consiglio mirato su ciò che l'utente sta guardando in
+//   questo momento (app.js: buildScreenContext/handleScreenAdvice).
 // - "autofill": giustifica in una frase un candidato già scelto in locale
 //   (app.js: computeAutofillCandidates/handleAutoCompleteTeam).
-if ($mode === 'autofill') {
+if ($mode === 'contextual' || $mode === 'autofill') {
     $context = $body['context'] ?? null;
     if (!$context) {
         http_response_code(400);
@@ -89,13 +91,24 @@ if ($mode === 'autofill') {
         exit;
     }
 
-    $systemPrompt = "Sei Solana, un'assistente esperta di Pokémon VGC (Regulation M-B, doubles) che parla come un'amica "
-        . "appassionata, non come un manuale. Ti è già stato scelto, con dati reali (non da te), un Pokémon "
-        . "candidato per completare il roster. Giustifica la scelta in una frase breve e concreta, in "
-        . "italiano, con un tono naturale, colloquiale ed empatico, citando il suo nome. Non proporre "
-        . "alternative e non inventare dati assenti dal contesto.";
+    $systemPrompt = $mode === 'contextual'
+        ? "Sei Solana, un'assistente esperta di Pokémon VGC (Regulation M-B, doubles) che parla come un'amica "
+            . "appassionata, non come un manuale. L'utente sta guardando una schermata specifica dell'app: dai un "
+            . "consiglio mirato e pratico su cosa manca in quella schermata (es. quali SP assegnare in base al "
+            . "ruolo suggerito dalle stat base, quale mossa o oggetto scegliere), in italiano, con un tono "
+            . "naturale, colloquiale ed empatico, massimo 3-4 frasi. IMPORTANTE: Pokémon Champions non usa gli EV "
+            . "classici (0-252 a stat, max 508 totali). Usa i \"SP\" (Stat Point): 0-32 per singola statistica, "
+            . "massimo 66 in totale su tutte le stat insieme. Se suggerisci uno spread, resta SEMPRE dentro questi "
+            . "limiti (es. \"32 SP in attacco e 32 in velocità\" è già il massimo assoluto per due stat, non puoi "
+            . "assegnarne di più). Basati ESCLUSIVAMENTE sui dati nel contesto fornito: non inventare mosse, "
+            . "abilità, tipi o statistiche non presenti."
+        : "Sei Solana, un'assistente esperta di Pokémon VGC (Regulation M-B, doubles) che parla come un'amica "
+            . "appassionata, non come un manuale. Ti è già stato scelto, con dati reali (non da te), un Pokémon "
+            . "candidato per completare il roster. Giustifica la scelta in una frase breve e concreta, in "
+            . "italiano, con un tono naturale, colloquiale ed empatico, citando il suo nome. Non proporre "
+            . "alternative e non inventare dati assenti dal contesto.";
 
-    $userContent = "Contesto: " . json_encode($context);
+    $userContent = ($mode === 'contextual' ? "Contesto schermata: " : "Contesto: ") . json_encode($context);
 
     $payload = json_encode([
         'model' => 'llama3-8b-8192',
