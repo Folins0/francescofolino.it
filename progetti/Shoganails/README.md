@@ -110,15 +110,27 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
   prendano lo stesso slot) e, se creata con successo, invia una notifica push
   a Grazia.
 - `app/admin/login/page.tsx` — login email+password (Supabase Auth).
-- `app/admin/page.tsx` — pannello admin con quattro sezioni:
-  - **Richieste** (`components/admin/Richieste.tsx`): mostra in tempo reale
+- `app/admin/(dashboard)/` — pannello admin, una pagina/URL per sezione (tab
+  in `components/admin/AdminNav.tsx`, header+nav condivisi in
+  `app/admin/(dashboard)/layout.tsx`). Passare da una tab all'altra fa una
+  navigazione vera, quindi ogni pagina ricarica i propri dati dal database:
+  il Calendario, ad esempio, si vede sempre aggiornato dopo aver confermato
+  una richiesta.
+  - **Richieste** (`/admin`, `components/admin/Richieste.tsx`): mostra in tempo reale
     (Supabase Realtime) le nuove richieste con stato `in_attesa` — nome,
     telefono, servizio, orario. Bottone **"Attiva notifiche"** per registrare
     il dispositivo alle notifiche push. Per ogni richiesta, due bottoni:
     **"Confermato"** (marca booking e slot come confermati) e
     **"Rifiutato"** (libera di nuovo lo slot). Nessun messaggio viene inviato
     automaticamente: la conferma vera con la cliente resta su WhatsApp.
-  - **Nuova settimana** (`components/admin/NuovaSettimana.tsx`):
+  - **Calendario** (`/admin/calendario`, `components/admin/Calendario.tsx`):
+    tutte le prenotazioni confermate da oggi in poi, raggruppate per giorno.
+    Ogni appuntamento si può modificare (nome, telefono, servizio, note,
+    giorno/orario — `app/api/admin/modifica-prenotazione/route.ts`) o
+    cancellare (libera di nuovo lo slot, riusa la stessa logica del
+    "Rifiutato" delle Richieste). Nessun messaggio automatico viene inviato
+    alla cliente in nessuno dei due casi.
+  - **Nuova settimana** (`/admin/settimana`, `components/admin/NuovaSettimana.tsx`):
     1. carica una foto del foglio turni (scatto da mobile o file);
     2. la foto viene inviata a un modello con visione (Groq, Llama 4) che
        isola le righe di "Grazia" (tollerando piccoli errori di
@@ -134,18 +146,11 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
     Se l'IA non riesce a leggere la foto, viene mostrato un messaggio chiaro
     con la possibilità di ricaricare la foto o passare all'inserimento
     manuale di tutta la settimana.
-  - **Foto del sito** (`components/admin/Galleria.tsx`): aggiungi o elimina
-    le foto mostrate nella sezione "Le nostre unghie" della home page
-    (`app/api/admin/gallery/route.ts`, tabella `gallery_photos` + bucket
-    pubblico `galleria`). Finché non c'è nessuna foto, la home mostra dei
-    segnaposto.
-  - **Calendario** (`components/admin/Calendario.tsx`): tutte le
-    prenotazioni confermate da oggi in poi, raggruppate per giorno. Ogni
-    appuntamento si può modificare (nome, telefono, servizio, note,
-    giorno/orario — `app/api/admin/modifica-prenotazione/route.ts`) o
-    cancellare (libera di nuovo lo slot, riusa la stessa logica del
-    "Rifiutato" delle Richieste). Nessun messaggio automatico viene inviato
-    alla cliente in nessuno dei due casi.
+  - **Foto del sito** (`/admin/foto`, `components/admin/Galleria.tsx`):
+    aggiungi o elimina le foto mostrate nella sezione "Le nostre unghie"
+    della home page (`app/api/admin/gallery/route.ts`, tabella
+    `gallery_photos` + bucket pubblico `galleria`). Finché non c'è nessuna
+    foto, la home mostra dei segnaposto.
 - `middleware.ts` — protegge tutte le rotte `/admin/*`: senza sessione
   valida reindirizza a `/admin/login`.
 - `lib/supabase/client.ts` / `lib/supabase/server.ts` — client Supabase per
