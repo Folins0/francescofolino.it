@@ -30,9 +30,9 @@ push per Grazia.
    `service_role key` (quest'ultima serve solo lato server per le notifiche
    push, vedi sotto).
 
-### 2. Chiave Anthropic (lettura IA del foglio turni)
+### 2. Chiave Groq (lettura IA del foglio turni)
 
-Crea una chiave API su [console.anthropic.com](https://console.anthropic.com/settings/keys).
+Crea una chiave API gratuita su [console.groq.com/keys](https://console.groq.com/keys).
 
 ### 3. Chiavi VAPID (notifiche push)
 
@@ -50,7 +50,7 @@ variabili d'ambiente (sotto).
 cp .env.local.example .env.local
 ```
 
-Compila `.env.local` con le chiavi Supabase, Anthropic e VAPID ottenute sopra.
+Compila `.env.local` con le chiavi Supabase, Groq e VAPID ottenute sopra.
 
 ### 5. Avvio in locale
 
@@ -117,7 +117,7 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
     automaticamente: la conferma vera con la cliente resta su WhatsApp.
   - **Nuova settimana** (`components/admin/NuovaSettimana.tsx`):
     1. carica una foto del foglio turni (scatto da mobile o file);
-    2. la foto viene inviata a Claude (Anthropic, modello con visione) che
+    2. la foto viene inviata a un modello con visione (Groq, Llama 4) che
        isola le righe di "Grazia" (tollerando piccoli errori di
        lettura/battitura), segnala i giorni completamente liberi e le
        eventuali note/asterischi vicino al nome, senza interpretarli;
@@ -145,7 +145,7 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
 - `public/sw.js` — service worker: mostra la notifica anche ad app chiusa e
   apre `/admin` al tap.
 - `public/manifest.json` — manifest PWA (necessario per "Aggiungi a Home").
-- `lib/anthropic.ts` — chiamata a Claude con il prompt di lettura del foglio
+- `lib/ai.ts` — chiamata a Groq (visione) con il prompt di lettura del foglio
   turni e parsing/validazione della risposta JSON.
 - `lib/shifts.ts` — calcolo delle fasce libere (giornata meno turni) e
   tolleranza a varianti/errori di battitura del nome "Grazia".
@@ -188,8 +188,8 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
    | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API |
    | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API (segreta) |
-   | `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys |
-   | `CLAUDE_VISION_MODEL` (opzionale) | default `claude-sonnet-5` se non impostata |
+   | `GROQ_API_KEY` | console.groq.com → API Keys |
+   | `GROQ_VISION_MODEL` (opzionale) | default `meta-llama/llama-4-scout-17b-16e-instruct` se non impostata |
    | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `npm run generate-vapid-keys` |
    | `VAPID_PRIVATE_KEY` | `npm run generate-vapid-keys` (segreta) |
    | `VAPID_SUBJECT` | `mailto:tuo-indirizzo@example.com` |
@@ -222,8 +222,8 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
       migration in `supabase/migrations/` (0001 → 0002 → 0003).
 - [ ] Creato manualmente **un solo utente admin** (Grazia) in Supabase →
       Authentication → Users, con email e password.
-- [ ] Ottenuta una chiave Anthropic API (console.anthropic.com) con credito
-      sufficiente sull'account per la lettura delle foto dei turni.
+- [ ] Ottenuta una chiave Groq API (console.groq.com), gratuita, per la
+      lettura delle foto dei turni.
 - [ ] Generate le chiavi VAPID (`npm run generate-vapid-keys`) per le
       notifiche push.
 - [ ] Configurate **tutte** le variabili d'ambiente elencate sopra su Vercel

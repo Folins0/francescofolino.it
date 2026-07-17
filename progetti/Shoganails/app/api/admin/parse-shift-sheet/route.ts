@@ -4,7 +4,7 @@ import {
   readShiftSheet,
   ShiftSheetReadError,
   type ClaudeImageMediaType,
-} from "@/lib/anthropic";
+} from "@/lib/ai";
 import { currentWeekDates } from "@/lib/week";
 import { getOrCreateCurrentWeek } from "@/lib/weekDb";
 import type { ParseShiftSheetResponse } from "@/types/shifts";

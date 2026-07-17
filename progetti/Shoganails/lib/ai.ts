@@ -1,18 +1,19 @@
-import Anthropic from "@anthropic-ai/sdk";
 import type { ShiftSheetAIResult, GiornoTurni, Turno } from "@/types/shifts";
 
-const MODEL = process.env.CLAUDE_VISION_MODEL || "claude-sonnet-5";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+// Modello Groq con visione. Alternativa più accurata (ma più lenta/costosa):
+// meta-llama/llama-4-maverick-17b-128e-instruct
+const MODEL =
+  process.env.GROQ_VISION_MODEL || "meta-llama/llama-4-scout-17b-16e-instruct";
 
 export class ShiftSheetReadError extends Error {}
 
-function getClient() {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+function getApiKey() {
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    throw new ShiftSheetReadError(
-      "ANTHROPIC_API_KEY non configurata sul server."
-    );
+    throw new ShiftSheetReadError("GROQ_API_KEY non configurata sul server.");
   }
-  return new Anthropic({ apiKey });
+  return apiKey;
 }
 
 const SYSTEM_PROMPT = `Sei un assistente che legge foto di fogli turni di un negozio (spesso tabelle
@@ -120,7 +121,7 @@ function coerceResult(raw: unknown): ShiftSheetAIResult {
   };
 }
 
-/** Formati immagine accettati dall'API Claude (visione). HEIC/HEIF (tipici di iPhone) NON sono supportati: vanno convertiti prima dell'invio. */
+/** Formati immagine accettati dal modello IA (visione). HEIC/HEIF (tipici di iPhone) NON sono supportati: vanno convertiti prima dell'invio. */
 export type ClaudeImageMediaType =
   | "image/jpeg"
   | "image/png"
@@ -134,40 +135,46 @@ export interface ReadShiftSheetInput {
   weekDates: string[];
 }
 
-/** Invia la foto del foglio turni a Claude (visione) e ritorna il risultato strutturato. */
+/** Invia la foto del foglio turni al modello IA (visione, via Groq) e ritorna il risultato strutturato. */
 export async function readShiftSheet(
   input: ReadShiftSheetInput
 ): Promise<ShiftSheetAIResult> {
-  const client = getClient();
+  const apiKey = getApiKey();
 
-  let message;
+  let response: Response;
   try {
-    message = await client.messages.create({
-      model: MODEL,
-      max_tokens: 2000,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: input.mediaType,
-                data: input.base64Image,
+    response = await fetch(GROQ_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 2000,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: [
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:${input.mediaType};base64,${input.base64Image}`,
+                },
               },
-            },
-            {
-              type: "text",
-              text: `La settimana corrente va da ${input.weekDates[0]} (lunedì) a ${
-                input.weekDates[6]
-              } (domenica). I 7 giorni sono, in ordine: ${input.weekDates.join(", ")}.
+              {
+                type: "text",
+                text: `La settimana corrente va da ${input.weekDates[0]} (lunedì) a ${
+                  input.weekDates[6]
+                } (domenica). I 7 giorni sono, in ordine: ${input.weekDates.join(", ")}.
 Leggi il foglio turni nella foto e rispondi con il JSON richiesto.`,
-            },
-          ],
-        },
-      ],
+              },
+            ],
+          },
+        ],
+      }),
     });
   } catch (err) {
     throw new ShiftSheetReadError(
@@ -177,11 +184,19 @@ Leggi il foglio turni nella foto e rispondi con il JSON richiesto.`,
     );
   }
 
-  const textBlock = message.content.find((b) => b.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
+  if (!response.ok) {
+    const bodyText = await response.text().catch(() => "");
+    throw new ShiftSheetReadError(
+      `Errore nel contattare il modello IA (${response.status}): ${bodyText}`
+    );
+  }
+
+  const data = await response.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (typeof text !== "string" || !text) {
     throw new ShiftSheetReadError("Il modello IA non ha restituito testo.");
   }
 
-  const parsed = extractJson(textBlock.text);
+  const parsed = extractJson(text);
   return coerceResult(parsed);
 }
