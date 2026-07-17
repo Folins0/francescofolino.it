@@ -3,7 +3,7 @@ import { Instagram, Sparkles, MessageCircleHeart } from "lucide-react";
 import { serviceCategories } from "@/lib/services";
 import { createClient } from "@/lib/supabase/server";
 import ServiziAccordion from "@/components/ServiziAccordion";
-import GalleryPlaceholder from "@/components/GalleryPlaceholder";
+import Galleria from "@/components/Galleria";
 
 const INSTAGRAM_HANDLE = "_shoganai_2022";
 const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}/`;
@@ -74,25 +74,7 @@ export default async function HomePage() {
               Presto qui trovi le foto reali dei lavori di Shoganails.
             </p>
           )}
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            {foto.length > 0
-              ? foto.map((f) => (
-                  <div
-                    key={f.id}
-                    className="aspect-square overflow-hidden rounded-2xl shadow-sm"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={f.url}
-                      alt="Lavoro di nail art Shoganails"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ))
-              : Array.from({ length: 6 }).map((_, i) => (
-                  <GalleryPlaceholder key={i} index={i} />
-                ))}
-          </div>
+          <Galleria foto={foto} />
         </section>
 
         {/* Servizi e prezzi */}
