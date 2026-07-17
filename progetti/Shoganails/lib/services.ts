@@ -9,10 +9,22 @@ export type Service = {
 
 export const services: Service[] = [
   {
-    id: "mani",
-    nome: "Mani",
+    id: "semipermanente-rinforzato",
+    nome: "Semipermanente rinforzato",
     prezzoChf: 40,
-    descrizione: "Cura e nail art per le mani",
+    descrizione: "Smalto semipermanente con rinforzo in gel, per una tenuta più lunga",
+  },
+  {
+    id: "semipermanente-semplice",
+    nome: "Semipermanente semplice",
+    prezzoChf: 30,
+    descrizione: "Smalto semipermanente classico",
+  },
+  {
+    id: "ricostruzione",
+    nome: "Ricostruzione",
+    prezzoChf: 40,
+    descrizione: "Ricostruzione unghie in gel",
   },
   {
     id: "piedi",

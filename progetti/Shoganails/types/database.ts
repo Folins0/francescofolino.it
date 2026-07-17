@@ -10,6 +10,7 @@ export interface ServiceRow {
   nome: string;
   prezzo_chf: number;
   ordine_visualizzazione: number;
+  descrizione: string | null;
 }
 
 export interface WeekRow {

@@ -156,6 +156,11 @@ export function BookingForm({
             </option>
           ))}
         </select>
+        {servizi.find((s) => s.id === serviceId)?.descrizione && (
+          <p className="mt-1.5 text-sm text-stone-500">
+            {servizi.find((s) => s.id === serviceId)?.descrizione}
+          </p>
+        )}
       </div>
 
       <div>
