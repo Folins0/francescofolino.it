@@ -27,6 +27,20 @@ function durataBlocco(s: AvailableSlotRow): number {
   return toMinuti(s.ora_fine) - toMinuti(s.ora_inizio);
 }
 
+const PASSO_MINUTI = 30;
+
+/** Orari di inizio selezionabili dentro un blocco, ogni PASSO_MINUTI, che
+ * lasciano abbastanza spazio per la durata totale scelta. */
+function orariDisponibili(slot: AvailableSlotRow, durataTotale: number): string[] {
+  const inizio = toMinuti(slot.ora_inizio);
+  const ultimoInizioValido = toMinuti(slot.ora_fine) - durataTotale;
+  const orari: string[] = [];
+  for (let t = inizio; t <= ultimoInizioValido; t += PASSO_MINUTI) {
+    orari.push(daMinuti(t));
+  }
+  return orari;
+}
+
 function raggruppaPerGiorno(slots: AvailableSlotRow[]): Map<string, AvailableSlotRow[]> {
   const mappa = new Map<string, AvailableSlotRow[]>();
   for (const slot of slots) {
@@ -92,13 +106,21 @@ export function BookingForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slotsDisponibili]);
 
-  const oraMinima = slotScelto ? formattaOra(slotScelto.ora_inizio) : "";
-  const oraMassima = slotScelto ? daMinuti(toMinuti(slotScelto.ora_fine) - durataTotale) : "";
+  const orariScelta = useMemo(
+    () => (slotScelto ? orariDisponibili(slotScelto, durataTotale) : []),
+    [slotScelto, durataTotale]
+  );
 
+  // quando cambia il blocco scelto o la durata totale, riparte dal primo
+  // orario disponibile (se quello scelto prima non è più valido).
   useEffect(() => {
-    if (slotScelto) setOrarioPreferito(formattaOra(slotScelto.ora_inizio));
+    if (orariScelta.length > 0 && !orariScelta.includes(orarioPreferito)) {
+      setOrarioPreferito(orariScelta[0]);
+    } else if (orariScelta.length === 0) {
+      setOrarioPreferito("");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slotId]);
+  }, [orariScelta]);
 
   const [nome, setNome] = useState("");
   const [telefono, setTelefono] = useState("");
@@ -107,10 +129,7 @@ export function BookingForm({
   const [errore, setErrore] = useState<string | null>(null);
   const [inviata, setInviata] = useState(false);
 
-  const orarioValido =
-    orarioPreferito !== "" &&
-    toMinuti(orarioPreferito) >= toMinuti(oraMinima || "00:00") &&
-    toMinuti(orarioPreferito) <= toMinuti(oraMassima || "23:59");
+  const orarioValido = orarioPreferito !== "" && orariScelta.includes(orarioPreferito);
 
   const validazioneOk =
     slotId !== "" &&
@@ -289,29 +308,31 @@ export function BookingForm({
       </fieldset>
 
       {slotScelto && (
-        <div>
-          <label className="mb-1 block text-sm font-medium text-stone-600" htmlFor="orario-preferito">
-            A che ora preferisci?
-          </label>
-          <input
-            id="orario-preferito"
-            type="time"
-            className="w-full rounded-xl border border-marble-300 bg-white px-4 py-2.5 text-stone-800 focus:border-coral-400 focus:outline-none focus:ring-2 focus:ring-coral-200"
-            value={orarioPreferito}
-            min={oraMinima}
-            max={oraMassima}
-            step={300}
-            onChange={(e) => setOrarioPreferito(e.target.value)}
-          />
-          <p className="mt-1.5 text-sm text-stone-500">
-            Disponibile tra le {oraMinima} e le {oraMassima} (dura {formattaDurata(durataTotale)}).
-          </p>
-          {!orarioValido && orarioPreferito !== "" && (
-            <p className="mt-1 text-sm text-rose-600">
-              Scegli un orario tra le {oraMinima} e le {oraMassima}.
-            </p>
+        <fieldset>
+          <legend className="mb-2 block text-sm font-medium text-stone-600">
+            A che ora preferisci? (dura {formattaDurata(durataTotale)})
+          </legend>
+          {orariScelta.length === 0 ? (
+            <p className="text-sm text-stone-500">Nessun orario disponibile in questo blocco.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {orariScelta.map((ora) => (
+                <button
+                  key={ora}
+                  type="button"
+                  onClick={() => setOrarioPreferito(ora)}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                    orarioPreferito === ora
+                      ? "border-coral-700 bg-coral-700 text-white"
+                      : "border-marble-300 bg-white text-stone-700 hover:border-coral-300"
+                  }`}
+                >
+                  {ora}
+                </button>
+              ))}
+            </div>
           )}
-        </div>
+        </fieldset>
       )}
 
       <div>
