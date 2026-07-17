@@ -45,12 +45,6 @@ export default function HomePage() {
             servizio e richiedi un appuntamento: ti confermiamo tutto su
             WhatsApp.
           </p>
-          <Link
-            href="/prenota"
-            className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-coral-700 to-rose-700 px-6 py-4 font-display text-lg font-semibold text-white shadow-lg shadow-coral-200/60 transition active:scale-[0.98] sm:w-auto sm:px-10"
-          >
-            Prenota un appuntamento
-          </Link>
         </section>
 
         {/* Gallery */}
@@ -85,6 +79,12 @@ export default function HomePage() {
           <p className="mt-2 text-xs text-stone-500">
             Prezzi in Franchi Svizzeri (CHF).
           </p>
+          <Link
+            href="/prenota"
+            className="mt-6 flex w-full items-center justify-center rounded-full bg-gradient-to-r from-coral-700 to-rose-700 px-6 py-4 font-display text-lg font-semibold text-white shadow-lg shadow-coral-200/60 transition active:scale-[0.98]"
+          >
+            Prenota un appuntamento
+          </Link>
         </section>
 
         {/* Instagram */}
