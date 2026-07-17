@@ -314,6 +314,7 @@ section.block > p { line-height: 1.75; color: var(--text); font-size: 1.05rem; }
   border: 1.5px solid var(--accent); background: var(--card-bg);
   display: flex; align-items: center; justify-content: center;
   color: var(--accent); cursor: pointer; flex: none;
+  font-size: .78rem; font-weight: 700; line-height: 1;
 }
 .feature-info-btn:hover, .feature-info-btn:focus-visible, .feature-info.open .feature-info-btn {
   background: var(--accent); color: var(--card-bg);
@@ -331,23 +332,25 @@ section.block > p { line-height: 1.75; color: var(--text); font-size: 1.05rem; }
 
 .feature-info-touch-hint { display: none; }
 @media (hover: none) and (pointer: coarse) {
+  .project-title-row { flex-wrap: wrap; justify-content: flex-start; }
+  .project-title-row h3 { flex: 1 1 100%; }
+  .feature-info-popup { left: 0; right: auto; }
   .feature-info-touch-hint {
-    display: flex; align-items: center; justify-content: flex-end; gap: .35rem;
-    margin: -.1rem 0 .3rem;
+    display: flex; align-items: center; gap: .35rem;
     font-size: .72rem; color: var(--muted);
   }
-  .pulse-dot {
-    width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
-    animation: pulse-dot 2s ease-in-out infinite;
+  .feature-info-arrow {
+    display: inline-block; color: var(--accent); font-size: .9rem; line-height: 1;
+    animation: arrow-nudge 1.4s ease-in-out infinite;
     flex: none;
   }
 }
-@keyframes pulse-dot {
-  0%, 100% { transform: scale(.85); opacity: .55; }
-  50%      { transform: scale(1.15); opacity: 1; }
+@keyframes arrow-nudge {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-3px, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pulse-dot { animation: none; }
+  .feature-info-arrow { animation: none; }
 }
 
 .project-system {
