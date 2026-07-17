@@ -9,7 +9,10 @@ import type {
 export const runtime = "nodejs";
 
 const BUCKET = "galleria";
-const MAX_MB = 10;
+// Vercel rifiuta richieste con corpo oltre ~4.5MB prima ancora di eseguire
+// questa funzione (limite fisso della piattaforma): restiamo ben sotto,
+// il client comprime già la foto prima di inviarla (lib/image.ts).
+const MAX_MB = 4;
 const MIME_TO_EXT: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/jpg": "jpg",

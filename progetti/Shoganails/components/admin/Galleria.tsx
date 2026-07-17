@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ChangeEvent } from "react";
 import { Trash2 } from "lucide-react";
+import { comprimiImmagine } from "@/lib/image";
 import type {
   GalleryDeleteResponse,
   GalleryPhoto,
@@ -28,7 +29,7 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
     setCaricamento(true);
 
     const formData = new FormData();
-    formData.append("foto", file);
+    formData.append("foto", await comprimiImmagine(file));
 
     try {
       const res = await fetch("/api/admin/gallery", {
