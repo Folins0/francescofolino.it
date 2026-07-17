@@ -9,6 +9,7 @@ import type { AvailableSlotRow, BookingRequestRow, ServiceRow } from "@/types/da
 export interface BookingRequestConDettagli extends BookingRequestRow {
   slot?: AvailableSlotRow | null;
   service?: ServiceRow | null;
+  serviceExtra?: ServiceRow | null;
 }
 
 function formattaOra(ora: string): string {
@@ -44,14 +45,20 @@ export function Richieste({
           const nuova = payload.new as BookingRequestRow;
           if (nuova.stato !== "in_attesa") return;
 
-          const [{ data: slot }, { data: service }] = await Promise.all([
+          const [{ data: slot }, { data: service }, { data: serviceExtra }] = await Promise.all([
             supabase.from("available_slots").select("*").eq("id", nuova.slot_id).maybeSingle(),
             supabase.from("services").select("*").eq("id", nuova.service_id).maybeSingle(),
+            nuova.service_id_extra
+              ? supabase.from("services").select("*").eq("id", nuova.service_id_extra).maybeSingle()
+              : Promise.resolve({ data: null }),
           ]);
 
           setRichieste((prev) => {
             if (prev.some((r) => r.id === nuova.id)) return prev;
-            return [...prev, { ...nuova, slot: slot ?? null, service: service ?? null }];
+            return [
+              ...prev,
+              { ...nuova, slot: slot ?? null, service: service ?? null, serviceExtra: serviceExtra ?? null },
+            ];
           });
         }
       )
@@ -188,6 +195,7 @@ export function Richieste({
                 </div>
                 <span className="rounded-full bg-coral-50 px-3 py-1 text-xs font-medium text-coral-700">
                   {r.service?.nome ?? "Servizio"}
+                  {r.serviceExtra && ` + ${r.serviceExtra.nome}`}
                 </span>
               </div>
 
@@ -201,6 +209,11 @@ export function Richieste({
                   "Orario non disponibile"
                 )}
               </p>
+              {(r.serviceExtra || r.prezzo_totale_chf > 0) && (
+                <p className="mt-1 text-xs text-stone-500">
+                  Totale: {r.prezzo_totale_chf} CHF · {r.durata_minuti} min
+                </p>
+              )}
 
               {r.note && (
                 <p className="mt-1 text-sm italic text-stone-500">{`“${r.note}”`}</p>

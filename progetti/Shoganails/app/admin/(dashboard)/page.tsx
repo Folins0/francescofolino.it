@@ -25,7 +25,11 @@ async function getRichiesteInAttesa(
   }
 
   const slotIds = [...new Set(richieste.map((r: BookingRequestRow) => r.slot_id))];
-  const serviceIds = [...new Set(richieste.map((r: BookingRequestRow) => r.service_id))];
+  const serviceIds = [
+    ...new Set(
+      richieste.flatMap((r: BookingRequestRow) => [r.service_id, r.service_id_extra].filter(Boolean) as string[])
+    ),
+  ];
 
   const [{ data: slots }, { data: servizi }] = await Promise.all([
     supabase.from("available_slots").select("*").in("id", slotIds),
@@ -40,6 +44,7 @@ async function getRichiesteInAttesa(
       ...r,
       slot: slotById.get(r.slot_id) ?? null,
       service: servizioById.get(r.service_id) ?? null,
+      serviceExtra: r.service_id_extra ? servizioById.get(r.service_id_extra) ?? null : null,
     })),
     errore: null,
   };

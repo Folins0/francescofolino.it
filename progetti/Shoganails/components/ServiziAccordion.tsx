@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import type { ServiceCategory } from "@/lib/services";
+import { formattaDurata, type ServiceCategory } from "@/lib/services";
 
 export default function ServiziAccordion({
   categorie,
@@ -14,23 +14,19 @@ export default function ServiziAccordion({
   return (
     <div className="space-y-3">
       {categorie.map((categoria) => {
-        const highlighted = categoria.id === "mani-piedi";
-        const cardClass = highlighted
-          ? "border-coral-300 bg-gradient-to-r from-coral-50 to-rose-50 shadow-sm"
-          : "border-marble-200 bg-white/70";
-
         if (categoria.opzioni.length === 1) {
           const opzione = categoria.opzioni[0];
           return (
             <div
               key={categoria.id}
-              className={`flex items-center justify-between rounded-2xl border px-5 py-4 ${cardClass}`}
+              className="flex items-center justify-between rounded-2xl border border-marble-200 bg-white/70 px-5 py-4"
             >
               <div>
                 <p className="font-display text-lg font-semibold text-stone-800">
                   {categoria.nome}
                 </p>
                 <p className="text-sm text-stone-500">{opzione.descrizione}</p>
+                <p className="mt-0.5 text-xs text-stone-400">{formattaDurata(opzione.durataMinuti)}</p>
               </div>
               <p className="whitespace-nowrap font-display text-xl font-semibold text-coral-700">
                 {opzione.prezzoChf} CHF
@@ -43,7 +39,7 @@ export default function ServiziAccordion({
         const prezzoMinimo = Math.min(...categoria.opzioni.map((o) => o.prezzoChf));
 
         return (
-          <div key={categoria.id} className={`rounded-2xl border ${cardClass}`}>
+          <div key={categoria.id} className="rounded-2xl border border-marble-200 bg-white/70">
             <button
               type="button"
               onClick={() => setApertaId(aperta ? null : categoria.id)}
@@ -72,6 +68,7 @@ export default function ServiziAccordion({
                     <div>
                       <p className="text-sm font-medium text-stone-800">{opzione.nome}</p>
                       <p className="text-xs text-stone-500">{opzione.descrizione}</p>
+                      <p className="mt-0.5 text-xs text-stone-400">{formattaDurata(opzione.durataMinuti)}</p>
                     </div>
                     <p className="whitespace-nowrap text-sm font-semibold text-coral-700">
                       {opzione.prezzoChf} CHF

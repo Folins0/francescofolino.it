@@ -31,6 +31,7 @@ async function getPrenotazioniConfermate(
     ...p,
     slot: slotById.get(p.slot_id) ?? null,
     service: servizioById.get(p.service_id) ?? null,
+    serviceExtra: p.service_id_extra ? servizioById.get(p.service_id_extra) ?? null : null,
   }));
 }
 

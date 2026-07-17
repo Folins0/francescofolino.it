@@ -5,12 +5,16 @@ export type WeekStatus = "bozza" | "pubblicata" | "chiusa";
 export type SlotStatus = "libero" | "richiesto" | "confermato";
 export type BookingStatus = "in_attesa" | "confermato" | "rifiutato";
 
+export type ServiceCategoria = "mani" | "piedi";
+
 export interface ServiceRow {
   id: string;
   nome: string;
   prezzo_chf: number;
   ordine_visualizzazione: number;
   descrizione: string | null;
+  durata_minuti: number;
+  categoria: ServiceCategoria;
 }
 
 export interface WeekRow {
@@ -45,6 +49,9 @@ export interface BookingRequestRow {
   nome_cliente: string;
   telefono_cliente: string;
   service_id: string;
+  service_id_extra: string | null;
+  durata_minuti: number;
+  prezzo_totale_chf: number;
   orario_preferito: string | null;
   note: string | null;
   stato: BookingStatus;

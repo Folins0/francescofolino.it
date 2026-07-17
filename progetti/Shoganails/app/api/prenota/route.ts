@@ -9,6 +9,9 @@ interface PrenotaBody {
   nomeCliente?: string;
   telefonoCliente?: string;
   serviceId?: string;
+  serviceIdExtra?: string | null;
+  durataMinuti?: number;
+  prezzoChf?: number;
   orarioPreferito?: string | null;
   note?: string | null;
   // solo per comporre il testo della notifica push, non usati dal DB
@@ -35,7 +38,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Corpo della richiesta non valido." }, { status: 400 });
   }
 
-  const { slotId, nomeCliente, telefonoCliente, serviceId, orarioPreferito, note } = body;
+  const {
+    slotId,
+    nomeCliente,
+    telefonoCliente,
+    serviceId,
+    serviceIdExtra,
+    durataMinuti,
+    prezzoChf,
+    orarioPreferito,
+    note,
+  } = body;
 
   if (!slotId || !serviceId) {
     return NextResponse.json({ ok: false, error: "Scegli un orario e un servizio." }, { status: 400 });
@@ -56,6 +69,9 @@ export async function POST(request: Request) {
     p_service_id: serviceId,
     p_orario_preferito: orarioPreferito ?? null,
     p_note: note?.trim() || null,
+    p_service_id_extra: serviceIdExtra ?? null,
+    p_durata_minuti: durataMinuti ?? 60,
+    p_prezzo_totale_chf: prezzoChf ?? null,
   });
 
   if (rpcError) {

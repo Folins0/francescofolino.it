@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { currentWeekRange } from "@/lib/week";
+import { currentWeekRange, oggiISO } from "@/lib/week";
 import { BookingForm } from "@/components/BookingForm";
 import type { AvailableSlotRow, ServiceRow } from "@/types/database";
 
@@ -36,6 +36,7 @@ async function getDatiPrenotazione(): Promise<{
           .select("*")
           .eq("week_id", week.id)
           .eq("stato", "libero")
+          .gte("giorno", oggiISO())
           .order("giorno", { ascending: true })
           .order("ora_inizio", { ascending: true }),
         supabase.from("services").select("*").order("ordine_visualizzazione", { ascending: true }),

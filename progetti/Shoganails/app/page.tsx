@@ -108,7 +108,7 @@ export default async function HomePage() {
           </p>
           <Link
             href="/prenota"
-            className="mt-6 flex w-full items-center justify-center rounded-full bg-gradient-to-r from-coral-700 to-rose-700 px-6 py-4 font-display text-lg font-semibold text-white shadow-lg shadow-coral-200/60 transition active:scale-[0.98]"
+            className="mt-6 hidden w-full items-center justify-center rounded-full bg-gradient-to-r from-coral-700 to-rose-700 px-6 py-4 font-display text-lg font-semibold text-white shadow-lg shadow-coral-200/60 transition active:scale-[0.98] sm:flex"
           >
             Prenota un appuntamento
           </Link>

@@ -295,6 +295,7 @@ export function Calendario({ prenotazioniIniziali, servizi }: CalendarioProps) {
                         </div>
                         <span className="rounded-full bg-coral-50 px-3 py-1 text-xs font-medium text-coral-700">
                           {p.service?.nome ?? "Servizio"}
+                          {p.serviceExtra && ` + ${p.serviceExtra.nome}`}
                         </span>
                       </div>
 
