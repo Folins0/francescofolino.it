@@ -70,6 +70,28 @@ export async function PATCH(request: Request) {
     );
   }
 
+  const { data: altriSlotStessoGiorno, error: overlapErr } = await supabase
+    .from("available_slots")
+    .select("ora_inizio, ora_fine")
+    .eq("giorno", giorno)
+    .neq("id", slotId)
+    .neq("stato", "libero");
+
+  if (overlapErr) {
+    return NextResponse.json({ ok: false, error: overlapErr.message }, { status: 500 });
+  }
+
+  const sovrapposto = (altriSlotStessoGiorno ?? []).some(
+    (s) => s.ora_inizio.slice(0, 5) < oraFine && s.ora_fine.slice(0, 5) > oraInizio
+  );
+
+  if (sovrapposto) {
+    return NextResponse.json(
+      { ok: false, error: "L'orario scelto si sovrappone a un'altra prenotazione esistente." },
+      { status: 400 }
+    );
+  }
+
   const { data: prenotazionePrima } = await supabase
     .from("booking_requests")
     .select("google_event_id")
