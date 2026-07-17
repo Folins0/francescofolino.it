@@ -110,7 +110,7 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
   prendano lo stesso slot) e, se creata con successo, invia una notifica push
   a Grazia.
 - `app/admin/login/page.tsx` — login email+password (Supabase Auth).
-- `app/admin/page.tsx` — pannello admin con tre sezioni:
+- `app/admin/page.tsx` — pannello admin con quattro sezioni:
   - **Richieste** (`components/admin/Richieste.tsx`): mostra in tempo reale
     (Supabase Realtime) le nuove richieste con stato `in_attesa` — nome,
     telefono, servizio, orario. Bottone **"Attiva notifiche"** per registrare
@@ -139,6 +139,13 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
     (`app/api/admin/gallery/route.ts`, tabella `gallery_photos` + bucket
     pubblico `galleria`). Finché non c'è nessuna foto, la home mostra dei
     segnaposto.
+  - **Calendario** (`components/admin/Calendario.tsx`): tutte le
+    prenotazioni confermate da oggi in poi, raggruppate per giorno. Ogni
+    appuntamento si può modificare (nome, telefono, servizio, note,
+    giorno/orario — `app/api/admin/modifica-prenotazione/route.ts`) o
+    cancellare (libera di nuovo lo slot, riusa la stessa logica del
+    "Rifiutato" delle Richieste). Nessun messaggio automatico viene inviato
+    alla cliente in nessuno dei due casi.
 - `middleware.ts` — protegge tutte le rotte `/admin/*`: senza sessione
   valida reindirizza a `/admin/login`.
 - `lib/supabase/client.ts` / `lib/supabase/server.ts` — client Supabase per
