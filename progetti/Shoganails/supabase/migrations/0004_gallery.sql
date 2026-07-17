@@ -35,6 +35,11 @@ where not exists (
   select 1 from storage.buckets where id = 'galleria'
 );
 
+-- Forza il bucket pubblico anche se esisteva già (es. creato privato in un
+-- tentativo precedente): senza questo, getPublicUrl() genera link che il
+-- browser non riesce a caricare.
+update storage.buckets set public = true where id = 'galleria';
+
 create policy "galleria_select_public"
   on storage.objects for select
   to anon, authenticated
