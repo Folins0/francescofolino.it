@@ -1,0 +1,19 @@
+-- Rifinitura (Prompt 7): irrobustisce le RLS di booking_requests.
+--
+-- 0001_init.sql aveva creato una policy che permette a QUALSIASI utente non
+-- autenticato di inserire direttamente in booking_requests
+-- (booking_requests_insert_public, with check (true)). Da quando esiste
+-- request_booking() (0002, SECURITY DEFINER — vedi commento lì) è quella
+-- l'unica via prevista per creare una richiesta: valida lo slot con un row
+-- lock e aggiorna available_slots in modo atomico, prima di inserire la riga.
+--
+-- La vecchia policy è ormai inutilizzata dall'app (app/api/prenota/route.ts
+-- chiama solo la funzione) ma restava attiva: chiunque conoscesse la anon key
+-- pubblica avrebbe potuto inserire righe in booking_requests bypassando del
+-- tutto il controllo "lo slot è libero?", scrivendo su slot_id arbitrari
+-- (anche inesistenti o già occupati) senza mai passare dalla funzione. Non è
+-- una fuga di dati (booking_requests resta illeggibile da anon, vedi
+-- verifica in supabase/RLS_TESTS.md) ma è un varco di integrità/abuso da
+-- chiudere: la rimuoviamo, dato che request_booking() non ne ha bisogno
+-- (gira con i permessi del proprietario della funzione, non dell'utente).
+drop policy if exists "booking_requests_insert_public" on public.booking_requests;
