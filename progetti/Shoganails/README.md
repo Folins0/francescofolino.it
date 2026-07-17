@@ -22,7 +22,10 @@ push per Grazia.
    - `supabase/migrations/0003_hardening.sql` — rimuove una policy RLS
      ridondante su `booking_requests` che permetteva un insert diretto da
      utenti non autenticati fuori dal flusso di `request_booking()` (vedi
-     `supabase/RLS_TESTS.md` per come verificarlo).
+     `supabase/RLS_TESTS.md` per come verificarlo);
+   - `supabase/migrations/0004_gallery.sql` — tabella `gallery_photos` e
+     bucket storage pubblico `galleria`, per le foto gestibili dal pannello
+     admin e mostrate sulla home page.
 3. In **Authentication > Users**, crea manualmente **un solo utente admin**
    (email + password) per tua madre. Non c'è una pagina di registrazione: il
    login accetta solo utenti già esistenti.
@@ -107,7 +110,7 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
   prendano lo stesso slot) e, se creata con successo, invia una notifica push
   a Grazia.
 - `app/admin/login/page.tsx` — login email+password (Supabase Auth).
-- `app/admin/page.tsx` — pannello admin con due sezioni:
+- `app/admin/page.tsx` — pannello admin con tre sezioni:
   - **Richieste** (`components/admin/Richieste.tsx`): mostra in tempo reale
     (Supabase Realtime) le nuove richieste con stato `in_attesa` — nome,
     telefono, servizio, orario. Bottone **"Attiva notifiche"** per registrare
@@ -131,6 +134,11 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
     Se l'IA non riesce a leggere la foto, viene mostrato un messaggio chiaro
     con la possibilità di ricaricare la foto o passare all'inserimento
     manuale di tutta la settimana.
+  - **Foto del sito** (`components/admin/Galleria.tsx`): aggiungi o elimina
+    le foto mostrate nella sezione "Le nostre unghie" della home page
+    (`app/api/admin/gallery/route.ts`, tabella `gallery_photos` + bucket
+    pubblico `galleria`). Finché non c'è nessuna foto, la home mostra dei
+    segnaposto.
 - `middleware.ts` — protegge tutte le rotte `/admin/*`: senza sessione
   valida reindirizza a `/admin/login`.
 - `lib/supabase/client.ts` / `lib/supabase/server.ts` — client Supabase per

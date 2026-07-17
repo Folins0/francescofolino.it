@@ -60,6 +60,13 @@ export interface PushSubscriptionRow {
   creato_il: string;
 }
 
+export interface GalleryPhotoRow {
+  id: string;
+  storage_path: string;
+  ordine: number;
+  creato_il: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -100,6 +107,11 @@ export interface Database {
         Insert: Partial<PushSubscriptionRow> &
           Pick<PushSubscriptionRow, "endpoint" | "p256dh" | "auth">;
         Update: Partial<PushSubscriptionRow>;
+      };
+      gallery_photos: {
+        Row: GalleryPhotoRow;
+        Insert: Partial<GalleryPhotoRow> & Pick<GalleryPhotoRow, "storage_path">;
+        Update: Partial<GalleryPhotoRow>;
       };
     };
   };

@@ -2,8 +2,27 @@ import { createClient } from "@/lib/supabase/server";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { NuovaSettimana } from "@/components/admin/NuovaSettimana";
 import { Richieste } from "@/components/admin/Richieste";
+import { Galleria } from "@/components/admin/Galleria";
 import type { AvailableSlotRow, BookingRequestRow, ServiceRow } from "@/types/database";
 import type { BookingRequestConDettagli } from "@/components/admin/Richieste";
+import type { GalleryPhoto } from "@/types/gallery";
+
+async function getGalleria(
+  supabase: ReturnType<typeof createClient>
+): Promise<GalleryPhoto[]> {
+  const { data, error } = await supabase
+    .from("gallery_photos")
+    .select("id, storage_path")
+    .order("ordine", { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map((riga) => ({
+    id: riga.id,
+    url: supabase.storage.from("galleria").getPublicUrl(riga.storage_path).data
+      .publicUrl,
+  }));
+}
 
 async function getRichiesteInAttesa(
   supabase: ReturnType<typeof createClient>
@@ -54,6 +73,7 @@ export default async function AdminPage() {
   } = await supabase.auth.getUser();
 
   const { richieste: richiesteIniziali, errore: erroreRichieste } = await getRichiesteInAttesa(supabase);
+  const fotoGalleria = await getGalleria(supabase);
 
   return (
     <div className="min-h-screen bg-marble-50">
@@ -85,6 +105,19 @@ export default async function AdminPage() {
           </p>
           <div className="mt-4">
             <NuovaSettimana />
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <h2 className="font-display text-xl text-stone-800">
+            Foto del sito
+          </h2>
+          <p className="mt-1 text-sm text-stone-500">
+            Le foto qui sotto sono quelle che le clienti vedono nella sezione
+            &quot;Le nostre unghie&quot; della home page.
+          </p>
+          <div className="mt-4">
+            <Galleria fotoIniziali={fotoGalleria} />
           </div>
         </section>
       </main>

@@ -1,13 +1,30 @@
 import Link from "next/link";
 import { Instagram, Sparkles, MessageCircleHeart } from "lucide-react";
 import { serviceCategories } from "@/lib/services";
+import { createClient } from "@/lib/supabase/server";
 import ServiziAccordion from "@/components/ServiziAccordion";
 import GalleryPlaceholder from "@/components/GalleryPlaceholder";
 
 const INSTAGRAM_HANDLE = "_shoganai_2022";
 const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}/`;
 
-export default function HomePage() {
+async function getGalleria() {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("gallery_photos")
+    .select("id, storage_path")
+    .order("ordine", { ascending: true });
+
+  return (data ?? []).map((riga) => ({
+    id: riga.id,
+    url: supabase.storage.from("galleria").getPublicUrl(riga.storage_path).data
+      .publicUrl,
+  }));
+}
+
+export default async function HomePage() {
+  const foto = await getGalleria();
+
   return (
     <main className="min-h-screen bg-marble-50 bg-marble-veins">
       {/* Header */}
@@ -52,13 +69,29 @@ export default function HomePage() {
           <h2 className="font-display text-xl font-semibold text-stone-800">
             Le nostre unghie
           </h2>
-          <p className="mt-1 text-sm text-stone-500">
-            Presto qui trovi le foto reali dei lavori di Shoganails.
-          </p>
+          {foto.length === 0 && (
+            <p className="mt-1 text-sm text-stone-500">
+              Presto qui trovi le foto reali dei lavori di Shoganails.
+            </p>
+          )}
           <div className="mt-4 grid grid-cols-3 gap-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <GalleryPlaceholder key={i} index={i} />
-            ))}
+            {foto.length > 0
+              ? foto.map((f) => (
+                  <div
+                    key={f.id}
+                    className="aspect-square overflow-hidden rounded-2xl shadow-sm"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={f.url}
+                      alt="Lavoro di nail art Shoganails"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))
+              : Array.from({ length: 6 }).map((_, i) => (
+                  <GalleryPlaceholder key={i} index={i} />
+                ))}
           </div>
         </section>
 
