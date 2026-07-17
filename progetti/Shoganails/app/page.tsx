@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Instagram, Sparkles, MessageCircleHeart } from "lucide-react";
-import { services } from "@/lib/services";
-import ServiceCard from "@/components/ServiceCard";
+import { serviceCategories } from "@/lib/services";
+import ServiziAccordion from "@/components/ServiziAccordion";
 import GalleryPlaceholder from "@/components/GalleryPlaceholder";
 
 const INSTAGRAM_HANDLE = "_shoganai_2022";
@@ -67,14 +67,8 @@ export default function HomePage() {
           <h2 className="font-display text-xl font-semibold text-stone-800">
             Servizi e prezzi
           </h2>
-          <div className="mt-4 space-y-3">
-            {services.map((service) => (
-              <ServiceCard
-                key={service.id}
-                service={service}
-                highlighted={service.id === "mani-piedi"}
-              />
-            ))}
+          <div className="mt-4">
+            <ServiziAccordion categorie={serviceCategories} />
           </div>
           <p className="mt-2 text-xs text-stone-500">
             Prezzi in Franchi Svizzeri (CHF).
