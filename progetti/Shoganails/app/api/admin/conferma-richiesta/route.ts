@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { creaEvento } from "@/lib/google-calendar";
 
 export const runtime = "nodejs";
 
@@ -46,6 +47,39 @@ export async function POST(request: Request) {
 
   if (slotErr) {
     return NextResponse.json({ ok: false, error: slotErr.message }, { status: 500 });
+  }
+
+  // Sincronizza con Google Calendar (best-effort: se fallisce, la
+  // prenotazione resta comunque confermata su Supabase, che e' la fonte di
+  // verita'; la mancata sincronizzazione non blocca la conferma).
+  try {
+    const [{ data: booking }, { data: slot }] = await Promise.all([
+      supabase.from("booking_requests").select("*").eq("id", body.bookingId).single(),
+      supabase.from("available_slots").select("*").eq("id", body.slotId).single(),
+    ]);
+
+    if (booking && slot) {
+      const { data: servizio } = await supabase
+        .from("services")
+        .select("nome")
+        .eq("id", booking.service_id)
+        .maybeSingle();
+
+      const eventId = await creaEvento({
+        giorno: slot.giorno,
+        oraInizio: slot.ora_inizio,
+        oraFine: slot.ora_fine,
+        titolo: `${booking.nome_cliente} — ${servizio?.nome ?? "Shoganails"}`,
+        descrizione: `Tel: ${booking.telefono_cliente}${booking.note ? `\nNote: ${booking.note}` : ""}`,
+      });
+
+      await supabase
+        .from("booking_requests")
+        .update({ google_event_id: eventId })
+        .eq("id", body.bookingId);
+    }
+  } catch (err) {
+    console.error("Errore sincronizzazione Google Calendar:", err);
   }
 
   return NextResponse.json({ ok: true });

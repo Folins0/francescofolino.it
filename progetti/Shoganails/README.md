@@ -26,6 +26,9 @@ push per Grazia.
    - `supabase/migrations/0004_gallery.sql` — tabella `gallery_photos` e
      bucket storage pubblico `galleria`, per le foto gestibili dal pannello
      admin e mostrate sulla home page.
+   - `supabase/migrations/0005_google_calendar.sql` — aggiunge la colonna
+     `google_event_id` a `booking_requests`, per collegare ogni prenotazione
+     confermata all'evento Google Calendar corrispondente.
 3. In **Authentication > Users**, crea manualmente **un solo utente admin**
    (email + password) per tua madre. Non c'è una pagina di registrazione: il
    login accetta solo utenti già esistenti.
@@ -37,7 +40,41 @@ push per Grazia.
 
 Crea una chiave API gratuita su [console.groq.com/keys](https://console.groq.com/keys).
 
-### 3. Chiavi VAPID (notifiche push)
+### 3. Google Calendar (opzionale — sync automatica prenotazioni confermate)
+
+Le prenotazioni confermate/modificate/cancellate dal pannello admin si
+sincronizzano in tempo reale con un Google Calendar a tua scelta (di solito
+quello personale di Grazia), tramite un **account di servizio** Google (nessun
+login OAuth richiesto, nessun costo).
+
+1. Vai su [console.cloud.google.com](https://console.cloud.google.com/), crea
+   un progetto (o usane uno esistente).
+2. **API e servizi → Libreria** → cerca "Google Calendar API" → **Abilita**.
+3. **API e servizi → Credenziali → Crea credenziali → Account di servizio**.
+   Dagli un nome qualsiasi (es. "shoganails-calendar"), salta i passaggi
+   opzionali di ruoli/accesso.
+4. Apri l'account di servizio appena creato → tab **Chiavi** → **Aggiungi
+   chiave → Crea nuova chiave → JSON** → scarica il file.
+5. Dal file JSON scaricato ti servono due valori: `client_email` (va in
+   `GOOGLE_SERVICE_ACCOUNT_EMAIL`) e `private_key` (va in
+   `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`, incluse le `\n` così come sono nel
+   file).
+6. Apri [Google Calendar](https://calendar.google.com) con l'account su cui
+   vuoi vedere gli appuntamenti (es. quello di Grazia) → impostazioni del
+   calendario scelto → **Condividi con persone specifiche** → aggiungi
+   l'indirizzo email dell'account di servizio (quello di `client_email`,
+   finisce in `.iam.gserviceaccount.com`) con permesso **"Apportare
+   modifiche agli eventi"**.
+7. In **Impostazioni calendario → Integra calendario**, copia l'**ID
+   calendario** (di solito coincide con l'indirizzo email dell'account
+   Google) in `GOOGLE_CALENDAR_ID`.
+
+Se salti questo passaggio, il resto dell'app funziona comunque: la
+sincronizzazione è "best effort" (se fallisce o non è configurata, la
+prenotazione resta confermata su Supabase, semplicemente non compare su
+Google Calendar).
+
+### 4. Chiavi VAPID (notifiche push)
 
 ```bash
 npm install
@@ -47,15 +84,16 @@ npm run generate-vapid-keys
 Copia la Public Key e la Private Key stampate nel terminale nelle rispettive
 variabili d'ambiente (sotto).
 
-### 4. Variabili d'ambiente
+### 5. Variabili d'ambiente
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-Compila `.env.local` con le chiavi Supabase, Groq e VAPID ottenute sopra.
+Compila `.env.local` con le chiavi Supabase, Groq, Google Calendar e VAPID
+ottenute sopra.
 
-### 5. Avvio in locale
+### 6. Avvio in locale
 
 ```bash
 npm install
@@ -129,7 +167,11 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
     giorno/orario — `app/api/admin/modifica-prenotazione/route.ts`) o
     cancellare (libera di nuovo lo slot, riusa la stessa logica del
     "Rifiutato" delle Richieste). Nessun messaggio automatico viene inviato
-    alla cliente in nessuno dei due casi.
+    alla cliente in nessuno dei due casi. Se configurato (vedi sezione
+    "Google Calendar" sopra), ogni conferma/modifica/cancellazione
+    sincronizza in tempo reale l'evento su Google Calendar
+    (`lib/google-calendar.ts`) — best effort, non blocca l'operazione se
+    fallisce.
   - **Nuova settimana** (`/admin/settimana`, `components/admin/NuovaSettimana.tsx`):
     1. carica una foto del foglio turni (scatto da mobile o file);
     2. la foto viene inviata a un modello con visione (Groq, Llama 4) che
@@ -167,6 +209,9 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
 - `public/manifest.json` — manifest PWA (necessario per "Aggiungi a Home").
 - `lib/ai.ts` — chiamata a Groq (visione) con il prompt di lettura del foglio
   turni e parsing/validazione della risposta JSON.
+- `lib/google-calendar.ts` — firma un JWT per l'account di servizio Google
+  (via `crypto` nativo, nessuna libreria aggiunta) e crea/aggiorna/elimina
+  eventi sul Google Calendar configurato.
 - `lib/shifts.ts` — calcolo delle fasce libere (giornata meno turni) e
   tolleranza a varianti/errori di battitura del nome "Grazia".
 - `lib/week.ts` — utility per la settimana corrente (lunedì-domenica).
@@ -210,6 +255,9 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
    | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API (segreta) |
    | `GROQ_API_KEY` | console.groq.com → API Keys |
    | `GROQ_VISION_MODEL` (opzionale) | default `meta-llama/llama-4-scout-17b-16e-instruct` se non impostata |
+   | `GOOGLE_SERVICE_ACCOUNT_EMAIL` (opzionale) | Google Cloud Console → account di servizio, campo `client_email` |
+   | `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` (opzionale, segreta) | Google Cloud Console → account di servizio, campo `private_key` |
+   | `GOOGLE_CALENDAR_ID` (opzionale) | Google Calendar → Impostazioni → Integra calendario |
    | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `npm run generate-vapid-keys` |
    | `VAPID_PRIVATE_KEY` | `npm run generate-vapid-keys` (segreta) |
    | `VAPID_SUBJECT` | `mailto:tuo-indirizzo@example.com` |
@@ -239,11 +287,14 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
 ## Checklist finale — cosa fare manualmente prima di andare live
 
 - [ ] Creato un progetto Supabase gratuito e applicate **in ordine** tutte le
-      migration in `supabase/migrations/` (0001 → 0002 → 0003).
+      migration in `supabase/migrations/` (0001 → 0005).
 - [ ] Creato manualmente **un solo utente admin** (Grazia) in Supabase →
       Authentication → Users, con email e password.
 - [ ] Ottenuta una chiave Groq API (console.groq.com), gratuita, per la
       lettura delle foto dei turni.
+- [ ] (Opzionale) Creato l'account di servizio Google Calendar e condiviso il
+      calendario scelto con la sua email (vedi sezione "Google Calendar"
+      sopra), per la sync automatica delle prenotazioni confermate.
 - [ ] Generate le chiavi VAPID (`npm run generate-vapid-keys`) per le
       notifiche push.
 - [ ] Configurate **tutte** le variabili d'ambiente elencate sopra su Vercel

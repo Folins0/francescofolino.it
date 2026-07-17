@@ -56,6 +56,7 @@ export interface BookingRequestRow {
   note: string | null;
   stato: BookingStatus;
   creato_il: string;
+  google_event_id: string | null;
 }
 
 export interface PushSubscriptionRow {

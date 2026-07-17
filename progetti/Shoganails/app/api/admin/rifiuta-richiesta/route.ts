@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { eliminaEvento } from "@/lib/google-calendar";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Dati mancanti." }, { status: 400 });
   }
 
+  const { data: prenotazionePrima } = await supabase
+    .from("booking_requests")
+    .select("google_event_id")
+    .eq("id", body.bookingId)
+    .maybeSingle();
+
   const { error: bookingErr } = await supabase
     .from("booking_requests")
     .update({ stato: "rifiutato" })
@@ -45,6 +52,14 @@ export async function POST(request: Request) {
 
   if (slotErr) {
     return NextResponse.json({ ok: false, error: slotErr.message }, { status: 500 });
+  }
+
+  if (prenotazionePrima?.google_event_id) {
+    try {
+      await eliminaEvento(prenotazionePrima.google_event_id);
+    } catch (err) {
+      console.error("Errore eliminazione evento Google Calendar:", err);
+    }
   }
 
   return NextResponse.json({ ok: true });
