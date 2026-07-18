@@ -1,12 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import { currentWeekRange } from "@/lib/week";
 
-/** Trova la week della settimana corrente o la crea (stato "bozza") se non esiste ancora. */
-export async function getOrCreateCurrentWeek(
-  supabase: SupabaseClient<Database>
+/** Trova la week corrispondente al range dato o la crea (stato "bozza") se non esiste ancora. */
+export async function getOrCreateWeek(
+  supabase: SupabaseClient<Database>,
+  range: { data_inizio: string; data_fine: string }
 ): Promise<{ weekId: string } | { error: string }> {
-  const { data_inizio, data_fine } = currentWeekRange();
+  const { data_inizio, data_fine } = range;
 
   const { data: esistente, error: selectErr } = await supabase
     .from("weeks")

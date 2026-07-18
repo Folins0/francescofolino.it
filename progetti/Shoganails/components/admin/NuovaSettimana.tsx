@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { PhotoUpload } from "@/components/admin/PhotoUpload";
 import { ShiftReviewTable } from "@/components/admin/ShiftReviewTable";
 import { calcolaFasceLibere, GIORNATA_DEFAULT } from "@/lib/shifts";
-import { currentWeekDates, formattaGiornoBreve } from "@/lib/week";
+import { currentWeekDates, formattaGiornoBreve, nextWeekDates } from "@/lib/week";
 import type {
   GiornoReview,
   GiornoTurni,
@@ -13,6 +13,7 @@ import type {
 } from "@/types/shifts";
 
 type Stato = "idle" | "analizzando" | "revisione" | "pubblicando" | "pubblicato";
+type Settimana = "corrente" | "prossima";
 
 function costruisciGiorniCompleti(
   giorniAI: GiornoTurni[],
@@ -45,7 +46,11 @@ function costruisciTemplateManuale(weekDates: string[]): GiornoReview[] {
 }
 
 export function NuovaSettimana() {
-  const weekDates = useMemo(() => currentWeekDates(), []);
+  const [settimana, setSettimana] = useState<Settimana>("corrente");
+  const weekDates = useMemo(
+    () => (settimana === "prossima" ? nextWeekDates() : currentWeekDates()),
+    [settimana]
+  );
   const [stato, setStato] = useState<Stato>("idle");
   const [errore, setErrore] = useState<string | null>(null);
   const [avviso, setAvviso] = useState<string | null>(null);
@@ -61,6 +66,7 @@ export function NuovaSettimana() {
 
     const formData = new FormData();
     formData.append("foto", file);
+    formData.append("settimana", settimana);
 
     try {
       const res = await fetch("/api/admin/parse-shift-sheet", {
@@ -101,7 +107,11 @@ export function NuovaSettimana() {
     let weekIdCorrente = weekId;
     if (!weekIdCorrente) {
       try {
-        const res = await fetch("/api/admin/ensure-week", { method: "POST" });
+        const res = await fetch("/api/admin/ensure-week", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ settimana }),
+        });
         const json = await res.json();
         if (!json.ok) {
           setErrore(json.error || "Impossibile preparare la settimana.");
@@ -184,6 +194,7 @@ export function NuovaSettimana() {
     setShiftUploadId(null);
     setGiorni([]);
     setGiornata(GIORNATA_DEFAULT);
+    setSettimana("corrente");
   }
 
   if (stato === "pubblicato") {
@@ -210,6 +221,42 @@ export function NuovaSettimana() {
 
   return (
     <div className="space-y-4">
+      <div>
+        <p className="text-sm font-medium text-stone-700">
+          {formattaGiornoBreve(weekDates[0])} – {formattaGiornoBreve(weekDates[6])}
+        </p>
+        {stato === "idle" ? (
+          <div className="mt-1.5 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setSettimana("corrente")}
+              className={`rounded-full px-3 py-1.5 text-sm transition ${
+                settimana === "corrente"
+                  ? "bg-coral-700 text-white"
+                  : "border border-stone-300 text-stone-600 hover:bg-stone-50"
+              }`}
+            >
+              Settimana corrente
+            </button>
+            <button
+              type="button"
+              onClick={() => setSettimana("prossima")}
+              className={`rounded-full px-3 py-1.5 text-sm transition ${
+                settimana === "prossima"
+                  ? "bg-coral-700 text-white"
+                  : "border border-stone-300 text-stone-600 hover:bg-stone-50"
+              }`}
+            >
+              Settimana prossima
+            </button>
+          </div>
+        ) : (
+          <p className="text-xs text-stone-500">
+            {settimana === "prossima" ? "Settimana prossima" : "Settimana corrente"}
+          </p>
+        )}
+      </div>
+
       {errore && (
         <div
           role="alert"

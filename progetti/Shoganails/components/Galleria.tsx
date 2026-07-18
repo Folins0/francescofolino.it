@@ -1,24 +1,36 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import GalleryPlaceholder from "@/components/GalleryPlaceholder";
+import { GALLERY_SERVICES } from "@/types/gallery";
 
-type Foto = { id: string; url: string };
+type Foto = { id: string; url: string; servizio: string | null };
 
-export default function Galleria({ foto }: { foto: Foto[] }) {
+export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
+  const [filtro, setFiltro] = useState<string | null>(null);
   const [indiceAperto, setIndiceAperto] = useState<number | null>(null);
+  const [direzione, setDirezione] = useState<"avanti" | "indietro">("avanti");
   const touchStartX = useRef<number | null>(null);
 
+  const serviziPresenti = useMemo(
+    () => GALLERY_SERVICES.filter((s) => tutteLeFoto.some((f) => f.servizio === s.id)),
+    [tutteLeFoto]
+  );
+  const foto = useMemo(
+    () => (filtro ? tutteLeFoto.filter((f) => f.servizio === filtro) : tutteLeFoto),
+    [tutteLeFoto, filtro]
+  );
+
   const chiudi = useCallback(() => setIndiceAperto(null), []);
-  const precedente = useCallback(
-    () => setIndiceAperto((i) => (i === null ? null : (i - 1 + foto.length) % foto.length)),
-    [foto.length]
-  );
-  const successiva = useCallback(
-    () => setIndiceAperto((i) => (i === null ? null : (i + 1) % foto.length)),
-    [foto.length]
-  );
+  const precedente = useCallback(() => {
+    setDirezione("indietro");
+    setIndiceAperto((i) => (i === null ? null : (i - 1 + foto.length) % foto.length));
+  }, [foto.length]);
+  const successiva = useCallback(() => {
+    setDirezione("avanti");
+    setIndiceAperto((i) => (i === null ? null : (i + 1) % foto.length));
+  }, [foto.length]);
 
   useEffect(() => {
     if (indiceAperto === null) return;
@@ -50,7 +62,7 @@ export default function Galleria({ foto }: { foto: Foto[] }) {
     touchStartX.current = null;
   }
 
-  if (foto.length === 0) {
+  if (tutteLeFoto.length === 0) {
     return (
       <div className="mt-4 grid grid-cols-3 gap-3">
         {Array.from({ length: 6 }).map((_, i) => (
@@ -62,6 +74,40 @@ export default function Galleria({ foto }: { foto: Foto[] }) {
 
   return (
     <>
+      {serviziPresenti.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setFiltro(null)}
+            className={`rounded-full px-3 py-1.5 text-sm transition ${
+              filtro === null
+                ? "bg-coral-700 text-white"
+                : "bg-white text-stone-600 ring-1 ring-marble-200"
+            }`}
+          >
+            Tutte
+          </button>
+          {serviziPresenti.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setFiltro(s.id)}
+              className={`rounded-full px-3 py-1.5 text-sm transition ${
+                filtro === s.id
+                  ? "bg-coral-700 text-white"
+                  : "bg-white text-stone-600 ring-1 ring-marble-200"
+              }`}
+            >
+              {s.nome}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {foto.length === 0 && (
+        <p className="mt-4 text-sm text-stone-500">Nessuna foto per questo servizio.</p>
+      )}
+
       <div className="mt-4 grid grid-cols-3 gap-3">
         {foto.map((f, i) => (
           <button
@@ -113,9 +159,14 @@ export default function Galleria({ foto }: { foto: Foto[] }) {
 
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
+            key={indiceAperto}
             src={foto[indiceAperto].url}
             alt="Lavoro di nail art Shoganails"
-            className="max-h-[85vh] max-w-full rounded-xl object-contain"
+            className={`max-h-[85vh] max-w-full rounded-xl object-contain ${
+              direzione === "avanti"
+                ? "motion-safe:animate-slide-in-right"
+                : "motion-safe:animate-slide-in-left"
+            }`}
             onClick={(e) => e.stopPropagation()}
           />
 

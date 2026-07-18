@@ -50,9 +50,19 @@ const config: Config = {
           "0%, 100%": { opacity: "0.15", transform: "scale(0.8)" },
           "50%": { opacity: "1", transform: "scale(1.15)" },
         },
+        "slide-in-right": {
+          from: { opacity: "0", transform: "translateX(28px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        "slide-in-left": {
+          from: { opacity: "0", transform: "translateX(-28px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
       },
       animation: {
         twinkle: "twinkle 3.6s ease-in-out infinite",
+        "slide-in-right": "slide-in-right 0.28s ease-out",
+        "slide-in-left": "slide-in-left 0.28s ease-out",
       },
     },
   },

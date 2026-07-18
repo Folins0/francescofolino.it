@@ -49,6 +49,22 @@ export function currentWeekRange(ref: Date = new Date()): {
   return { data_inizio: dates[0], data_fine: dates[6] };
 }
 
+/** Le 7 date (lunedì-domenica) della settimana successiva a quella di `ref`. */
+export function nextWeekDates(ref: Date = new Date()): string[] {
+  const prossima = new Date(ref);
+  prossima.setDate(prossima.getDate() + 7);
+  return currentWeekDates(prossima);
+}
+
+/** { data_inizio, data_fine } della settimana successiva a quella di `ref`. */
+export function nextWeekRange(ref: Date = new Date()): {
+  data_inizio: string;
+  data_fine: string;
+} {
+  const dates = nextWeekDates(ref);
+  return { data_inizio: dates[0], data_fine: dates[6] };
+}
+
 /** Nome del giorno in italiano a partire da una data ISO "YYYY-MM-DD". */
 export function nomeGiorno(dataISO: string): string {
   const [y, m, d] = dataISO.split("-").map(Number);

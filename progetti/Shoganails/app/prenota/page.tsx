@@ -1,63 +1,89 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { currentWeekRange, oggiISO } from "@/lib/week";
+import { currentWeekRange, nextWeekRange, oggiISO } from "@/lib/week";
 import { BookingForm } from "@/components/BookingForm";
 import type { AvailableSlotRow, ServiceRow } from "@/types/database";
 
 export const dynamic = "force-dynamic"; // gli slot cambiano di continuo, niente cache
 
+async function getSlotsSettimana(
+  supabase: ReturnType<typeof createClient>,
+  range: { data_inizio: string; data_fine: string }
+): Promise<{ pubblicata: boolean; slots: AvailableSlotRow[] }> {
+  const { data: week, error: weekError } = await supabase
+    .from("weeks")
+    .select("id")
+    .eq("data_inizio", range.data_inizio)
+    .eq("data_fine", range.data_fine)
+    .eq("stato", "pubblicata")
+    .maybeSingle();
+
+  if (weekError) throw weekError;
+  if (!week) return { pubblicata: false, slots: [] };
+
+  const { data: slots, error: slotsError } = await supabase
+    .from("available_slots")
+    .select("*")
+    .eq("week_id", week.id)
+    .eq("stato", "libero")
+    .gte("giorno", oggiISO())
+    .order("giorno", { ascending: true })
+    .order("ora_inizio", { ascending: true });
+
+  if (slotsError) throw slotsError;
+
+  return { pubblicata: true, slots: slots ?? [] };
+}
+
 async function getDatiPrenotazione(): Promise<{
   slots: AvailableSlotRow[];
   servizi: ServiceRow[];
+  settimanaCorrentePubblicata: boolean;
+  settimanaProssimaPubblicata: boolean;
   errore: string | null;
 }> {
   try {
     const supabase = createClient();
-    const { data_inizio, data_fine } = currentWeekRange();
 
-    const { data: week, error: weekError } = await supabase
-      .from("weeks")
-      .select("*")
-      .eq("data_inizio", data_inizio)
-      .eq("data_fine", data_fine)
-      .eq("stato", "pubblicata")
-      .maybeSingle();
+    const [corrente, prossima, { data: servizi, error: serviziError }] = await Promise.all([
+      getSlotsSettimana(supabase, currentWeekRange()),
+      getSlotsSettimana(supabase, nextWeekRange()),
+      supabase.from("services").select("*").order("ordine_visualizzazione", { ascending: true }),
+    ]);
 
-    if (weekError) throw weekError;
-
-    if (!week) {
-      return { slots: [], servizi: [], errore: null };
-    }
-
-    const [{ data: slots, error: slotsError }, { data: servizi, error: serviziError }] =
-      await Promise.all([
-        supabase
-          .from("available_slots")
-          .select("*")
-          .eq("week_id", week.id)
-          .eq("stato", "libero")
-          .gte("giorno", oggiISO())
-          .order("giorno", { ascending: true })
-          .order("ora_inizio", { ascending: true }),
-        supabase.from("services").select("*").order("ordine_visualizzazione", { ascending: true }),
-      ]);
-
-    if (slotsError) throw slotsError;
     if (serviziError) throw serviziError;
 
-    return { slots: slots ?? [], servizi: servizi ?? [], errore: null };
+    return {
+      slots: [...corrente.slots, ...prossima.slots],
+      servizi: servizi ?? [],
+      settimanaCorrentePubblicata: corrente.pubblicata,
+      settimanaProssimaPubblicata: prossima.pubblicata,
+      errore: null,
+    };
   } catch (err) {
     console.error("Errore caricamento dati prenotazione:", err);
     return {
       slots: [],
       servizi: [],
+      settimanaCorrentePubblicata: false,
+      settimanaProssimaPubblicata: false,
       errore: "Non riusciamo a caricare gli orari disponibili in questo momento. Riprova tra poco.",
     };
   }
 }
 
 export default async function PrenotaPage() {
-  const { slots, servizi, errore } = await getDatiPrenotazione();
+  const {
+    slots,
+    servizi,
+    settimanaCorrentePubblicata,
+    settimanaProssimaPubblicata,
+    errore,
+  } = await getDatiPrenotazione();
+
+  const messaggioProssimaSettimana = settimanaProssimaPubblicata
+    ? null
+    : "I turni per la settimana prossima arriveranno presto.";
 
   return (
     <main className="min-h-screen bg-marble-50 bg-marble-veins">
@@ -91,11 +117,14 @@ export default async function PrenotaPage() {
         ) : slots.length === 0 ? (
           <div className="mt-8 rounded-2xl bg-white p-6 text-center shadow-sm">
             <p className="font-medium text-stone-700">
-              Gli orari di questa settimana non sono ancora disponibili.
+              {settimanaCorrentePubblicata
+                ? "Non ci sono più orari liberi per questa settimana e per quella prossima."
+                : "Gli orari di questa settimana non sono ancora disponibili."}
             </p>
             <p className="mt-2 text-sm text-stone-500">
-              Ricontrolla più tardi — di solito vengono pubblicati il
-              giovedì.
+              {settimanaCorrentePubblicata
+                ? "Ricontrolla tra qualche giorno, potrebbero liberarsi nuovi orari."
+                : "Ricontrolla più tardi — di solito vengono pubblicati il giovedì."}
             </p>
             <Link
               href="/"
@@ -105,7 +134,14 @@ export default async function PrenotaPage() {
             </Link>
           </div>
         ) : (
-          <BookingForm slots={slots} servizi={servizi} />
+          <>
+            {messaggioProssimaSettimana && (
+              <p className="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                {messaggioProssimaSettimana}
+              </p>
+            )}
+            <BookingForm slots={slots} servizi={servizi} />
+          </>
         )}
       </div>
     </main>

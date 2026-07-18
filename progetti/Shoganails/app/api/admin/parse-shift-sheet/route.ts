@@ -5,8 +5,8 @@ import {
   ShiftSheetReadError,
   type ClaudeImageMediaType,
 } from "@/lib/ai";
-import { currentWeekDates } from "@/lib/week";
-import { getOrCreateCurrentWeek } from "@/lib/weekDb";
+import { currentWeekDates, currentWeekRange, nextWeekDates, nextWeekRange } from "@/lib/week";
+import { getOrCreateWeek } from "@/lib/weekDb";
 import type { ParseShiftSheetResponse } from "@/types/shifts";
 
 export const runtime = "nodejs";
@@ -39,6 +39,7 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("foto");
+  const settimana = formData.get("settimana") === "prossima" ? "prossima" : "corrente";
 
   if (!(file instanceof File)) {
     return NextResponse.json<ParseShiftSheetResponse>(
@@ -62,8 +63,11 @@ export async function POST(request: Request) {
     );
   }
 
-  // 1. Trova o crea la week per la settimana corrente.
-  const weekResult = await getOrCreateCurrentWeek(supabase);
+  // 1. Trova o crea la week per la settimana scelta (corrente o prossima).
+  const weekResult = await getOrCreateWeek(
+    supabase,
+    settimana === "prossima" ? nextWeekRange() : currentWeekRange()
+  );
   if ("error" in weekResult) {
     return NextResponse.json<ParseShiftSheetResponse>(
       { ok: false, error: weekResult.error },
@@ -91,7 +95,7 @@ export async function POST(request: Request) {
   const urlImmagine = path; // path nel bucket privato; si genera un signed URL quando serve mostrarla
 
   // 3. Chiama il modello IA con visione.
-  const weekDates = currentWeekDates();
+  const weekDates = settimana === "prossima" ? nextWeekDates() : currentWeekDates();
   const base64Image = Buffer.from(bytes).toString("base64");
 
   let risultatoAI;
