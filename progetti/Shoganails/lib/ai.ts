@@ -131,7 +131,7 @@ export type ClaudeImageMediaType =
 export interface ReadShiftSheetInput {
   base64Image: string;
   mediaType: ClaudeImageMediaType;
-  /** Date ISO (YYYY-MM-DD) lunedì-domenica della settimana corrente, per aiutare l'IA a datare i giorni. */
+  /** Date ISO (YYYY-MM-DD) lunedì-domenica della settimana scelta (corrente o prossima), per aiutare l'IA a datare i giorni. */
   weekDates: string[];
 }
 
@@ -166,7 +166,7 @@ export async function readShiftSheet(
               },
               {
                 type: "text",
-                text: `La settimana corrente va da ${input.weekDates[0]} (lunedì) a ${
+                text: `La settimana da datare va da ${input.weekDates[0]} (lunedì) a ${
                   input.weekDates[6]
                 } (domenica). I 7 giorni sono, in ordine: ${input.weekDates.join(", ")}.
 Leggi il foglio turni nella foto e rispondi con il JSON richiesto.`,

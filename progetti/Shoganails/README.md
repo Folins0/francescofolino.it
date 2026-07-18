@@ -139,10 +139,11 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
 
 - `app/page.tsx` — home page pubblica.
 - `app/prenota/page.tsx` + `components/BookingForm.tsx` — pagina di
-  prenotazione: mostra gli orari liberi della settimana pubblicata
-  (raggruppati per giorno), la cliente sceglie orario e servizio, inserisce
-  nome/telefono/note e invia. Se nessuna settimana è ancora pubblicata,
-  mostra un messaggio invece del form.
+  prenotazione: mostra gli orari liberi di settimana corrente e prossima
+  pubblicate (raggruppati per giorno), la cliente sceglie orario e servizio,
+  inserisce nome/telefono/note e invia. Se la settimana prossima non è ancora
+  pubblicata, un avviso lo segnala senza bloccare la settimana corrente. Se
+  nessuna delle due è ancora pubblicata, mostra un messaggio invece del form.
 - `app/api/prenota/route.ts` — riceve la richiesta di prenotazione, chiama la
   funzione Postgres `request_booking()` (atomica: evita che due clienti
   prendano lo stesso slot) e, se creata con successo, invia una notifica push
@@ -173,21 +174,26 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
     (`lib/google-calendar.ts`) — best effort, non blocca l'operazione se
     fallisce.
   - **Nuova settimana** (`/admin/settimana`, `components/admin/NuovaSettimana.tsx`):
-    1. carica una foto del foglio turni (scatto da mobile o file);
-    2. la foto viene inviata a un modello con visione (Groq, Llama 4) che
+    1. si sceglie se pubblicare la settimana corrente o quella prossima
+       (pulsanti "Settimana corrente" / "Settimana prossima");
+    2. carica una foto del foglio turni (scatto da mobile o file);
+    3. la foto viene inviata a un modello con visione (Groq, Llama 4) che
        isola le righe di "Grazia" (tollerando piccoli errori di
        lettura/battitura), segnala i giorni completamente liberi e le
        eventuali note/asterischi vicino al nome, senza interpretarli;
-    3. per ogni turno "a chiusura" viene richiesto un orario di chiusura
+    4. per ogni turno "a chiusura" viene richiesto un orario di chiusura
        inserito a mano;
-    4. un riepilogo editabile per ogni giorno mostra i turni letti e gli
+    5. un riepilogo editabile per ogni giorno mostra i turni letti e gli
        orari liberi proposti (giornata meno turni), tutti correggibili a
        mano;
-    5. il bottone **"Conferma e pubblica"** salva gli `available_slots` per
-       la settimana corrente e la marca come `pubblicata`.
+    6. il bottone **"Conferma e pubblica"** salva gli `available_slots` per
+       la settimana scelta e la marca come `pubblicata`.
     Se l'IA non riesce a leggere la foto, viene mostrato un messaggio chiaro
     con la possibilità di ricaricare la foto o passare all'inserimento
-    manuale di tutta la settimana.
+    manuale di tutta la settimana. `/prenota` mostra gli slot liberi di
+    settimana corrente e prossima insieme; se la prossima non è ancora
+    pubblicata, un avviso lo segnala senza bloccare la prenotazione di
+    quella corrente.
   - **Foto del sito** (`/admin/foto`, `components/admin/Galleria.tsx`):
     aggiungi o elimina le foto mostrate nella sezione "Le nostre unghie"
     della home page (`app/api/admin/gallery/route.ts`, tabella
