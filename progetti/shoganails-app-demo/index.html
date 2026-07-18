@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shoganails · Gestione</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <aside class="barra-laterale">
+            <div class="logo">💅 Shoganails</div>
+            <nav>
+                <button class="voce-nav attiva" data-tab="richieste">📥 Richieste</button>
+                <button class="voce-nav" data-tab="calendario">📅 Calendario</button>
+                <button class="voce-nav" data-tab="settimana">🤖 Nuova settimana</button>
+                <button class="voce-nav" data-tab="foto">🖼️ Foto</button>
+            </nav>
+        </aside>
+
+        <main class="contenuto">
+            <section id="tab-richieste" class="tab attiva">
+                <h1>Richieste in arrivo</h1>
+                <div id="lista-richieste" class="lista-richieste"></div>
+            </section>
+
+            <section id="tab-calendario" class="tab">
+                <h1>Calendario prenotazioni</h1>
+                <div id="lista-calendario" class="lista-calendario"></div>
+            </section>
+
+            <section id="tab-settimana" class="tab">
+                <h1>Nuova settimana</h1>
+                <div class="scheda-upload">
+                    <p>Carica una foto del foglio turni: l'IA lo legge e propone gli slot della settimana.</p>
+                    <button id="bottone-carica" class="bottone-primario">📷 Carica foto foglio turni</button>
+                    <div id="stato-ia" class="stato-ia" hidden></div>
+                    <div id="slot-settimana" class="slot-settimana" hidden></div>
+                </div>
+            </section>
+
+            <section id="tab-foto" class="tab">
+                <h1>Foto del sito</h1>
+                <div id="griglia-foto" class="griglia-foto"></div>
+                <button id="bottone-aggiungi-foto" class="bottone-primario">+ Aggiungi foto</button>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

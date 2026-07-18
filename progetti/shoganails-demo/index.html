@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shoganails — Nail Studio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">💅 Shoganails</div>
+        <nav>
+            <a href="#servizi">Servizi</a>
+            <a href="#galleria">Galleria</a>
+            <a href="#prenota">Prenota</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Le tue unghie, la tua bellezza</h1>
+        <p>Manicure, pedicure e nail art su misura, nel cuore della città.</p>
+        <a href="#prenota" class="bottone-hero">Prenota ora</a>
+    </section>
+
+    <section id="servizi" class="servizi">
+        <h2>Servizi</h2>
+        <div class="servizi-grid">
+            <div class="servizio-card">
+                <span class="servizio-icona">💅</span>
+                <h3>Manicure classica</h3>
+                <p>Cura e smalto tradizionale</p>
+                <span class="servizio-prezzo">25 CHF · 45 min</span>
+            </div>
+            <div class="servizio-card">
+                <span class="servizio-icona">✨</span>
+                <h3>Ricostruzione gel</h3>
+                <p>Unghie lunghe e resistenti</p>
+                <span class="servizio-prezzo">55 CHF · 90 min</span>
+            </div>
+            <div class="servizio-card">
+                <span class="servizio-icona">🦶</span>
+                <h3>Pedicure spa</h3>
+                <p>Trattamento completo piedi</p>
+                <span class="servizio-prezzo">45 CHF · 60 min</span>
+            </div>
+            <div class="servizio-card">
+                <span class="servizio-icona">🎨</span>
+                <h3>Nail art</h3>
+                <p>Decorazioni personalizzate</p>
+                <span class="servizio-prezzo">+10 CHF</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="galleria" class="galleria">
+        <h2>Le nostre unghie</h2>
+        <div class="galleria-grid">
+            <div class="galleria-item">💅</div>
+            <div class="galleria-item">💖</div>
+            <div class="galleria-item">✨</div>
+            <div class="galleria-item">🌸</div>
+            <div class="galleria-item">💅</div>
+            <div class="galleria-item">🎀</div>
+        </div>
+    </section>
+
+    <section id="prenota" class="prenota">
+        <h2>Prenota il tuo appuntamento</h2>
+        <form id="form-prenota">
+            <input type="text" placeholder="Nome e cognome" required>
+            <input type="tel" placeholder="Telefono" required>
+            <select required>
+                <option value="" disabled selected>Scegli un servizio</option>
+                <option>Manicure classica</option>
+                <option>Ricostruzione gel</option>
+                <option>Pedicure spa</option>
+                <option>Nail art</option>
+            </select>
+            <div class="prenota-riga">
+                <input type="date" required>
+                <input type="time" required>
+            </div>
+            <button type="submit">Invia richiesta</button>
+        </form>
+        <div id="prenota-successo" class="prenota-successo" hidden>
+            <p>✅ Richiesta inviata! Ti confermeremo l'appuntamento a breve.</p>
+        </div>
+    </section>
+
+    <footer>
+        <p>💅 Shoganails — riproduzione demo per portfolio, nessun dato viene inviato realmente.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

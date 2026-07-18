@@ -148,41 +148,89 @@
         </div>
       </div>
 
-      <div>
-        <div class="browser-card" data-url="https://shoganails.ch" data-title="shoganails">
-          <div class="browser-bar">
-            <div class="browser-dots"><span></span><span></span><span></span></div>
-            <div class="browser-url">shoganails</div>
-          </div>
-          <div class="browser-body">
-            <iframe src="https://shoganails.ch" tabindex="-1"></iframe>
-          </div>
-        </div>
-        <div class="project-meta">
-          <div class="project-title-row">
-            <h3>Shoganails</h3>
-            <div class="feature-info">
-              <button type="button" class="feature-info-btn" aria-label="Funzionalità" aria-expanded="false">?</button>
-              <ul class="feature-info-popup">
-                <li data-it="Prenotazione online con slot liberi in tempo reale" data-en="Online booking with real-time free slots">Prenotazione online con slot liberi in tempo reale</li>
-                <li data-it="Pannello admin: lettura IA del foglio turni (Claude Vision)" data-en="Admin panel: AI reading of the shift sheet (Claude Vision)">Pannello admin: lettura IA del foglio turni (Claude Vision)</li>
-                <li data-it="Notifiche push per le nuove richieste, anche ad app chiusa" data-en="Push notifications for new requests, even with the app closed">Notifiche push per le nuove richieste, anche ad app chiusa</li>
-                <li data-it="Backend Supabase con Row Level Security" data-en="Supabase backend with Row Level Security">Backend Supabase con Row Level Security</li>
-              </ul>
+      <div class="project-system">
+        <div class="system-badge">🔗 <span data-it="Sistema collegato: stesso prodotto, sito pubblico e pannello gestionale" data-en="Connected system: same product, public site and management panel">Sistema collegato: stesso prodotto, sito pubblico e pannello gestionale</span></div>
+        <div class="project-system-grid">
+          <div id="sistema-shoganails-sito">
+            <div class="browser-card" data-url="progetti/shoganails-demo/index.html" data-title="shoganails">
+              <div class="browser-bar">
+                <div class="browser-dots"><span></span><span></span><span></span></div>
+                <div class="browser-url">shoganails</div>
+              </div>
+              <div class="browser-body">
+                <iframe src="progetti/shoganails-demo/index.html" tabindex="-1"></iframe>
+              </div>
             </div>
-            <p class="feature-info-touch-hint" aria-hidden="true">
-              <span class="feature-info-arrow">←</span>
-              <span data-it="Tocca l'icona per le funzionalità" data-en="Tap the icon for features">Tocca l'icona per le funzionalità</span>
-            </p>
-          </div>
-          <div class="project-meta-columns">
-            <div class="project-meta-info">
-              <p data-it="Sito e mini-app di prenotazione per un salone di unghie: le clienti prenotano online, l'admin gestisce le richieste in tempo reale e carica il foglio turni con lettura automatica via IA." data-en="A booking site and mini-app for a nail salon: clients book online, the admin manages requests in real time and uploads the shift sheet with automatic AI reading.">Sito e mini-app di prenotazione per un salone di unghie: le clienti prenotano online, l'admin gestisce le richieste in tempo reale e carica il foglio turni con lettura automatica via IA.</p>
-              <ul class="tech-stack"><li>Next.js</li><li>TypeScript</li><li>Tailwind CSS</li><li>Supabase</li><li>Anthropic API</li></ul>
+            <div class="project-meta">
+              <div class="project-title-row">
+                <h3>Shoganails</h3>
+                <div class="feature-info">
+                  <button type="button" class="feature-info-btn" aria-label="Funzionalità" aria-expanded="false">?</button>
+                  <ul class="feature-info-popup">
+                    <li data-it="Prenotazione online con slot liberi in tempo reale" data-en="Online booking with real-time free slots">Prenotazione online con slot liberi in tempo reale</li>
+                    <li data-it="Galleria foto del salone" data-en="Salon photo gallery">Galleria foto del salone</li>
+                    <li data-it="Servizi e prezzi sempre aggiornati" data-en="Services and prices always up to date">Servizi e prezzi sempre aggiornati</li>
+                    <li data-it="Backend Supabase con Row Level Security" data-en="Supabase backend with Row Level Security">Backend Supabase con Row Level Security</li>
+                  </ul>
+                </div>
+                <p class="feature-info-touch-hint" aria-hidden="true">
+                  <span class="feature-info-arrow">←</span>
+                  <span data-it="Tocca l'icona per le funzionalità" data-en="Tap the icon for features">Tocca l'icona per le funzionalità</span>
+                </p>
+              </div>
+              <div class="project-meta-columns">
+                <div class="project-meta-info">
+                  <p data-it="Sito di prenotazione per un salone di unghie: le clienti scelgono il servizio e prenotano online." data-en="A booking site for a nail salon: clients pick a service and book online.">Sito di prenotazione per un salone di unghie: le clienti scelgono il servizio e prenotano online.</p>
+                  <ul class="tech-stack"><li>Next.js</li><li>TypeScript</li><li>Tailwind CSS</li><li>Supabase</li></ul>
+                </div>
+                <div class="project-meta-actions">
+                  <p class="project-stat" data-it="Salone in attività reale — questa è una riproduzione demo, dati finti." data-en="Real working salon — this is a demo reproduction with fake data.">Salone in attività reale — questa è una riproduzione demo, dati finti.</p>
+                  <a class="system-link" href="#sistema-shoganails-app" data-it="🔗 Collegato al pannello gestionale ↓" data-en="🔗 Connected to the management panel ↓">🔗 Collegato al pannello gestionale ↓</a>
+                  <a href="progetti/shoganails-demo/index.html" target="_blank" rel="noopener" data-it="Apri in una nuova scheda ↗" data-en="Open in a new tab ↗">Apri in una nuova scheda ↗</a>
+                </div>
+              </div>
             </div>
-            <div class="project-meta-actions">
-              <p class="project-stat" data-it="Salone in attività reale: prenotazioni, IA e notifiche push in produzione." data-en="Real working salon: bookings, AI and push notifications in production.">Salone in attività reale: prenotazioni, IA e notifiche push in produzione.</p>
-              <a href="https://shoganails.ch" target="_blank" rel="noopener" data-it="Apri in una nuova scheda ↗" data-en="Open in a new tab ↗">Apri in una nuova scheda ↗</a>
+          </div>
+
+          <div id="sistema-shoganails-app">
+            <div class="browser-card" data-url="progetti/shoganails-app-demo/index.html" data-title="shoganails-gestione">
+              <div class="browser-bar">
+                <div class="browser-dots"><span></span><span></span><span></span></div>
+                <div class="browser-url">shoganails · gestione</div>
+              </div>
+              <div class="browser-body">
+                <iframe src="progetti/shoganails-app-demo/index.html" tabindex="-1"></iframe>
+              </div>
+            </div>
+            <div class="project-meta">
+              <div class="project-title-row">
+                <h3>Shoganails · Gestione</h3>
+                <div class="feature-info">
+                  <button type="button" class="feature-info-btn" aria-label="Funzionalità" aria-expanded="false">?</button>
+                  <ul class="feature-info-popup">
+                    <li data-it="Richieste di prenotazione in tempo reale" data-en="Real-time booking requests">Richieste di prenotazione in tempo reale</li>
+                    <li data-it="Calendario delle prenotazioni confermate" data-en="Calendar of confirmed bookings">Calendario delle prenotazioni confermate</li>
+                    <li data-it="Lettura IA del foglio turni (Claude Vision)" data-en="AI reading of the shift sheet (Claude Vision)">Lettura IA del foglio turni (Claude Vision)</li>
+                    <li data-it="Notifiche push per le nuove richieste, anche ad app chiusa" data-en="Push notifications for new requests, even with the app closed">Notifiche push per le nuove richieste, anche ad app chiusa</li>
+                  </ul>
+                </div>
+                <p class="feature-info-touch-hint" aria-hidden="true">
+                  <span class="feature-info-arrow">←</span>
+                  <span data-it="Tocca l'icona per le funzionalità" data-en="Tap the icon for features">Tocca l'icona per le funzionalità</span>
+                </p>
+              </div>
+              <div class="project-meta-columns">
+                <div class="project-meta-info">
+                  <p data-it="Pannello per la titolare del salone: gestisce le richieste, il calendario e il foglio turni con lettura automatica via IA. PWA installabile sul telefono." data-en="A panel for the salon owner: manages requests, the calendar and the shift sheet with automatic AI reading. Installable as a PWA on the phone.">Pannello per la titolare del salone: gestisce le richieste, il calendario e il foglio turni con lettura automatica via IA. PWA installabile sul telefono.</p>
+                  <ul class="tech-stack"><li>Next.js</li><li>TypeScript</li><li>Tailwind CSS</li><li>Supabase</li><li>Anthropic API</li></ul>
+                </div>
+                <div class="project-meta-actions">
+                  <p class="project-stat" data-it="Gestisce richieste, calendario e turni in produzione — questa è una riproduzione demo, dati finti." data-en="Manages requests, calendar and shifts in production — this is a demo reproduction with fake data.">Gestisce richieste, calendario e turni in produzione — questa è una riproduzione demo, dati finti.</p>
+                  <p class="project-hint" data-it="Demo: prova a confermare/rifiutare una richiesta o a caricare il foglio turni, nessun account richiesto." data-en="Demo: try confirming/rejecting a request or uploading the shift sheet, no account needed.">Demo: prova a confermare/rifiutare una richiesta o a caricare il foglio turni, nessun account richiesto.</p>
+                  <a class="system-link" href="#sistema-shoganails-sito" data-it="🔗 Collegato al sito ↑" data-en="🔗 Connected to the site ↑">🔗 Collegato al sito ↑</a>
+                  <a href="progetti/shoganails-app-demo/index.html" target="_blank" rel="noopener" data-it="Apri in una nuova scheda ↗" data-en="Open in a new tab ↗">Apri in una nuova scheda ↗</a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
