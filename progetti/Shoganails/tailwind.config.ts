@@ -45,6 +45,15 @@ const config: Config = {
         "marble-veins":
           "radial-gradient(ellipse at top left, rgba(255,255,255,0.6), transparent 55%), radial-gradient(ellipse at bottom right, rgba(249,113,72,0.06), transparent 60%)",
       },
+      keyframes: {
+        twinkle: {
+          "0%, 100%": { opacity: "0.15", transform: "scale(0.8)" },
+          "50%": { opacity: "1", transform: "scale(1.15)" },
+        },
+      },
+      animation: {
+        twinkle: "twinkle 3.6s ease-in-out infinite",
+      },
     },
   },
   plugins: [],

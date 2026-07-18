@@ -1,15 +1,40 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+const DESCRIZIONE =
+  "Nail art e cura delle unghie. Prenota un appuntamento: ti risponderemo su WhatsApp.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://shoganails.ch"),
   title: "Shoganails",
-  description:
-    "Nail art e cura delle unghie. Prenota un appuntamento: ti risponderemo su WhatsApp.",
+  description: DESCRIZIONE,
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Shoganails",
+  },
+  openGraph: {
+    title: "Shoganails",
+    description: DESCRIZIONE,
+    url: "https://shoganails.ch",
+    siteName: "Shoganails",
+    locale: "it_IT",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Shoganails — nail art fatto a mano",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shoganails",
+    description: DESCRIZIONE,
+    images: ["/og-image.jpg"],
   },
 };
 

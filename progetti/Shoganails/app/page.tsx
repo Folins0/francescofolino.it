@@ -4,6 +4,7 @@ import { serviceCategories } from "@/lib/services";
 import { createClient } from "@/lib/supabase/server";
 import ServiziAccordion from "@/components/ServiziAccordion";
 import Galleria from "@/components/Galleria";
+import HeroReveal from "@/components/HeroReveal";
 
 const INSTAGRAM_HANDLE = "_shoganai_2022";
 const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}/`;
@@ -45,24 +46,54 @@ export default async function HomePage() {
         </div>
       </header>
 
+      {/* Hero banner */}
+      <div className="relative aspect-[1484/1005] w-full overflow-hidden bg-stone-900">
+        <picture>
+          <source srcSet="/hero.webp" type="image/webp" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero.jpg"
+            alt="Shoganails — nail art fatto a mano, primo piano su manicure curata"
+            className="h-full w-full object-cover"
+            fetchPriority="high"
+            decoding="async"
+          />
+        </picture>
+        <div className="pointer-events-none absolute inset-0">
+          <span className="absolute left-[11%] top-[14%] h-3.5 w-3.5 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0)_70%)] motion-safe:animate-twinkle" />
+          <span className="absolute left-[82%] top-[22%] h-2.5 w-2.5 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0)_70%)] motion-safe:animate-twinkle [animation-delay:1.1s]" />
+          <span className="absolute left-[92%] top-[58%] h-2 w-2 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0)_70%)] motion-safe:animate-twinkle [animation-delay:2s]" />
+          <span className="absolute left-[63%] top-[8%] h-3 w-3 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0)_70%)] motion-safe:animate-twinkle [animation-delay:.6s]" />
+        </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/5 bg-gradient-to-b from-marble-50/0 to-marble-50" />
+      </div>
+
       <div className="mx-auto max-w-md px-5 pb-28 sm:max-w-2xl">
         {/* Hero */}
-        <section className="pt-8 text-center sm:pt-12">
-          <p className="mx-auto mb-3 inline-flex items-center gap-1 rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-coral-700 ring-1 ring-coral-200">
-            <Sparkles size={14} />
-            Nail art fatto a mano, con cura
-          </p>
-          <h1 className="font-display text-3xl font-semibold leading-tight text-stone-800 sm:text-4xl">
-            Le tue unghie,
-            <br />
-            un piccolo lusso quotidiano
-          </h1>
-          <p className="mx-auto mt-4 max-w-sm text-sm text-stone-500 sm:text-base">
-            Manicure e pedicure curate nei minimi dettagli. Scegli il
-            servizio e richiedi un appuntamento: ti confermiamo tutto su
-            WhatsApp.
-          </p>
-        </section>
+        <HeroReveal>
+          <section className="pt-8 text-center sm:pt-12">
+            <p className="mx-auto mb-3 inline-flex items-center gap-1 rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-coral-700 ring-1 ring-coral-200">
+              <Sparkles size={14} />
+              Nail art fatto a mano, con cura
+            </p>
+            <h1 className="font-display text-3xl font-semibold leading-tight text-stone-800 sm:text-4xl">
+              Le tue unghie,
+              <br />
+              un piccolo lusso quotidiano
+            </h1>
+            <p className="mx-auto mt-4 max-w-sm text-sm text-stone-500 sm:text-base">
+              Manicure e pedicure curate nei minimi dettagli. Scegli il
+              servizio e richiedi un appuntamento: ti confermiamo tutto su
+              WhatsApp.
+            </p>
+            <Link
+              href="/prenota"
+              className="mt-6 inline-block rounded-full bg-gradient-to-r from-coral-700 to-rose-700 px-8 py-3.5 font-display font-semibold text-white shadow-lg shadow-coral-200/60 transition duration-300 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]"
+            >
+              Prenota un appuntamento
+            </Link>
+          </section>
+        </HeroReveal>
 
         {/* Gallery */}
         <section className="mt-12 sm:mt-16">
