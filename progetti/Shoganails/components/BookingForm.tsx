@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { formattaGiornoBreve, nomeGiorno } from "@/lib/week";
 import { formattaDurata } from "@/lib/services";
+import { TELEFONO_REGEX } from "@/lib/validation";
 import type { AvailableSlotRow, ServiceRow } from "@/types/database";
-
-const TELEFONO_REGEX = /^[+\d][\d\s()-]{5,20}$/;
 
 function formattaOra(ora: string): string {
   return ora.slice(0, 5); // "HH:MM:SS" -> "HH:MM"
@@ -93,6 +92,7 @@ export function BookingForm({
 
   const [slotId, setSlotId] = useState("");
   const [orarioPreferito, setOrarioPreferito] = useState("");
+  const orarioRef = useRef<HTMLFieldSetElement>(null);
 
   const slotScelto = slotsDisponibili.find((s) => s.id === slotId) ?? null;
 
@@ -103,6 +103,7 @@ export function BookingForm({
       setSlotId("");
       setOrarioPreferito("");
     }
+    if (slotId) setTimeout(() => orarioRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slotsDisponibili]);
 
@@ -308,7 +309,7 @@ export function BookingForm({
       </fieldset>
 
       {slotScelto && (
-        <fieldset>
+        <fieldset ref={orarioRef}>
           <legend className="mb-2 block text-sm font-medium text-stone-600">
             A che ora preferisci? (dura {formattaDurata(durataTotale)})
           </legend>
