@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { inviaPushATutteLeSubscription } from "@/lib/push";
+import { TELEFONO_REGEX } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -19,8 +20,6 @@ interface PrenotaBody {
   orarioLabel?: string;
   servizioLabel?: string;
 }
-
-const TELEFONO_REGEX = /^[+\d][\d\s()-]{5,20}$/;
 
 /**
  * Crea una richiesta di prenotazione (Prompt 5) e, se riesce, avvisa Grazia

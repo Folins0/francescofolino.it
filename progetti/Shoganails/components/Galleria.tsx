@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import GalleryPlaceholder from "@/components/GalleryPlaceholder";
 import { GALLERY_SERVICES } from "@/types/gallery";
@@ -114,14 +115,15 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
             key={f.id}
             type="button"
             onClick={() => setIndiceAperto(i)}
-            className="aspect-square overflow-hidden rounded-2xl shadow-sm"
+            className="relative aspect-square overflow-hidden rounded-2xl shadow-sm"
             aria-label="Apri la foto a schermo intero"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={f.url}
               alt="Lavoro di nail art Shoganails"
-              className="h-full w-full object-cover"
+              fill
+              sizes="(max-width: 640px) 33vw, 25vw"
+              className="object-cover"
             />
           </button>
         ))}
@@ -157,12 +159,13 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
             </button>
           )}
 
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             key={indiceAperto}
             src={foto[indiceAperto].url}
             alt="Lavoro di nail art Shoganails"
-            className={`max-h-[85vh] max-w-full rounded-xl object-contain ${
+            width={1200}
+            height={900}
+            className={`max-h-[85vh] w-auto rounded-xl object-contain ${
               direzione === "avanti"
                 ? "motion-safe:animate-slide-in-right"
                 : "motion-safe:animate-slide-in-left"

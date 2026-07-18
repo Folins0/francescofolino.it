@@ -61,22 +61,27 @@ export default function ServiziAccordion({
                 />
               </span>
             </button>
-            {aperta && (
-              <div className="space-y-3 border-t border-marble-200/70 px-5 py-4">
-                {categoria.opzioni.map((opzione) => (
-                  <div key={opzione.id} className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-stone-800">{opzione.nome}</p>
-                      <p className="text-xs text-stone-500">{opzione.descrizione}</p>
-                      <p className="mt-0.5 text-xs text-stone-400">{formattaDurata(opzione.durataMinuti)}</p>
+            <div
+              className="grid transition-all duration-200 ease-in-out"
+              style={{ gridTemplateRows: aperta ? "1fr" : "0fr" }}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div className="space-y-3 border-t border-marble-200/70 px-5 py-4">
+                  {categoria.opzioni.map((opzione) => (
+                    <div key={opzione.id} className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-stone-800">{opzione.nome}</p>
+                        <p className="text-xs text-stone-500">{opzione.descrizione}</p>
+                        <p className="mt-0.5 text-xs text-stone-400">{formattaDurata(opzione.durataMinuti)}</p>
+                      </div>
+                      <p className="whitespace-nowrap text-sm font-semibold text-coral-700">
+                        {opzione.prezzoChf} CHF
+                      </p>
                     </div>
-                    <p className="whitespace-nowrap text-sm font-semibold text-coral-700">
-                      {opzione.prezzoChf} CHF
-                    </p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            )}
+            </div>
           </div>
         );
       })}

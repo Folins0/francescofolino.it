@@ -6,6 +6,8 @@ import ServiziAccordion from "@/components/ServiziAccordion";
 import Galleria from "@/components/Galleria";
 import HeroReveal from "@/components/HeroReveal";
 
+export const revalidate = 3600;
+
 const INSTAGRAM_HANDLE = "_shoganai_2022";
 const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}/`;
 
@@ -171,6 +173,23 @@ export default async function HomePage() {
       <footer className="hidden border-t border-marble-200 py-6 text-center text-xs text-stone-500 sm:block sm:pb-24">
         © {new Date().getFullYear()} Shoganails
       </footer>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            name: "Shoganails",
+            description: "Nail art e cura delle unghie. Manicure e pedicure curate nei minimi dettagli.",
+            url: "https://shoganails.ch",
+            telephone: "",
+            areaServed: "Svizzera",
+            priceRange: "CHF 30–40",
+            sameAs: ["https://www.instagram.com/_shoganai_2022/"],
+          }),
+        }}
+      />
     </main>
   );
 }

@@ -1,5 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import { Playfair_Display, Poppins } from "next/font/google";
 import "./globals.css";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+});
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-body",
+});
 
 const DESCRIZIONE =
   "Nail art e cura delle unghie. Prenota un appuntamento: ti risponderemo su WhatsApp.";
@@ -50,7 +64,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="it">
+    <html lang="it" className={`${playfair.variable} ${poppins.variable}`}>
       <body className="font-body text-stone-800 antialiased">{children}</body>
     </html>
   );
