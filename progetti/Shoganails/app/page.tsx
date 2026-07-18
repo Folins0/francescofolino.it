@@ -47,7 +47,7 @@ export default async function HomePage() {
       </header>
 
       {/* Hero banner */}
-      <div className="relative aspect-[1484/1005] w-full overflow-hidden bg-stone-900">
+      <div className="relative aspect-[1484/1005] w-full overflow-hidden bg-stone-900 sm:mx-auto sm:mt-6 sm:max-w-2xl sm:rounded-3xl">
         <picture>
           <source srcSet="/hero.webp" type="image/webp" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -86,12 +86,6 @@ export default async function HomePage() {
               servizio e richiedi un appuntamento: ti confermiamo tutto su
               WhatsApp.
             </p>
-            <Link
-              href="/prenota"
-              className="mt-6 inline-block rounded-full bg-gradient-to-r from-coral-700 to-rose-700 px-8 py-3.5 font-display font-semibold text-white shadow-lg shadow-coral-200/60 transition duration-300 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]"
-            >
-              Prenota un appuntamento
-            </Link>
           </section>
         </HeroReveal>
 
