@@ -113,12 +113,6 @@ export default async function HomePage() {
           <p className="mt-2 text-xs text-stone-500">
             Prezzi in Franchi Svizzeri (CHF).
           </p>
-          <Link
-            href="/prenota"
-            className="mt-6 hidden w-full items-center justify-center rounded-full bg-gradient-to-r from-coral-700 to-rose-700 px-6 py-4 font-display text-lg font-semibold text-white shadow-lg shadow-coral-200/60 transition active:scale-[0.98] sm:flex"
-          >
-            Prenota un appuntamento
-          </Link>
         </section>
 
         {/* Instagram */}
@@ -161,17 +155,19 @@ export default async function HomePage() {
         </section>
       </div>
 
-      {/* CTA fissa mobile */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-marble-200 bg-marble-50/95 px-5 py-3 backdrop-blur sm:hidden">
-        <Link
-          href="/prenota"
-          className="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-coral-700 to-rose-700 px-6 py-3 font-display font-semibold text-white shadow-md active:scale-[0.98]"
-        >
-          Prenota un appuntamento
-        </Link>
+      {/* CTA fissa in fondo */}
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-marble-200 bg-marble-50/95 px-5 py-3 backdrop-blur">
+        <div className="mx-auto max-w-md sm:max-w-2xl">
+          <Link
+            href="/prenota"
+            className="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-coral-700 to-rose-700 px-6 py-3 font-display font-semibold text-white shadow-md transition active:scale-[0.98] sm:py-4 sm:text-lg sm:hover:-translate-y-0.5 sm:hover:shadow-xl"
+          >
+            Prenota un appuntamento
+          </Link>
+        </div>
       </div>
 
-      <footer className="hidden border-t border-marble-200 py-6 text-center text-xs text-stone-500 sm:block">
+      <footer className="hidden border-t border-marble-200 py-6 text-center text-xs text-stone-500 sm:block sm:pb-24">
         © {new Date().getFullYear()} Shoganails
       </footer>
     </main>
