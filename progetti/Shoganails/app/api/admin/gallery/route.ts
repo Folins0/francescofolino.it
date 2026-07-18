@@ -39,6 +39,9 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("foto");
+  const servizioRaw = formData.get("servizio");
+  const servizio =
+    typeof servizioRaw === "string" && servizioRaw.trim() ? servizioRaw.trim() : null;
 
   if (!(file instanceof File)) {
     return NextResponse.json<GalleryUploadResponse>(
@@ -89,7 +92,7 @@ export async function POST(request: Request) {
 
   const { data: row, error: insertErr } = await supabase
     .from("gallery_photos")
-    .insert({ storage_path: path, ordine })
+    .insert({ storage_path: path, ordine, servizio })
     .select("id")
     .single();
 
@@ -101,7 +104,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const photo: GalleryPhoto = { id: row.id, url: publicUrl(supabase, path) };
+  const photo: GalleryPhoto = { id: row.id, url: publicUrl(supabase, path), servizio };
   return NextResponse.json<GalleryUploadResponse>({ ok: true, photo });
 }
 

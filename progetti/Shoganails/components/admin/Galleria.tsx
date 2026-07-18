@@ -3,10 +3,11 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { Trash2 } from "lucide-react";
 import { comprimiImmagine } from "@/lib/image";
-import type {
-  GalleryDeleteResponse,
-  GalleryPhoto,
-  GalleryUploadResponse,
+import {
+  GALLERY_SERVICES,
+  type GalleryDeleteResponse,
+  type GalleryPhoto,
+  type GalleryUploadResponse,
 } from "@/types/gallery";
 
 interface GalleriaProps {
@@ -16,6 +17,7 @@ interface GalleriaProps {
 export function Galleria({ fotoIniziali }: GalleriaProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [foto, setFoto] = useState<GalleryPhoto[]>(fotoIniziali);
+  const [servizio, setServizio] = useState("");
   const [caricamento, setCaricamento] = useState(false);
   const [eliminandoId, setEliminandoId] = useState<string | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
@@ -30,6 +32,7 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
 
     const formData = new FormData();
     formData.append("foto", await comprimiImmagine(file));
+    formData.append("servizio", servizio);
 
     try {
       const res = await fetch("/api/admin/gallery", {
@@ -81,6 +84,25 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
           {errore}
         </p>
       )}
+
+      <div>
+        <label htmlFor="galleria-servizio" className="block text-sm font-medium text-stone-700">
+          Servizio della prossima foto
+        </label>
+        <select
+          id="galleria-servizio"
+          value={servizio}
+          onChange={(e) => setServizio(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-700"
+        >
+          <option value="">Non specificato</option>
+          {GALLERY_SERVICES.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.nome}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="grid grid-cols-3 gap-3">
         {foto.map((f) => (
