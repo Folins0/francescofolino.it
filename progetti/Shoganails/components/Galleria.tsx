@@ -10,6 +10,7 @@ type Foto = { id: string; url: string; servizio: string | null };
 export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
   const [filtro, setFiltro] = useState<string | null>(null);
   const [indiceAperto, setIndiceAperto] = useState<number | null>(null);
+  const [direzione, setDirezione] = useState<"avanti" | "indietro">("avanti");
   const touchStartX = useRef<number | null>(null);
 
   const serviziPresenti = useMemo(
@@ -22,14 +23,14 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
   );
 
   const chiudi = useCallback(() => setIndiceAperto(null), []);
-  const precedente = useCallback(
-    () => setIndiceAperto((i) => (i === null ? null : (i - 1 + foto.length) % foto.length)),
-    [foto.length]
-  );
-  const successiva = useCallback(
-    () => setIndiceAperto((i) => (i === null ? null : (i + 1) % foto.length)),
-    [foto.length]
-  );
+  const precedente = useCallback(() => {
+    setDirezione("indietro");
+    setIndiceAperto((i) => (i === null ? null : (i - 1 + foto.length) % foto.length));
+  }, [foto.length]);
+  const successiva = useCallback(() => {
+    setDirezione("avanti");
+    setIndiceAperto((i) => (i === null ? null : (i + 1) % foto.length));
+  }, [foto.length]);
 
   useEffect(() => {
     if (indiceAperto === null) return;
@@ -158,9 +159,14 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
 
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
+            key={indiceAperto}
             src={foto[indiceAperto].url}
             alt="Lavoro di nail art Shoganails"
-            className="max-h-[85vh] max-w-full rounded-xl object-contain"
+            className={`max-h-[85vh] max-w-full rounded-xl object-contain ${
+              direzione === "avanti"
+                ? "motion-safe:animate-slide-in-right"
+                : "motion-safe:animate-slide-in-left"
+            }`}
             onClick={(e) => e.stopPropagation()}
           />
 
