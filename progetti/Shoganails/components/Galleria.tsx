@@ -145,7 +145,7 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
             type="button"
             onClick={chiudi}
             aria-label="Chiudi"
-            className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white"
+            className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white"
           >
             <X size={22} />
           </button>
@@ -158,7 +158,7 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
                 precedente();
               }}
               aria-label="Foto precedente"
-              className="absolute left-2 rounded-full bg-white/10 p-2 text-white sm:left-4"
+              className="absolute left-2 z-10 rounded-full bg-white/10 p-2 text-white sm:left-4"
             >
               <ChevronLeft size={26} />
             </button>
@@ -219,7 +219,7 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
                 successiva();
               }}
               aria-label="Foto successiva"
-              className="absolute right-2 rounded-full bg-white/10 p-2 text-white sm:right-4"
+              className="absolute right-2 z-10 rounded-full bg-white/10 p-2 text-white sm:right-4"
             >
               <ChevronRight size={26} />
             </button>
