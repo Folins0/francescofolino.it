@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 import GalleryPlaceholder from "@/components/GalleryPlaceholder";
 import { GALLERY_SERVICES } from "@/types/gallery";
 
@@ -12,6 +12,7 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
   const [filtro, setFiltro] = useState<string | null>(null);
   const [indiceAperto, setIndiceAperto] = useState<number | null>(null);
   const [direzione, setDirezione] = useState<"avanti" | "indietro">("avanti");
+  const [descrizioneAperta, setDescrizioneAperta] = useState(true);
   const touchStartX = useRef<number | null>(null);
 
   const serviziPresenti = useMemo(
@@ -48,6 +49,10 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
       document.body.style.overflow = "";
     };
   }, [indiceAperto, chiudi, precedente, successiva]);
+
+  useEffect(() => {
+    setDescrizioneAperta(true);
+  }, [indiceAperto]);
 
   function onTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
@@ -161,7 +166,7 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
 
           <div
             key={indiceAperto}
-            className={`flex max-h-[85vh] flex-col items-center gap-2 ${
+            className={`relative inline-block max-h-[85vh] ${
               direzione === "avanti"
                 ? "motion-safe:animate-slide-in-right"
                 : "motion-safe:animate-slide-in-left"
@@ -173,12 +178,36 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
               alt="Lavoro di nail art Shoganails"
               width={1200}
               height={900}
-              className="max-h-[calc(85vh-2.5rem)] w-auto rounded-xl object-contain"
+              className="max-h-[85vh] w-auto rounded-xl object-contain"
             />
+
             {foto[indiceAperto].descrizione && (
-              <p className="max-w-md px-2 text-center text-sm text-white/80">
-                {foto[indiceAperto].descrizione}
-              </p>
+              <div className="absolute inset-x-0 bottom-0">
+                <div
+                  className={`grid rounded-b-xl bg-gradient-to-t from-black/85 via-black/50 to-transparent transition-[grid-template-rows] duration-300 ease-out ${
+                    descrizioneAperta ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <p className="px-4 pb-3 pt-9 text-sm leading-relaxed text-white/90">
+                      {foto[indiceAperto].descrizione}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setDescrizioneAperta((v) => !v)}
+                  aria-label={descrizioneAperta ? "Nascondi descrizione" : "Mostra descrizione"}
+                  aria-expanded={descrizioneAperta}
+                  className="absolute right-2 top-1.5 rounded-full bg-black/50 p-1.5 text-white transition hover:bg-black/70"
+                >
+                  <ChevronDown
+                    size={18}
+                    className={`transition-transform duration-300 ${descrizioneAperta ? "" : "rotate-180"}`}
+                  />
+                </button>
+              </div>
             )}
           </div>
 
