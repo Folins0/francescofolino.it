@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://francescofolino.it/</loc>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://francescofolino.it/progetti/Teampreview/index.html</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://francescofolino.it/progetti/astronaviga/index.html</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://francescofolino.it/progetti/osteria-folino/index.html</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://francescofolino.it/progetti/ristolive/index.html</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://francescofolino.it/progetti/shoganails-app-demo/index.html</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://francescofolino.it/progetti/shoganails-demo/index.html</loc>
+    <priority>0.7</priority>
+  </url>
+</urlset>
