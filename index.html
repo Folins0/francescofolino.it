@@ -29,6 +29,7 @@
     <ul id="navList">
       <li><a href="#chi-sono" data-it="Chi sono" data-en="About">Chi sono</a></li>
       <li><a href="#progetti" data-it="Progetti" data-en="Projects">Progetti</a></li>
+      <li><a href="#servizi" data-it="Servizi" data-en="Services">Servizi</a></li>
       <li><a href="#competenze" data-it="Competenze" data-en="Skills">Competenze</a></li>
       <li><a href="#contatti" data-it="Contatti" data-en="Contact">Contatti</a></li>
       <li><button class="nav-icon-btn" id="langToggle" type="button">EN</button></li>
@@ -326,6 +327,68 @@
     </div>
   </section>
 
+  <section class="block" id="servizi">
+    <h2 data-it="Servizi" data-en="Services">Servizi</h2>
+    <p data-it="Sviluppo siti e strumenti su misura per piccole attività." data-en="Custom websites and tools for small businesses.">Sviluppo siti e strumenti su misura per piccole attività.</p>
+
+    <div class="service-grid">
+      <div class="service-card">
+        <h3 data-it="Sito vetrina con prenotazioni online" data-en="Showcase website with online booking">Sito vetrina con prenotazioni online</h3>
+        <p data-it="Sito professionale con sistema di prenotazione integrato in tempo reale, pensato per saloni, ristoranti, studi professionali." data-en="A professional website with a real-time booking system, built for salons, restaurants and professional studios.">Sito professionale con sistema di prenotazione integrato in tempo reale, pensato per saloni, ristoranti, studi professionali.</p>
+        <ul class="tech-stack"><li>HTML/CSS/JS</li><li>Next.js</li><li>Supabase</li></ul>
+        <!-- PREZZO PLACEHOLDER: indicativo, da confermare -->
+        <p class="service-price" data-it="a partire da €800" data-en="starting at €800">a partire da €800</p>
+        <button type="button" class="service-cta" data-service="Sito vetrina con prenotazioni online" data-it="Richiedi info" data-en="Request info">Richiedi info</button>
+      </div>
+
+      <div class="service-card">
+        <h3 data-it="Pannello gestionale su misura" data-en="Custom management panel">Pannello gestionale su misura</h3>
+        <p data-it="Dashboard per gestire prenotazioni, calendario, notifiche e dati in tempo reale, collegata al sito pubblico." data-en="A dashboard to manage bookings, calendar, notifications and real-time data, connected to the public website.">Dashboard per gestire prenotazioni, calendario, notifiche e dati in tempo reale, collegata al sito pubblico.</p>
+        <ul class="tech-stack"><li>Next.js</li><li>TypeScript</li><li>Supabase</li></ul>
+        <!-- PREZZO PLACEHOLDER: indicativo, da confermare -->
+        <p class="service-price" data-it="a partire da €600" data-en="starting at €600">a partire da €600</p>
+        <button type="button" class="service-cta" data-service="Pannello gestionale su misura" data-it="Richiedi info" data-en="Request info">Richiedi info</button>
+      </div>
+
+      <div class="service-card">
+        <h3 data-it="Automazioni IA per attività locali" data-en="AI automation for local businesses">Automazioni IA per attività locali</h3>
+        <p data-it="Integrazioni con IA per automatizzare processi ripetitivi: lettura documenti, risposte automatiche a richieste, notifiche intelligenti (come la lettura del foglio turni in Shoganails)." data-en="AI integrations to automate repetitive processes: document reading, automatic replies to requests, smart notifications (like the shift-sheet reading in Shoganails).">Integrazioni con IA per automatizzare processi ripetitivi: lettura documenti, risposte automatiche a richieste, notifiche intelligenti (come la lettura del foglio turni in Shoganails).</p>
+        <ul class="tech-stack"><li>Anthropic API</li><li>Next.js</li><li>Python</li></ul>
+        <!-- PREZZO PLACEHOLDER: indicativo, da confermare -->
+        <p class="service-price" data-it="a partire da €400" data-en="starting at €400">a partire da €400</p>
+        <button type="button" class="service-cta" data-service="Automazioni IA per attività locali" data-it="Richiedi info" data-en="Request info">Richiedi info</button>
+      </div>
+    </div>
+
+    <!-- Formspree: form statico senza backend proprio, endpoint collegato a francescofolino01@gmail.com -->
+    <form id="serviziForm" class="services-form" action="https://formspree.io/f/mjgnwqyq" method="POST" novalidate>
+      <div class="form-row">
+        <label for="servizioNome" data-it="Nome" data-en="Name">Nome</label>
+        <input type="text" id="servizioNome" name="name" required>
+      </div>
+      <div class="form-row">
+        <label for="servizioEmail" data-it="Email" data-en="Email">Email</label>
+        <input type="email" id="servizioEmail" name="email" required>
+      </div>
+      <div class="form-row">
+        <label for="servizioTipo" data-it="Servizio di interesse" data-en="Service of interest">Servizio di interesse</label>
+        <select id="servizioTipo" name="servizio" required>
+          <option value="" data-it="Seleziona…" data-en="Select…">Seleziona…</option>
+          <option value="Sito vetrina con prenotazioni online" data-it="Sito vetrina con prenotazioni online" data-en="Showcase website with online booking">Sito vetrina con prenotazioni online</option>
+          <option value="Pannello gestionale su misura" data-it="Pannello gestionale su misura" data-en="Custom management panel">Pannello gestionale su misura</option>
+          <option value="Automazioni IA per attività locali" data-it="Automazioni IA per attività locali" data-en="AI automation for local businesses">Automazioni IA per attività locali</option>
+          <option value="Altro" data-it="Altro" data-en="Other">Altro</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="servizioMsg" data-it="Messaggio" data-en="Message">Messaggio</label>
+        <textarea id="servizioMsg" name="message" rows="4" required></textarea>
+      </div>
+      <button type="submit" class="form-submit" data-it="Invia" data-en="Send">Invia</button>
+      <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
   <section class="block" id="competenze">
     <h2 data-it="Competenze" data-en="Skills">Competenze</h2>
     <ul class="skills">
@@ -498,6 +561,49 @@
   });
   document.addEventListener('click', closeFeatureInfos);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeatureInfos(); });
+
+  // servizi: CTA "Richiedi info" preseleziona il servizio e scorre al form
+  const serviziForm = document.getElementById('serviziForm');
+  document.querySelectorAll('.service-cta').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('servizioTipo').value = btn.dataset.service;
+      serviziForm.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    });
+  });
+
+  // servizi: invio form via fetch (no reload) verso Formspree
+  const formStatus = document.getElementById('formStatus');
+  const formMessages = {
+    success: { it: 'Messaggio inviato! Ti risponderò al più presto.', en: 'Message sent! I will get back to you soon.' },
+    error: { it: "Errore nell'invio. Riprova o scrivimi direttamente via email.", en: 'Something went wrong. Please try again or email me directly.' }
+  };
+  serviziForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!serviziForm.checkValidity()) {
+      serviziForm.reportValidity();
+      return;
+    }
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'it';
+    const submitBtn = serviziForm.querySelector('.form-submit');
+    submitBtn.disabled = true;
+    formStatus.textContent = '';
+    formStatus.className = 'form-status';
+    try {
+      const res = await fetch(serviziForm.action, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(serviziForm)
+      });
+      formStatus.textContent = formMessages[res.ok ? 'success' : 'error'][lang];
+      formStatus.classList.add(res.ok ? 'ok' : 'err');
+      if (res.ok) serviziForm.reset();
+    } catch (err) {
+      formStatus.textContent = formMessages.error[lang];
+      formStatus.classList.add('err');
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
 </script>
 </body>
 </html>

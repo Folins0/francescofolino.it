@@ -393,6 +393,56 @@ section.block > p { line-height: 1.75; color: var(--text); font-size: 1.05rem; }
 }
 .modal-close:hover { color: var(--accent); }
 
+/* ---------- servizi ---------- */
+
+#servizi { max-width: 900px; }
+
+.service-grid { display: grid; gap: 1.5rem; margin-top: 1.5rem; }
+@media (min-width: 700px) {
+  .service-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.service-card {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card-bg); box-shadow: 0 8px 24px rgba(0,0,0,.06);
+  padding: 1.4rem 1.3rem 1.3rem;
+}
+.service-card h3 { font-size: 1.1rem; margin-bottom: .5rem; }
+.service-card p { font-size: .92rem; color: var(--muted); line-height: 1.5; margin-bottom: .8rem; }
+.service-price { font-size: 1rem !important; font-weight: 700; color: var(--accent) !important; margin-top: auto !important; }
+.service-cta {
+  align-self: flex-start; font-family: inherit; cursor: pointer;
+  border: 1px solid var(--accent); background: none; color: var(--accent);
+  border-radius: 6px; padding: .5rem 1rem; font-size: .85rem; font-weight: 600;
+}
+.service-cta:hover { background: var(--accent); color: var(--bg-soft); }
+
+.services-form { margin-top: 2.5rem; max-width: 560px; }
+.services-form .form-row { display: flex; flex-direction: column; gap: .35rem; margin-bottom: 1rem; }
+.services-form label { font-size: .85rem; font-weight: 600; color: var(--text); }
+.services-form input, .services-form select, .services-form textarea {
+  font-family: inherit; font-size: .95rem; padding: .55rem .7rem;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--card-bg); color: var(--ink);
+}
+.services-form input:focus, .services-form select:focus, .services-form textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+.services-form textarea { resize: vertical; }
+.form-submit {
+  font-family: inherit; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--bg-soft);
+  border-radius: 6px; padding: .6rem 1.4rem; font-size: .9rem; font-weight: 600;
+}
+.form-submit:hover { opacity: .9; }
+.form-submit:disabled { opacity: .6; cursor: not-allowed; }
+.form-status { margin-top: .8rem; font-size: .9rem; min-height: 1.2em; }
+.form-status.ok { color: #2e7d32; }
+.form-status.err { color: #c62828; }
+[data-theme="dark"] .form-status.ok { color: #7fd88f; }
+[data-theme="dark"] .form-status.err { color: #ff8a80; }
+
 /* ---------- contatti / footer ---------- */
 
 footer {
