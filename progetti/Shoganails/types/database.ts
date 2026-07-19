@@ -73,6 +73,8 @@ export interface GalleryPhotoRow {
   storage_path: string;
   ordine: number;
   creato_il: string;
+  servizio: string | null;
+  descrizione: string | null;
 }
 
 export interface Database {

@@ -2,6 +2,7 @@ export interface GalleryPhoto {
   id: string;
   url: string;
   servizio: string | null;
+  descrizione: string | null;
 }
 
 // Servizi disponibili per taggare le foto della galleria (usato dal select
@@ -14,6 +15,12 @@ export const GALLERY_SERVICES = [
 ] as const;
 
 export interface GalleryUploadResponse {
+  ok: boolean;
+  photo?: GalleryPhoto;
+  error?: string;
+}
+
+export interface GalleryUpdateResponse {
   ok: boolean;
   photo?: GalleryPhoto;
   error?: string;
