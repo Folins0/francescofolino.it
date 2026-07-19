@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   GalleryDeleteResponse,
   GalleryPhoto,
+  GalleryUpdateResponse,
   GalleryUploadResponse,
 } from "@/types/gallery";
 
@@ -42,6 +43,9 @@ export async function POST(request: Request) {
   const servizioRaw = formData.get("servizio");
   const servizio =
     typeof servizioRaw === "string" && servizioRaw.trim() ? servizioRaw.trim() : null;
+  const descrizioneRaw = formData.get("descrizione");
+  const descrizione =
+    typeof descrizioneRaw === "string" && descrizioneRaw.trim() ? descrizioneRaw.trim() : null;
 
   if (!(file instanceof File)) {
     return NextResponse.json<GalleryUploadResponse>(
@@ -92,7 +96,7 @@ export async function POST(request: Request) {
 
   const { data: row, error: insertErr } = await supabase
     .from("gallery_photos")
-    .insert({ storage_path: path, ordine, servizio })
+    .insert({ storage_path: path, ordine, servizio, descrizione })
     .select("id")
     .single();
 
@@ -104,8 +108,69 @@ export async function POST(request: Request) {
     );
   }
 
-  const photo: GalleryPhoto = { id: row.id, url: publicUrl(supabase, path), servizio };
+  const photo: GalleryPhoto = {
+    id: row.id,
+    url: publicUrl(supabase, path),
+    servizio,
+    descrizione,
+  };
   return NextResponse.json<GalleryUploadResponse>({ ok: true, photo });
+}
+
+export async function PATCH(request: Request) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json<GalleryUpdateResponse>(
+      { ok: false, error: "Non autenticato." },
+      { status: 401 }
+    );
+  }
+
+  const body = (await request.json().catch(() => ({}))) as {
+    id?: string;
+    servizio?: string | null;
+    descrizione?: string | null;
+  };
+
+  if (!body.id) {
+    return NextResponse.json<GalleryUpdateResponse>(
+      { ok: false, error: "ID mancante." },
+      { status: 400 }
+    );
+  }
+
+  const servizio =
+    typeof body.servizio === "string" && body.servizio.trim() ? body.servizio.trim() : null;
+  const descrizione =
+    typeof body.descrizione === "string" && body.descrizione.trim()
+      ? body.descrizione.trim()
+      : null;
+
+  const { data: row, error: updateErr } = await supabase
+    .from("gallery_photos")
+    .update({ servizio, descrizione })
+    .eq("id", body.id)
+    .select("id, storage_path, servizio, descrizione")
+    .single();
+
+  if (updateErr || !row) {
+    return NextResponse.json<GalleryUpdateResponse>(
+      { ok: false, error: `Errore database: ${updateErr?.message ?? "foto non trovata"}` },
+      { status: 500 }
+    );
+  }
+
+  const photo: GalleryPhoto = {
+    id: row.id,
+    url: publicUrl(supabase, row.storage_path),
+    servizio: row.servizio,
+    descrizione: row.descrizione,
+  };
+  return NextResponse.json<GalleryUpdateResponse>({ ok: true, photo });
 }
 
 export async function DELETE(request: Request) {

@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import GalleryPlaceholder from "@/components/GalleryPlaceholder";
 import { GALLERY_SERVICES } from "@/types/gallery";
 
-type Foto = { id: string; url: string; servizio: string | null };
+type Foto = { id: string; url: string; servizio: string | null; descrizione: string | null };
 
 export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
   const [filtro, setFiltro] = useState<string | null>(null);
@@ -159,19 +159,28 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
             </button>
           )}
 
-          <Image
+          <div
             key={indiceAperto}
-            src={foto[indiceAperto].url}
-            alt="Lavoro di nail art Shoganails"
-            width={1200}
-            height={900}
-            className={`max-h-[85vh] w-auto rounded-xl object-contain ${
+            className={`flex max-h-[85vh] flex-col items-center gap-2 ${
               direzione === "avanti"
                 ? "motion-safe:animate-slide-in-right"
                 : "motion-safe:animate-slide-in-left"
             }`}
             onClick={(e) => e.stopPropagation()}
-          />
+          >
+            <Image
+              src={foto[indiceAperto].url}
+              alt="Lavoro di nail art Shoganails"
+              width={1200}
+              height={900}
+              className="max-h-[calc(85vh-2.5rem)] w-auto rounded-xl object-contain"
+            />
+            {foto[indiceAperto].descrizione && (
+              <p className="max-w-md px-2 text-center text-sm text-white/80">
+                {foto[indiceAperto].descrizione}
+              </p>
+            )}
+          </div>
 
           {foto.length > 1 && (
             <button

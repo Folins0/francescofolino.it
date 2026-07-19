@@ -7,7 +7,7 @@ async function getGalleria(
 ): Promise<GalleryPhoto[]> {
   const { data, error } = await supabase
     .from("gallery_photos")
-    .select("id, storage_path, servizio")
+    .select("id, storage_path, servizio, descrizione")
     .order("ordine", { ascending: true });
 
   if (error || !data) return [];
@@ -17,6 +17,7 @@ async function getGalleria(
     url: supabase.storage.from("galleria").getPublicUrl(riga.storage_path).data
       .publicUrl,
     servizio: riga.servizio,
+    descrizione: riga.descrizione,
   }));
 }
 

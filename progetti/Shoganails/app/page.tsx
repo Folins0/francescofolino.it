@@ -15,7 +15,7 @@ async function getGalleria() {
   const supabase = createClient();
   const { data } = await supabase
     .from("gallery_photos")
-    .select("id, storage_path, servizio")
+    .select("id, storage_path, servizio, descrizione")
     .order("ordine", { ascending: true });
 
   return (data ?? []).map((riga) => ({
@@ -23,6 +23,7 @@ async function getGalleria() {
     url: supabase.storage.from("galleria").getPublicUrl(riga.storage_path).data
       .publicUrl,
     servizio: riga.servizio,
+    descrizione: riga.descrizione,
   }));
 }
 
