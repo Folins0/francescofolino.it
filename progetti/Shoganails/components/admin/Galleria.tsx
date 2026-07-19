@@ -17,22 +17,35 @@ interface GalleriaProps {
 export function Galleria({ fotoIniziali }: GalleriaProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [foto, setFoto] = useState<GalleryPhoto[]>(fotoIniziali);
-  const [servizio, setServizio] = useState("");
   const [caricamento, setCaricamento] = useState(false);
   const [eliminandoId, setEliminandoId] = useState<string | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
+  const [fileInAttesa, setFileInAttesa] = useState<File | null>(null);
+  const [servizioScelto, setServizioScelto] = useState("");
 
-  async function handleChange(e: ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (inputRef.current) inputRef.current.value = "";
     if (!file) return;
 
     setErrore(null);
+    setServizioScelto("");
+    setFileInAttesa(file);
+  }
+
+  function handleAnnullaUpload() {
+    setFileInAttesa(null);
+  }
+
+  async function handleConfermaUpload() {
+    if (!fileInAttesa) return;
+
     setCaricamento(true);
+    setErrore(null);
 
     const formData = new FormData();
-    formData.append("foto", await comprimiImmagine(file));
-    formData.append("servizio", servizio);
+    formData.append("foto", await comprimiImmagine(fileInAttesa));
+    formData.append("servizio", servizioScelto);
 
     try {
       const res = await fetch("/api/admin/gallery", {
@@ -45,6 +58,7 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
         return;
       }
       setFoto((prev) => [...prev, json.photo!]);
+      setFileInAttesa(null);
     } catch {
       setErrore("Errore di rete durante il caricamento. Riprova.");
     } finally {
@@ -85,25 +99,6 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
         </p>
       )}
 
-      <div>
-        <label htmlFor="galleria-servizio" className="block text-sm font-medium text-stone-700">
-          Servizio della prossima foto
-        </label>
-        <select
-          id="galleria-servizio"
-          value={servizio}
-          onChange={(e) => setServizio(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-700"
-        >
-          <option value="">Non specificato</option>
-          {GALLERY_SERVICES.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.nome}
-            </option>
-          ))}
-        </select>
-      </div>
-
       <div className="grid grid-cols-3 gap-3">
         {foto.map((f) => (
           <div
@@ -139,7 +134,7 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
           type="file"
           accept="image/*"
           onChange={handleChange}
-          disabled={caricamento}
+          disabled={caricamento || fileInAttesa !== null}
           className="hidden"
         />
       </div>
@@ -149,6 +144,48 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
           Nessuna foto ancora: il sito mostra dei segnaposto finché non ne
           aggiungi almeno una.
         </p>
+      )}
+
+      {fileInAttesa && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-xs rounded-2xl bg-white p-5 shadow-lg">
+            <p className="font-display text-lg font-semibold text-stone-800">
+              Che servizio è questa foto?
+            </p>
+            <select
+              autoFocus
+              value={servizioScelto}
+              onChange={(e) => setServizioScelto(e.target.value)}
+              disabled={caricamento}
+              className="mt-3 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-700"
+            >
+              <option value="">Non specificato</option>
+              {GALLERY_SERVICES.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.nome}
+                </option>
+              ))}
+            </select>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={handleAnnullaUpload}
+                disabled={caricamento}
+                className="flex-1 rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-600 disabled:opacity-60"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={handleConfermaUpload}
+                disabled={caricamento}
+                className="flex-1 rounded-full bg-coral-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {caricamento ? "Caricamento…" : "Carica"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
