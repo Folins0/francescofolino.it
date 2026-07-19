@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { comprimiImmagine } from "@/lib/image";
 import {
@@ -15,50 +15,54 @@ interface GalleriaProps {
   fotoIniziali: GalleryPhoto[];
 }
 
+type Overlay =
+  | { mode: "add"; file: File; anteprima: string }
+  | { mode: "edit"; id: string; anteprima: string };
+
 export function Galleria({ fotoIniziali }: GalleriaProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [foto, setFoto] = useState<GalleryPhoto[]>(fotoIniziali);
-  const [servizio, setServizio] = useState("");
-  const [descrizione, setDescrizione] = useState("");
-  const [caricamento, setCaricamento] = useState(false);
   const [eliminandoId, setEliminandoId] = useState<string | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editServizio, setEditServizio] = useState("");
-  const [editDescrizione, setEditDescrizione] = useState("");
+  const [overlay, setOverlay] = useState<Overlay | null>(null);
+  const [ovServizio, setOvServizio] = useState("");
+  const [ovDescrizione, setOvDescrizione] = useState("");
   const [salvando, setSalvando] = useState(false);
 
-  async function handleChange(e: ChangeEvent<HTMLInputElement>) {
+  useEffect(() => {
+    if (!overlay) return;
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      if (overlay!.mode === "add") URL.revokeObjectURL(overlay!.anteprima);
+      setOverlay(null);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [overlay]);
+
+  function handleFileSelected(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (inputRef.current) inputRef.current.value = "";
     if (!file) return;
 
     setErrore(null);
-    setCaricamento(true);
+    setOvServizio("");
+    setOvDescrizione("");
+    setOverlay({ mode: "add", file, anteprima: URL.createObjectURL(file) });
+  }
 
-    const formData = new FormData();
-    formData.append("foto", await comprimiImmagine(file));
-    formData.append("servizio", servizio);
-    formData.append("descrizione", descrizione);
+  function apriModifica(f: GalleryPhoto) {
+    setErrore(null);
+    setOvServizio(f.servizio ?? "");
+    setOvDescrizione(f.descrizione ?? "");
+    setOverlay({ mode: "edit", id: f.id, anteprima: f.url });
+  }
 
-    try {
-      const res = await fetch("/api/admin/gallery", {
-        method: "POST",
-        body: formData,
-      });
-      const json: GalleryUploadResponse = await res.json();
-      if (!json.ok || !json.photo) {
-        setErrore(json.error || "Errore durante il caricamento.");
-        return;
-      }
-      setFoto((prev) => [...prev, json.photo!]);
-      setDescrizione("");
-    } catch {
-      setErrore("Errore di rete durante il caricamento. Riprova.");
-    } finally {
-      setCaricamento(false);
-    }
+  function chiudiOverlay() {
+    if (overlay?.mode === "add") URL.revokeObjectURL(overlay.anteprima);
+    setOverlay(null);
   }
 
   async function handleElimina(id: string) {
@@ -86,38 +90,47 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
     }
   }
 
-  function apriModifica(f: GalleryPhoto) {
-    setErrore(null);
-    setEditingId(f.id);
-    setEditServizio(f.servizio ?? "");
-    setEditDescrizione(f.descrizione ?? "");
-  }
-
-  async function salvaModifica() {
-    if (!editingId) return;
+  async function confermaOverlay() {
+    if (!overlay) return;
 
     setErrore(null);
     setSalvando(true);
 
     try {
-      const res = await fetch("/api/admin/gallery", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: editingId,
-          servizio: editServizio,
-          descrizione: editDescrizione,
-        }),
-      });
-      const json: GalleryUpdateResponse = await res.json();
-      if (!json.ok || !json.photo) {
-        setErrore(json.error || "Errore durante il salvataggio.");
-        return;
+      if (overlay.mode === "add") {
+        const formData = new FormData();
+        formData.append("foto", await comprimiImmagine(overlay.file));
+        formData.append("servizio", ovServizio);
+        formData.append("descrizione", ovDescrizione);
+
+        const res = await fetch("/api/admin/gallery", { method: "POST", body: formData });
+        const json: GalleryUploadResponse = await res.json();
+        if (!json.ok || !json.photo) {
+          setErrore(json.error || "Errore durante il caricamento.");
+          return;
+        }
+        setFoto((prev) => [...prev, json.photo!]);
+      } else {
+        const res = await fetch("/api/admin/gallery", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: overlay.id, servizio: ovServizio, descrizione: ovDescrizione }),
+        });
+        const json: GalleryUpdateResponse = await res.json();
+        if (!json.ok || !json.photo) {
+          setErrore(json.error || "Errore durante il salvataggio.");
+          return;
+        }
+        setFoto((prev) => prev.map((p) => (p.id === overlay.id ? json.photo! : p)));
       }
-      setFoto((prev) => prev.map((p) => (p.id === editingId ? json.photo! : p)));
-      setEditingId(null);
+
+      chiudiOverlay();
     } catch {
-      setErrore("Errore di rete durante il salvataggio. Riprova.");
+      setErrore(
+        overlay.mode === "add"
+          ? "Errore di rete durante il caricamento. Riprova."
+          : "Errore di rete durante il salvataggio. Riprova."
+      );
     } finally {
       setSalvando(false);
     }
@@ -129,94 +142,6 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
         <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">
           {errore}
         </p>
-      )}
-
-      <div>
-        <label htmlFor="galleria-servizio" className="block text-sm font-medium text-stone-700">
-          Servizio della prossima foto
-        </label>
-        <select
-          id="galleria-servizio"
-          value={servizio}
-          onChange={(e) => setServizio(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-700"
-        >
-          <option value="">Non specificato</option>
-          {GALLERY_SERVICES.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.nome}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="galleria-descrizione" className="block text-sm font-medium text-stone-700">
-          Descrizione (opzionale)
-        </label>
-        <textarea
-          id="galleria-descrizione"
-          value={descrizione}
-          onChange={(e) => setDescrizione(e.target.value)}
-          rows={2}
-          placeholder="Es. Ricostruzione gel con french sfumata"
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-700"
-        />
-      </div>
-
-      {editingId && (
-        <div className="space-y-3 rounded-2xl border border-coral-200 bg-coral-50/50 p-4">
-          <p className="text-sm font-medium text-stone-700">Modifica foto</p>
-          <div>
-            <label htmlFor="modifica-servizio" className="block text-xs text-stone-500">
-              Servizio
-            </label>
-            <select
-              id="modifica-servizio"
-              value={editServizio}
-              onChange={(e) => setEditServizio(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-700"
-            >
-              <option value="">Non specificato</option>
-              {GALLERY_SERVICES.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.nome}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="modifica-descrizione" className="block text-xs text-stone-500">
-              Descrizione (opzionale)
-            </label>
-            <textarea
-              id="modifica-descrizione"
-              value={editDescrizione}
-              onChange={(e) => setEditDescrizione(e.target.value)}
-              rows={3}
-              placeholder="Es. Ricostruzione gel con french sfumata"
-              className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-700"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={salvaModifica}
-              disabled={salvando}
-              className="flex-1 rounded-lg bg-coral-700 px-4 py-2 text-sm font-medium text-white hover:bg-coral-800 disabled:opacity-60"
-            >
-              {salvando ? "Salvataggio…" : "Salva"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditingId(null)}
-              disabled={salvando}
-              className="rounded-lg border border-stone-300 px-4 py-2 text-sm text-stone-600 hover:bg-stone-50"
-            >
-              Annulla
-            </button>
-          </div>
-        </div>
       )}
 
       <div className="grid grid-cols-3 gap-3">
@@ -253,18 +178,15 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
           htmlFor="galleria-foto"
           className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-stone-300 text-stone-500 transition hover:border-coral-300 hover:text-coral-700"
         >
-          <span className="text-2xl">{caricamento ? "…" : "+"}</span>
-          <span className="text-xs">
-            {caricamento ? "Caricamento…" : "Aggiungi foto"}
-          </span>
+          <span className="text-2xl">+</span>
+          <span className="text-xs">Aggiungi foto</span>
         </label>
         <input
           ref={inputRef}
           id="galleria-foto"
           type="file"
           accept="image/*"
-          onChange={handleChange}
-          disabled={caricamento}
+          onChange={handleFileSelected}
           className="hidden"
         />
       </div>
@@ -274,6 +196,87 @@ export function Galleria({ fotoIniziali }: GalleriaProps) {
           Nessuna foto ancora: il sito mostra dei segnaposto finché non ne
           aggiungi almeno una.
         </p>
+      )}
+
+      {overlay && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={chiudiOverlay}
+        >
+          <div
+            className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-sm font-medium text-stone-700">
+              {overlay.mode === "add" ? "Nuova foto" : "Modifica foto"}
+            </p>
+
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={overlay.anteprima}
+              alt="Anteprima"
+              className="max-h-64 w-full rounded-xl border border-stone-200 object-contain"
+            />
+
+            <div>
+              <label htmlFor="overlay-servizio" className="block text-xs text-stone-500">
+                Servizio (opzionale)
+              </label>
+              <select
+                id="overlay-servizio"
+                value={ovServizio}
+                onChange={(e) => setOvServizio(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-700"
+              >
+                <option value="">Non specificato</option>
+                {GALLERY_SERVICES.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="overlay-descrizione" className="block text-xs text-stone-500">
+                Descrizione (opzionale)
+              </label>
+              <textarea
+                id="overlay-descrizione"
+                value={ovDescrizione}
+                onChange={(e) => setOvDescrizione(e.target.value)}
+                rows={3}
+                placeholder="Es. Ricostruzione gel con french sfumata"
+                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-700"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={confermaOverlay}
+                disabled={salvando}
+                className="flex-1 rounded-lg bg-coral-700 px-4 py-2 text-sm font-medium text-white hover:bg-coral-800 disabled:opacity-60"
+              >
+                {salvando
+                  ? overlay.mode === "add"
+                    ? "Caricamento…"
+                    : "Salvataggio…"
+                  : overlay.mode === "add"
+                    ? "Carica"
+                    : "Salva"}
+              </button>
+              <button
+                type="button"
+                onClick={chiudiOverlay}
+                disabled={salvando}
+                className="rounded-lg border border-stone-300 px-4 py-2 text-sm text-stone-600 hover:bg-stone-50"
+              >
+                Annulla
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
