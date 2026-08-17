@@ -1,11 +1,14 @@
 "use client";
 
 /**
- * Apre subito una scheda vuota (nello stesso "tick" del click, per evitare
- * che il browser blocchi il popup) e ci carica il link WhatsApp preparato
- * lato server da /api/admin/whatsapp-link — che aggiunge indirizzo e mappa
- * senza mai esporli nel bundle JS del browser (sono letti da una env var
- * server-only, vedi README).
+ * Chiama /api/admin/whatsapp-link (che compone il messaggio lato server,
+ * indirizzo e mappa inclusi — mai esposti nel bundle JS del browser, vedi
+ * README) e apre il link WhatsApp ottenuto in una nuova scheda.
+ *
+ * Niente scheda vuota aperta in anticipo: su alcuni browser mobile restava
+ * bloccata su "about:blank" invece di essere reindirizzata. La fetch è
+ * rapida (stesso dominio) e window.open subito dopo l'await funziona sui
+ * browser principali, essendo comunque diretta conseguenza del click.
  */
 export async function apriWhatsapp(params: {
   tipo: "conferma" | "promemoria";
@@ -14,24 +17,25 @@ export async function apriWhatsapp(params: {
   servizio: string;
   quando: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
-  const finestra = window.open("", "_blank", "noopener,noreferrer");
-
   try {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`/api/admin/whatsapp-link?${query}`);
     const json = await res.json();
 
     if (!json.ok || !json.url) {
-      finestra?.close();
       return { ok: false, error: json.error || "Errore nella preparazione del messaggio." };
     }
 
-    if (finestra) finestra.location.href = json.url;
-    else window.open(json.url, "_blank", "noopener,noreferrer");
+    const aperta = window.open(json.url, "_blank", "noopener,noreferrer");
+    if (!aperta) {
+      return {
+        ok: false,
+        error: "Il browser ha bloccato l'apertura di WhatsApp. Riprova (o controlla il blocco popup).",
+      };
+    }
 
     return { ok: true };
   } catch {
-    finestra?.close();
     return { ok: false, error: "Errore di rete. Riprova." };
   }
 }
