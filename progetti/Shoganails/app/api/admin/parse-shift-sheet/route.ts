@@ -5,7 +5,7 @@ import {
   ShiftSheetReadError,
   type ClaudeImageMediaType,
 } from "@/lib/ai";
-import { currentWeekDates, currentWeekRange, nextWeekDates, nextWeekRange } from "@/lib/week";
+import { weekDatesFromDate, weekRangeFromDate } from "@/lib/week";
 import { getOrCreateWeek } from "@/lib/weekDb";
 import type { ParseShiftSheetResponse } from "@/types/shifts";
 
@@ -39,11 +39,18 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("foto");
-  const settimana = formData.get("settimana") === "prossima" ? "prossima" : "corrente";
+  const dataInizioRaw = formData.get("dataInizio");
 
   if (!(file instanceof File)) {
     return NextResponse.json<ParseShiftSheetResponse>(
       { ok: false, error: "Nessuna immagine ricevuta." },
+      { status: 400 }
+    );
+  }
+
+  if (typeof dataInizioRaw !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dataInizioRaw)) {
+    return NextResponse.json<ParseShiftSheetResponse>(
+      { ok: false, error: "Settimana non valida." },
       { status: 400 }
     );
   }
@@ -63,11 +70,8 @@ export async function POST(request: Request) {
     );
   }
 
-  // 1. Trova o crea la week per la settimana scelta (corrente o prossima).
-  const weekResult = await getOrCreateWeek(
-    supabase,
-    settimana === "prossima" ? nextWeekRange() : currentWeekRange()
-  );
+  // 1. Trova o crea la week per la settimana scelta (qualsiasi, a piacimento).
+  const weekResult = await getOrCreateWeek(supabase, weekRangeFromDate(dataInizioRaw));
   if ("error" in weekResult) {
     return NextResponse.json<ParseShiftSheetResponse>(
       { ok: false, error: weekResult.error },
@@ -95,7 +99,7 @@ export async function POST(request: Request) {
   const urlImmagine = path; // path nel bucket privato; si genera un signed URL quando serve mostrarla
 
   // 3. Chiama il modello IA con visione.
-  const weekDates = settimana === "prossima" ? nextWeekDates() : currentWeekDates();
+  const weekDates = weekDatesFromDate(dataInizioRaw);
   const base64Image = Buffer.from(bytes).toString("base64");
 
   let risultatoAI;

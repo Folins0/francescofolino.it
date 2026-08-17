@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { currentWeekRange, nextWeekRange } from "@/lib/week";
+import { weekRangeFromDate } from "@/lib/week";
 import { getOrCreateWeek } from "@/lib/weekDb";
 
 export const runtime = "nodejs";
 
 /**
- * Trova o crea la week della settimana corrente o della prossima (a scelta
- * dell'admin), senza passare per la lettura IA. Usata quando l'admin sceglie
+ * Trova o crea la week della settimana scelta dall'admin (qualsiasi, a
+ * piacimento), senza passare per la lettura IA. Usata quando l'admin sceglie
  * di correggere tutto a mano (es. dopo un errore dell'IA senza che la week
  * sia già stata creata).
  */
@@ -21,10 +21,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Non autenticato." }, { status: 401 });
   }
 
-  const body = (await request.json().catch(() => ({}))) as { settimana?: string };
-  const range = body.settimana === "prossima" ? nextWeekRange() : currentWeekRange();
+  const body = (await request.json().catch(() => ({}))) as { dataInizio?: string };
+  if (!body.dataInizio || !/^\d{4}-\d{2}-\d{2}$/.test(body.dataInizio)) {
+    return NextResponse.json({ ok: false, error: "Settimana non valida." }, { status: 400 });
+  }
 
-  const result = await getOrCreateWeek(supabase, range);
+  const result = await getOrCreateWeek(supabase, weekRangeFromDate(body.dataInizio));
   if ("error" in result) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 500 });
   }

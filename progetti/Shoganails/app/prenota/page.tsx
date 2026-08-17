@@ -1,63 +1,60 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { currentWeekRange, nextWeekRange, oggiISO } from "@/lib/week";
+import { oggiISO } from "@/lib/week";
 import { BookingForm } from "@/components/BookingForm";
 import type { AvailableSlotRow, ServiceRow } from "@/types/database";
 
 export const dynamic = "force-dynamic"; // gli slot cambiano di continuo, niente cache
 
-async function getSlotsSettimana(
-  supabase: ReturnType<typeof createClient>,
-  range: { data_inizio: string; data_fine: string }
-): Promise<{ pubblicata: boolean; slots: AvailableSlotRow[] }> {
-  const { data: week, error: weekError } = await supabase
-    .from("weeks")
-    .select("id")
-    .eq("data_inizio", range.data_inizio)
-    .eq("data_fine", range.data_fine)
-    .eq("stato", "pubblicata")
-    .maybeSingle();
-
-  if (weekError) throw weekError;
-  if (!week) return { pubblicata: false, slots: [] };
-
-  const { data: slots, error: slotsError } = await supabase
-    .from("available_slots")
-    .select("*")
-    .eq("week_id", week.id)
-    .eq("stato", "libero")
-    .gte("giorno", oggiISO())
-    .order("giorno", { ascending: true })
-    .order("ora_inizio", { ascending: true });
-
-  if (slotsError) throw slotsError;
-
-  return { pubblicata: true, slots: slots ?? [] };
-}
-
 async function getDatiPrenotazione(): Promise<{
   slots: AvailableSlotRow[];
   servizi: ServiceRow[];
-  settimanaCorrentePubblicata: boolean;
-  settimanaProssimaPubblicata: boolean;
+  nessunaSettimanaPubblicata: boolean;
   errore: string | null;
 }> {
   try {
     const supabase = createClient();
+    const oggi = oggiISO();
 
-    const [corrente, prossima, { data: servizi, error: serviziError }] = await Promise.all([
-      getSlotsSettimana(supabase, currentWeekRange()),
-      getSlotsSettimana(supabase, nextWeekRange()),
-      supabase.from("services").select("*").order("ordine_visualizzazione", { ascending: true }),
-    ]);
+    // Mostra gli slot di TUTTE le settimane già pubblicate dall'admin (non
+    // solo corrente/prossima: l'admin può pubblicare quante settimane vuole,
+    // anche più avanti nel tempo). Le settimane non ancora pubblicate non
+    // compaiono mai qui.
+    const [{ data: weeks, error: weeksError }, { data: servizi, error: serviziError }] =
+      await Promise.all([
+        supabase
+          .from("weeks")
+          .select("id")
+          .eq("stato", "pubblicata")
+          .gte("data_fine", oggi)
+          .order("data_inizio", { ascending: true }),
+        supabase.from("services").select("*").order("ordine_visualizzazione", { ascending: true }),
+      ]);
 
+    if (weeksError) throw weeksError;
     if (serviziError) throw serviziError;
 
+    const weekIds = (weeks ?? []).map((w) => w.id);
+    let slots: AvailableSlotRow[] = [];
+
+    if (weekIds.length > 0) {
+      const { data, error: slotsError } = await supabase
+        .from("available_slots")
+        .select("*")
+        .in("week_id", weekIds)
+        .eq("stato", "libero")
+        .gte("giorno", oggi)
+        .order("giorno", { ascending: true })
+        .order("ora_inizio", { ascending: true });
+
+      if (slotsError) throw slotsError;
+      slots = data ?? [];
+    }
+
     return {
-      slots: [...corrente.slots, ...prossima.slots],
+      slots,
       servizi: servizi ?? [],
-      settimanaCorrentePubblicata: corrente.pubblicata,
-      settimanaProssimaPubblicata: prossima.pubblicata,
+      nessunaSettimanaPubblicata: (weeks ?? []).length === 0,
       errore: null,
     };
   } catch (err) {
@@ -65,25 +62,14 @@ async function getDatiPrenotazione(): Promise<{
     return {
       slots: [],
       servizi: [],
-      settimanaCorrentePubblicata: false,
-      settimanaProssimaPubblicata: false,
+      nessunaSettimanaPubblicata: true,
       errore: "Non riusciamo a caricare gli orari disponibili in questo momento. Riprova tra poco.",
     };
   }
 }
 
 export default async function PrenotaPage() {
-  const {
-    slots,
-    servizi,
-    settimanaCorrentePubblicata,
-    settimanaProssimaPubblicata,
-    errore,
-  } = await getDatiPrenotazione();
-
-  const messaggioProssimaSettimana = settimanaProssimaPubblicata
-    ? null
-    : "I turni per la settimana prossima arriveranno presto.";
+  const { slots, servizi, nessunaSettimanaPubblicata, errore } = await getDatiPrenotazione();
 
   return (
     <main className="min-h-screen bg-marble-50 bg-marble-veins">
@@ -100,8 +86,8 @@ export default async function PrenotaPage() {
           Prenota un appuntamento
         </h1>
         <p className="mt-2 text-sm text-stone-500">
-          Invia una richiesta per uno degli orari liberi di questa settimana.
-          Ti contatteremo su WhatsApp per confermare.
+          Invia una richiesta per uno degli orari liberi. Ti contatteremo su
+          WhatsApp per confermare.
         </p>
 
         {errore ? (
@@ -117,14 +103,14 @@ export default async function PrenotaPage() {
         ) : slots.length === 0 ? (
           <div className="mt-8 rounded-2xl bg-white p-6 text-center shadow-sm">
             <p className="font-medium text-stone-700">
-              {settimanaCorrentePubblicata
-                ? "Non ci sono più orari liberi per questa settimana e per quella prossima."
-                : "Gli orari di questa settimana non sono ancora disponibili."}
+              {nessunaSettimanaPubblicata
+                ? "Gli orari non sono ancora disponibili."
+                : "Non ci sono più orari liberi al momento."}
             </p>
             <p className="mt-2 text-sm text-stone-500">
-              {settimanaCorrentePubblicata
-                ? "Ricontrolla tra qualche giorno, potrebbero liberarsi nuovi orari."
-                : "Ricontrolla più tardi — di solito vengono pubblicati il giovedì."}
+              {nessunaSettimanaPubblicata
+                ? "Ricontrolla più tardi — di solito vengono pubblicati il giovedì."
+                : "Ricontrolla tra qualche giorno, potrebbero liberarsi nuovi orari."}
             </p>
             <Link
               href="/"
@@ -134,14 +120,7 @@ export default async function PrenotaPage() {
             </Link>
           </div>
         ) : (
-          <>
-            {messaggioProssimaSettimana && (
-              <p className="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                {messaggioProssimaSettimana}
-              </p>
-            )}
-            <BookingForm slots={slots} servizi={servizi} />
-          </>
+          <BookingForm slots={slots} servizi={servizi} />
         )}
       </div>
     </main>

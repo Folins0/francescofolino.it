@@ -4,7 +4,13 @@ import { useMemo, useState } from "react";
 import { PhotoUpload } from "@/components/admin/PhotoUpload";
 import { ShiftReviewTable } from "@/components/admin/ShiftReviewTable";
 import { calcolaFasceLibere, GIORNATA_DEFAULT } from "@/lib/shifts";
-import { currentWeekDates, formattaGiornoBreve, nextWeekDates } from "@/lib/week";
+import {
+  currentWeekRange,
+  formattaGiornoBreve,
+  nextWeekRange,
+  weekDatesFromDate,
+  weekRangeFromDate,
+} from "@/lib/week";
 import type {
   GiornoReview,
   GiornoTurni,
@@ -13,7 +19,6 @@ import type {
 } from "@/types/shifts";
 
 type Stato = "idle" | "analizzando" | "revisione" | "pubblicando" | "pubblicato";
-type Settimana = "corrente" | "prossima";
 
 function costruisciGiorniCompleti(
   giorniAI: GiornoTurni[],
@@ -46,11 +51,10 @@ function costruisciTemplateManuale(weekDates: string[]): GiornoReview[] {
 }
 
 export function NuovaSettimana() {
-  const [settimana, setSettimana] = useState<Settimana>("corrente");
-  const weekDates = useMemo(
-    () => (settimana === "prossima" ? nextWeekDates() : currentWeekDates()),
-    [settimana]
+  const [dataInizio, setDataInizio] = useState<string>(
+    () => currentWeekRange().data_inizio
   );
+  const weekDates = useMemo(() => weekDatesFromDate(dataInizio), [dataInizio]);
   const [stato, setStato] = useState<Stato>("idle");
   const [errore, setErrore] = useState<string | null>(null);
   const [avviso, setAvviso] = useState<string | null>(null);
@@ -66,7 +70,7 @@ export function NuovaSettimana() {
 
     const formData = new FormData();
     formData.append("foto", file);
-    formData.append("settimana", settimana);
+    formData.append("dataInizio", dataInizio);
 
     try {
       const res = await fetch("/api/admin/parse-shift-sheet", {
@@ -110,7 +114,7 @@ export function NuovaSettimana() {
         const res = await fetch("/api/admin/ensure-week", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ settimana }),
+          body: JSON.stringify({ dataInizio }),
         });
         const json = await res.json();
         if (!json.ok) {
@@ -194,7 +198,7 @@ export function NuovaSettimana() {
     setShiftUploadId(null);
     setGiorni([]);
     setGiornata(GIORNATA_DEFAULT);
-    setSettimana("corrente");
+    setDataInizio(currentWeekRange().data_inizio);
   }
 
   if (stato === "pubblicato") {
@@ -226,12 +230,12 @@ export function NuovaSettimana() {
           {formattaGiornoBreve(weekDates[0])} – {formattaGiornoBreve(weekDates[6])}
         </p>
         {stato === "idle" ? (
-          <div className="mt-1.5 flex gap-2">
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => setSettimana("corrente")}
+              onClick={() => setDataInizio(currentWeekRange().data_inizio)}
               className={`rounded-full px-3 py-1.5 text-sm transition ${
-                settimana === "corrente"
+                dataInizio === currentWeekRange().data_inizio
                   ? "bg-coral-700 text-white"
                   : "border border-stone-300 text-stone-600 hover:bg-stone-50"
               }`}
@@ -240,19 +244,35 @@ export function NuovaSettimana() {
             </button>
             <button
               type="button"
-              onClick={() => setSettimana("prossima")}
+              onClick={() => setDataInizio(nextWeekRange().data_inizio)}
               className={`rounded-full px-3 py-1.5 text-sm transition ${
-                settimana === "prossima"
+                dataInizio === nextWeekRange().data_inizio
                   ? "bg-coral-700 text-white"
                   : "border border-stone-300 text-stone-600 hover:bg-stone-50"
               }`}
             >
               Settimana prossima
             </button>
+            <label className="flex items-center gap-1.5 text-sm text-stone-600">
+              altra settimana:
+              <input
+                type="date"
+                value={dataInizio}
+                onChange={(e) => {
+                  if (!e.target.value) return;
+                  setDataInizio(weekRangeFromDate(e.target.value).data_inizio);
+                }}
+                className="rounded-lg border border-stone-300 px-2 py-1 text-sm"
+              />
+            </label>
           </div>
         ) : (
           <p className="text-xs text-stone-500">
-            {settimana === "prossima" ? "Settimana prossima" : "Settimana corrente"}
+            {dataInizio === currentWeekRange().data_inizio
+              ? "Settimana corrente"
+              : dataInizio === nextWeekRange().data_inizio
+                ? "Settimana prossima"
+                : "Settimana selezionata"}
           </p>
         )}
       </div>

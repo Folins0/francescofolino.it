@@ -174,8 +174,10 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
     (`lib/google-calendar.ts`) — best effort, non blocca l'operazione se
     fallisce.
   - **Nuova settimana** (`/admin/settimana`, `components/admin/NuovaSettimana.tsx`):
-    1. si sceglie se pubblicare la settimana corrente o quella prossima
-       (pulsanti "Settimana corrente" / "Settimana prossima");
+    1. si sceglie quale settimana pubblicare — pulsanti rapidi "Settimana
+       corrente" / "Settimana prossima", oppure una qualsiasi altra settimana
+       a piacimento tramite il selettore di data (nessun limite di quante
+       settimane si possono pubblicare in anticipo);
     2. carica una foto del foglio turni (scatto da mobile o file);
     3. la foto viene inviata a un modello con visione (Groq, Llama 4) che
        isola le righe di "Grazia" (tollerando piccoli errori di
@@ -190,10 +192,10 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
        la settimana scelta e la marca come `pubblicata`.
     Se l'IA non riesce a leggere la foto, viene mostrato un messaggio chiaro
     con la possibilità di ricaricare la foto o passare all'inserimento
-    manuale di tutta la settimana. `/prenota` mostra gli slot liberi di
-    settimana corrente e prossima insieme; se la prossima non è ancora
-    pubblicata, un avviso lo segnala senza bloccare la prenotazione di
-    quella corrente.
+    manuale di tutta la settimana. `/prenota` mostra insieme gli slot liberi
+    di **tutte** le settimane già pubblicate (oggi in poi): le clienti non
+    vedono mai una settimana finché l'admin non l'ha pubblicata, ma l'admin
+    può pubblicarne quante ne vuole in anticipo.
   - **Foto del sito** (`/admin/foto`, `components/admin/Galleria.tsx`):
     aggiungi o elimina le foto mostrate nella sezione "Le nostre unghie"
     della home page (`app/api/admin/gallery/route.ts`, tabella

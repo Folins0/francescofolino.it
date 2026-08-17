@@ -10,7 +10,9 @@ export interface GalleryPhoto {
 // uno se serve, non richiede migrazioni (il campo `servizio` è testo libero).
 export const GALLERY_SERVICES = [
   { id: "semipermanente", nome: "Semipermanente" },
+  { id: "semipermanente-rinforzato", nome: "Semipermanente rinforzato" },
   { id: "ricostruzione", nome: "Ricostruzione" },
+  { id: "refill", nome: "Refill" },
   { id: "piedi", nome: "Piedi" },
 ] as const;
 

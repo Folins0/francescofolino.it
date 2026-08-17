@@ -65,6 +65,27 @@ export function nextWeekRange(ref: Date = new Date()): {
   return { data_inizio: dates[0], data_fine: dates[6] };
 }
 
+/** Parsa una data ISO "YYYY-MM-DD" in un Date a mezzanotte locale (a differenza
+ * di `new Date(stringa)`, che la interpreta in UTC e può sbagliare giorno a
+ * seconda del fuso orario del server). */
+export function parseISODate(dataISO: string): Date {
+  const [y, m, d] = dataISO.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/** Le 7 date ISO (lunedì-domenica) della settimana che contiene `dataISO`. */
+export function weekDatesFromDate(dataISO: string): string[] {
+  return currentWeekDates(parseISODate(dataISO));
+}
+
+/** { data_inizio, data_fine } della settimana che contiene `dataISO`. */
+export function weekRangeFromDate(dataISO: string): {
+  data_inizio: string;
+  data_fine: string;
+} {
+  return currentWeekRange(parseISODate(dataISO));
+}
+
 /** Nome del giorno in italiano a partire da una data ISO "YYYY-MM-DD". */
 export function nomeGiorno(dataISO: string): string {
   const [y, m, d] = dataISO.split("-").map(Number);
