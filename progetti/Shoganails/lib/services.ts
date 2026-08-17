@@ -42,7 +42,7 @@ export const serviceCategories: ServiceCategory[] = [
       {
         id: "ricostruzione-da-zero",
         nome: "Ricostruzione da zero",
-        prezzoChf: 40,
+        prezzoChf: 45,
         durataMinuti: 120,
         descrizione: "Ricostruzione unghie in gel, acrygel o acrilico, da zero",
       },
