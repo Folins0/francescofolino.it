@@ -8,6 +8,10 @@ import { GALLERY_SERVICES } from "@/types/gallery";
 
 type Foto = { id: string; url: string; servizio: string | null; descrizione: string | null };
 
+function nomeServizio(servizio: string | null): string | null {
+  return GALLERY_SERVICES.find((s) => s.id === servizio)?.nome ?? null;
+}
+
 export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
   const [filtro, setFiltro] = useState<string | null>(null);
   const [indiceAperto, setIndiceAperto] = useState<number | null>(null);
@@ -181,17 +185,24 @@ export default function Galleria({ foto: tutteLeFoto }: { foto: Foto[] }) {
               className="max-h-[85vh] w-auto rounded-xl object-contain"
             />
 
-            {foto[indiceAperto].descrizione && (
+            {(nomeServizio(foto[indiceAperto].servizio) || foto[indiceAperto].descrizione) && (
               <div className="absolute inset-x-0 bottom-0">
                 <div
                   className={`grid rounded-b-xl bg-gradient-to-t from-black/85 via-black/50 to-transparent transition-[grid-template-rows] duration-300 ease-out ${
                     descrizioneAperta ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
                   }`}
                 >
-                  <div className="overflow-hidden">
-                    <p className="px-4 pb-3 pt-9 text-sm leading-relaxed text-white/90">
-                      {foto[indiceAperto].descrizione}
-                    </p>
+                  <div className="overflow-hidden px-4 pb-3 pt-9">
+                    {nomeServizio(foto[indiceAperto].servizio) && (
+                      <span className="inline-block rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium text-white">
+                        {nomeServizio(foto[indiceAperto].servizio)}
+                      </span>
+                    )}
+                    {foto[indiceAperto].descrizione && (
+                      <p className="mt-1.5 text-sm leading-relaxed text-white/90">
+                        {foto[indiceAperto].descrizione}
+                      </p>
+                    )}
                   </div>
                 </div>
 
