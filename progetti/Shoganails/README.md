@@ -163,16 +163,23 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
     (Supabase Realtime) le nuove richieste con stato `in_attesa` — nome,
     telefono, servizio, orario. Bottone **"Attiva notifiche"** per registrare
     il dispositivo alle notifiche push. Per ogni richiesta, il bottone
-    **"Conferma appuntamento su WhatsApp"** (`lib/whatsapp.ts`) apre la chat
-    WhatsApp della cliente con un messaggio di conferma già scritto (giorno,
-    orario, servizio) — resta comunque lei a doverlo inviare, nessun invio
-    automatico. Sotto, due bottoni: **"Confermato"** (marca booking e slot
-    come confermati) e **"Rifiutato"** (libera di nuovo lo slot).
+    **"Conferma appuntamento su WhatsApp"** apre la chat WhatsApp della
+    cliente con un messaggio di conferma già scritto (giorno, orario,
+    servizio, indirizzo dello studio e link Google Maps) — resta comunque
+    lei a doverlo inviare, nessun invio automatico. Il messaggio viene
+    composto lato server da `app/api/admin/whatsapp-link/route.ts` (che
+    legge `STUDIO_INDIRIZZO`), così l'indirizzo non finisce mai nel bundle
+    JS del browser. Sotto, due bottoni: **"Confermato"** (marca booking e
+    slot come confermati) e **"Rifiutato"** (libera di nuovo lo slot).
   - **Calendario** (`/admin/calendario`, `components/admin/Calendario.tsx`):
     tutte le prenotazioni confermate da oggi in poi, raggruppate per giorno.
     Per gli appuntamenti **di domani** compare anche il bottone **"Ricorda
-    appuntamento su WhatsApp"**, stesso principio: apre la chat con un
-    promemoria già scritto, da inviare a mano. Ogni appuntamento si può
+    appuntamento su WhatsApp"**, stesso principio (indirizzo e mappa
+    inclusi), da inviare a mano. Un Cron Job giornaliero
+    (`app/api/cron/promemoria-domani/route.ts`, configurato in
+    `vercel.json`) manda una notifica push a Grazia se ci sono appuntamenti
+    confermati per il giorno dopo, per ricordarle di usare questo bottone.
+    Ogni appuntamento si può
     modificare (nome, telefono, servizio, note, giorno/orario —
     `app/api/admin/modifica-prenotazione/route.ts`) o cancellare (libera di
     nuovo lo slot, riusa la stessa logica del "Rifiutato" delle Richieste).
@@ -265,7 +272,12 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
   prendano lo stesso orario in contemporanea.
 - Le foto dei fogli turni vengono salvate in uno storage bucket **privato**
   (`foglio-turni`), non pubblicamente accessibile.
-- L'indirizzo del negozio non compare mai nel codice/sito pubblico.
+- L'indirizzo del negozio non compare mai nel codice/sito pubblico: vive solo
+  nella env var `STUDIO_INDIRIZZO`, letta esclusivamente da
+  `app/api/admin/whatsapp-link/route.ts` (route server-side, protetta da
+  login admin) per comporre i messaggi WhatsApp di conferma/promemoria.
+  Non è una variabile `NEXT_PUBLIC_*`, quindi non viene mai inclusa nel
+  bundle JS scaricato dal browser.
 
 ## Deploy su Vercel
 
@@ -289,10 +301,17 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
    | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `npm run generate-vapid-keys` |
    | `VAPID_PRIVATE_KEY` | `npm run generate-vapid-keys` (segreta) |
    | `VAPID_SUBJECT` | `mailto:tuo-indirizzo@example.com` |
+   | `STUDIO_INDIRIZZO` (segreta) | scrivila tu, es. `Via Vergiò 29, 6932 Breganzona`. Aggiunta automaticamente (con link Google Maps) ai messaggi WhatsApp di conferma/promemoria — **mai** mostrata sul sito pubblico o nel codice |
+   | `CRON_SECRET` (segreta) | una stringa a scelta (es. `openssl rand -hex 32`), protegge `/api/cron/promemoria-domani` da chiamate esterne |
 
 3. **Deploy**. Il deploy riparte automaticamente ad ogni push sul branch
    collegato. Vercel fornisce HTTPS automatico, necessario per le notifiche
-   push.
+   push. Il file `vercel.json` configura anche un **Cron Job** giornaliero
+   (funzione gratuita anche sul piano Hobby) che manda una notifica push a
+   Grazia se ci sono appuntamenti confermati per il giorno dopo, per
+   ricordarle di mandare i promemoria WhatsApp — orario impostato per le
+   18-19 circa (ora svizzera, l'orario esatto scala di un'ora tra ora legale
+   e solare perché Vercel Cron usa sempre l'UTC).
 4. Fai login su `/admin` sull'URL `*.vercel.app` che Vercel ti assegna e
    verifica che login, caricamento foto turni e prenotazione di prova
    funzionino prima di condividere il link con le clienti.

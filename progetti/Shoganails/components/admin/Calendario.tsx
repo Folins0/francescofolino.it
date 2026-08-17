@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { domaniISO, formattaGiornoBreve, nomeGiorno } from "@/lib/week";
-import { linkWhatsapp } from "@/lib/whatsapp";
+import { apriWhatsapp } from "@/lib/whatsapp-client";
 import type { ServiceRow } from "@/types/database";
 import { dettaglioBuono, type BookingRequestConDettagli } from "@/components/admin/Richieste";
 
@@ -38,10 +38,14 @@ function creaForm(p: BookingRequestConDettagli): FormModifica {
   };
 }
 
-function messaggioPromemoria(p: BookingRequestConDettagli): string {
-  const servizio = [p.service?.nome, p.serviceExtra?.nome].filter(Boolean).join(" + ") || "il trattamento";
-  const ora = p.slot ? formattaOra(p.slot.ora_inizio) : "";
-  return `Ciao ${p.nome_cliente}! Ti ricordiamo il tuo appuntamento da Shoganails domani alle ${ora} per ${servizio}. A domani! 💅`;
+function datiPromemoria(p: BookingRequestConDettagli) {
+  return {
+    tipo: "promemoria" as const,
+    telefono: p.telefono_cliente,
+    nome: p.nome_cliente,
+    servizio: [p.service?.nome, p.serviceExtra?.nome].filter(Boolean).join(" + ") || "il trattamento",
+    quando: p.slot ? formattaOra(p.slot.ora_inizio) : "",
+  };
 }
 
 function ordinaPerData(lista: BookingRequestConDettagli[]): BookingRequestConDettagli[] {
@@ -59,7 +63,16 @@ export function Calendario({ prenotazioniIniziali, servizi }: CalendarioProps) {
   const [form, setForm] = useState<FormModifica | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [eliminandoId, setEliminandoId] = useState<string | null>(null);
+  const [whatsappInCorso, setWhatsappInCorso] = useState<string | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
+
+  async function handlePromemoriaWhatsapp(p: BookingRequestConDettagli) {
+    setErrore(null);
+    setWhatsappInCorso(p.id);
+    const esito = await apriWhatsapp(datiPromemoria(p));
+    if (!esito.ok) setErrore(esito.error);
+    setWhatsappInCorso(null);
+  }
 
   function iniziaModifica(p: BookingRequestConDettagli) {
     setErrore(null);
@@ -325,15 +338,15 @@ export function Calendario({ prenotazioniIniziali, servizi }: CalendarioProps) {
                       )}
 
                       {p.slot?.giorno === domani && (
-                        <a
-                          href={linkWhatsapp(p.telefono_cliente, messaggioPromemoria(p))}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                        <button
+                          type="button"
+                          onClick={() => handlePromemoriaWhatsapp(p)}
+                          disabled={whatsappInCorso === p.id}
+                          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           <MessageCircle size={16} />
-                          Ricorda appuntamento su WhatsApp
-                        </a>
+                          {whatsappInCorso === p.id ? "Preparazione…" : "Ricorda appuntamento su WhatsApp"}
+                        </button>
                       )}
 
                       <div className="mt-3 flex gap-3">

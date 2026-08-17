@@ -5,7 +5,7 @@ import { MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { attivaNotifichePush, pushSupportato, statoSubscriptionAttuale } from "@/lib/push-client";
 import { formattaGiornoBreve, nomeGiorno } from "@/lib/week";
-import { linkWhatsapp } from "@/lib/whatsapp";
+import { apriWhatsapp } from "@/lib/whatsapp-client";
 import type { AvailableSlotRow, BookingRequestRow, ServiceRow } from "@/types/database";
 import type { BuonoConServizio } from "@/types/buoni";
 
@@ -24,12 +24,16 @@ function formattaOra(ora: string): string {
   return ora.slice(0, 5);
 }
 
-function messaggioConferma(r: BookingRequestConDettagli): string {
-  const servizio = [r.service?.nome, r.serviceExtra?.nome].filter(Boolean).join(" + ") || "il trattamento";
-  const quando = r.slot
-    ? `${nomeGiorno(r.slot.giorno).toLowerCase()} ${formattaGiornoBreve(r.slot.giorno)} alle ${formattaOra(r.slot.ora_inizio)}`
-    : "l'orario da definire";
-  return `Ciao ${r.nome_cliente}! Confermo il tuo appuntamento da Shoganails per ${servizio}, ${quando}. A presto! 💅`;
+function datiConferma(r: BookingRequestConDettagli) {
+  return {
+    tipo: "conferma" as const,
+    telefono: r.telefono_cliente,
+    nome: r.nome_cliente,
+    servizio: [r.service?.nome, r.serviceExtra?.nome].filter(Boolean).join(" + ") || "il trattamento",
+    quando: r.slot
+      ? `${nomeGiorno(r.slot.giorno).toLowerCase()} ${formattaGiornoBreve(r.slot.giorno)} alle ${formattaOra(r.slot.ora_inizio)}`
+      : "l'orario da definire",
+  };
 }
 
 export function Richieste({
@@ -43,6 +47,7 @@ export function Richieste({
   >("sconosciuto");
   const [attivandoPush, setAttivandoPush] = useState(false);
   const [idInCorso, setIdInCorso] = useState<string | null>(null);
+  const [whatsappInCorso, setWhatsappInCorso] = useState<string | null>(null);
   const [erroreAzione, setErroreAzione] = useState<string | null>(null);
 
   // ------------------------------------------------------------
@@ -144,6 +149,14 @@ export function Richieste({
     } finally {
       setAttivandoPush(false);
     }
+  }
+
+  async function handleConfermaWhatsapp(r: BookingRequestConDettagli) {
+    setErroreAzione(null);
+    setWhatsappInCorso(r.id);
+    const esito = await apriWhatsapp(datiConferma(r));
+    if (!esito.ok) setErroreAzione(esito.error);
+    setWhatsappInCorso(null);
   }
 
   async function handleAzione(richiesta: BookingRequestConDettagli, azione: "conferma" | "rifiuta") {
@@ -258,15 +271,15 @@ export function Richieste({
                 <p className="mt-1 text-sm italic text-stone-500">{`“${r.note}”`}</p>
               )}
 
-              <a
-                href={linkWhatsapp(r.telefono_cliente, messaggioConferma(r))}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+              <button
+                type="button"
+                onClick={() => handleConfermaWhatsapp(r)}
+                disabled={whatsappInCorso === r.id}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <MessageCircle size={16} />
-                Conferma appuntamento su WhatsApp
-              </a>
+                {whatsappInCorso === r.id ? "Preparazione…" : "Conferma appuntamento su WhatsApp"}
+              </button>
 
               <div className="mt-3 flex gap-3">
                 <button
