@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formattaGiornoBreve, nomeGiorno } from "@/lib/week";
 import type { ServiceRow } from "@/types/database";
-import type { BookingRequestConDettagli } from "@/components/admin/Richieste";
+import { dettaglioBuono, type BookingRequestConDettagli } from "@/components/admin/Richieste";
 
 interface CalendarioProps {
   prenotazioniIniziali: BookingRequestConDettagli[];
@@ -304,6 +304,12 @@ export function Calendario({ prenotazioniIniziali, servizi }: CalendarioProps) {
                           ? `${formattaOra(p.slot.ora_inizio)}–${formattaOra(p.slot.ora_fine)}`
                           : "Orario non disponibile"}
                       </p>
+
+                      {p.buono && (
+                        <p className="mt-2 inline-block rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
+                          🎁 Buono {p.buono.codice}: {dettaglioBuono(p.buono)}
+                        </p>
+                      )}
 
                       {p.note && (
                         <p className="mt-1 text-sm italic text-stone-500">{`"${p.note}"`}</p>

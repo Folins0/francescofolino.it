@@ -49,15 +49,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: slotErr.message }, { status: 500 });
   }
 
+  const [{ data: booking }, { data: slot }] = await Promise.all([
+    supabase.from("booking_requests").select("*").eq("id", body.bookingId).single(),
+    supabase.from("available_slots").select("*").eq("id", body.slotId).single(),
+  ]);
+
+  // Se la richiesta usava un buono, lo marca come "usato" solo ora che la
+  // prenotazione è confermata davvero (best-effort: un errore qui non deve
+  // bloccare la conferma, che resta valida su Supabase).
+  if (booking?.buono_id) {
+    const { error: buonoErr } = await supabase
+      .from("buoni")
+      .update({ stato: "usato", usato_il: new Date().toISOString(), booking_request_id: booking.id })
+      .eq("id", booking.buono_id);
+    if (buonoErr) console.error("Errore aggiornamento buono:", buonoErr);
+  }
+
   // Sincronizza con Google Calendar (best-effort: se fallisce, la
   // prenotazione resta comunque confermata su Supabase, che e' la fonte di
   // verita'; la mancata sincronizzazione non blocca la conferma).
   try {
-    const [{ data: booking }, { data: slot }] = await Promise.all([
-      supabase.from("booking_requests").select("*").eq("id", body.bookingId).single(),
-      supabase.from("available_slots").select("*").eq("id", body.slotId).single(),
-    ]);
-
     if (booking && slot) {
       const { data: servizio } = await supabase
         .from("services")

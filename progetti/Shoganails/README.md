@@ -29,6 +29,10 @@ push per Grazia.
    - `supabase/migrations/0005_google_calendar.sql` — aggiunge la colonna
      `google_event_id` a `booking_requests`, per collegare ogni prenotazione
      confermata all'evento Google Calendar corrispondente.
+   - `supabase/migrations/0008_buoni.sql` — tabella `buoni` (valore in CHF o
+     legati a un servizio), la funzione `verifica_buono()` (usata da
+     `/prenota` per controllare un codice) e l'estensione di
+     `request_booking()` per collegare un buono a una richiesta.
 3. In **Authentication > Users**, crea manualmente **un solo utente admin**
    (email + password) per tua madre. Non c'è una pagina di registrazione: il
    login accetta solo utenti già esistenti.
@@ -201,6 +205,17 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
     della home page (`app/api/admin/gallery/route.ts`, tabella
     `gallery_photos` + bucket pubblico `galleria`). Finché non c'è nessuna
     foto, la home mostra dei segnaposto.
+  - **Buoni** (`/admin/buoni`, `components/admin/Buoni.tsx`): crea buoni
+    regalo con un valore in CHF o legati a un servizio specifico
+    (`app/api/admin/buoni/route.ts`, tabella `buoni`). Ogni buono ha un
+    codice (generato automaticamente o scelto a mano); la cliente lo inserisce
+    in `/prenota`, dove viene verificato al volo (funzione Postgres
+    `verifica_buono()`) e mostrato subito a Grazia nella richiesta
+    (`components/admin/Richieste.tsx`). Il buono passa a "usato" solo quando
+    Grazia conferma davvero la prenotazione, non alla semplice richiesta —
+    così un buono non si "brucia" per una richiesta poi rifiutata. Nessuno
+    sconto viene calcolato automaticamente: resta Grazia ad applicarlo a
+    mano, come per il resto.
 - `middleware.ts` — protegge tutte le rotte `/admin/*`: senza sessione
   valida reindirizza a `/admin/login`.
 - `lib/supabase/client.ts` / `lib/supabase/server.ts` — client Supabase per
@@ -295,7 +310,7 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
 ## Checklist finale — cosa fare manualmente prima di andare live
 
 - [ ] Creato un progetto Supabase gratuito e applicate **in ordine** tutte le
-      migration in `supabase/migrations/` (0001 → 0005).
+      migration in `supabase/migrations/` (0001 → 0008).
 - [ ] Creato manualmente **un solo utente admin** (Grazia) in Supabase →
       Authentication → Users, con email e password.
 - [ ] Ottenuta una chiave Groq API (console.groq.com), gratuita, per la

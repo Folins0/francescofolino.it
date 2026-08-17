@@ -7,6 +7,9 @@ export type BookingStatus = "in_attesa" | "confermato" | "rifiutato";
 
 export type ServiceCategoria = "mani" | "piedi";
 
+export type BuonoTipo = "valore" | "servizio";
+export type BuonoStato = "attivo" | "usato" | "annullato";
+
 export interface ServiceRow {
   id: string;
   nome: string;
@@ -57,6 +60,7 @@ export interface BookingRequestRow {
   stato: BookingStatus;
   creato_il: string;
   google_event_id: string | null;
+  buono_id: string | null;
 }
 
 export interface PushSubscriptionRow {
@@ -75,6 +79,20 @@ export interface GalleryPhotoRow {
   creato_il: string;
   servizio: string | null;
   descrizione: string | null;
+}
+
+export interface BuonoRow {
+  id: string;
+  codice: string;
+  tipo: BuonoTipo;
+  valore_chf: number | null;
+  service_id: string | null;
+  beneficiario: string | null;
+  note: string | null;
+  stato: BuonoStato;
+  creato_il: string;
+  usato_il: string | null;
+  booking_request_id: string | null;
 }
 
 export interface Database {
@@ -122,6 +140,11 @@ export interface Database {
         Row: GalleryPhotoRow;
         Insert: Partial<GalleryPhotoRow> & Pick<GalleryPhotoRow, "storage_path">;
         Update: Partial<GalleryPhotoRow>;
+      };
+      buoni: {
+        Row: BuonoRow;
+        Insert: Partial<BuonoRow> & Pick<BuonoRow, "codice" | "tipo">;
+        Update: Partial<BuonoRow>;
       };
     };
   };

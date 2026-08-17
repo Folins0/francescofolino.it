@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { caricaBuoniById } from "@/lib/buoniDb";
 import { Richieste } from "@/components/admin/Richieste";
 import type { AvailableSlotRow, BookingRequestRow, ServiceRow } from "@/types/database";
 import type { BookingRequestConDettagli } from "@/components/admin/Richieste";
@@ -31,9 +32,12 @@ async function getRichiesteInAttesa(
     ),
   ];
 
-  const [{ data: slots }, { data: servizi }] = await Promise.all([
+  const buonoIds = [...new Set(richieste.map((r: BookingRequestRow) => r.buono_id).filter(Boolean) as string[])];
+
+  const [{ data: slots }, { data: servizi }, buonoById] = await Promise.all([
     supabase.from("available_slots").select("*").in("id", slotIds),
     supabase.from("services").select("*").in("id", serviceIds),
+    caricaBuoniById(supabase, buonoIds),
   ]);
 
   const slotById = new Map<string, AvailableSlotRow>((slots ?? []).map((s) => [s.id, s]));
@@ -45,6 +49,7 @@ async function getRichiesteInAttesa(
       slot: slotById.get(r.slot_id) ?? null,
       service: servizioById.get(r.service_id) ?? null,
       serviceExtra: r.service_id_extra ? servizioById.get(r.service_id_extra) ?? null : null,
+      buono: r.buono_id ? buonoById.get(r.buono_id) ?? null : null,
     })),
     errore: null,
   };

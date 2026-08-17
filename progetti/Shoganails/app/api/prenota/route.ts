@@ -15,6 +15,7 @@ interface PrenotaBody {
   prezzoChf?: number;
   orarioPreferito?: string | null;
   note?: string | null;
+  buonoCodice?: string | null;
   // solo per comporre il testo della notifica push, non usati dal DB
   giornoLabel?: string;
   orarioLabel?: string;
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
     prezzoChf,
     orarioPreferito,
     note,
+    buonoCodice,
   } = body;
 
   if (!slotId || !serviceId) {
@@ -71,12 +73,15 @@ export async function POST(request: Request) {
     p_service_id_extra: serviceIdExtra ?? null,
     p_durata_minuti: durataMinuti ?? 60,
     p_prezzo_totale_chf: prezzoChf ?? null,
+    p_buono_codice: buonoCodice?.trim() || null,
   });
 
   if (rpcError) {
     const messaggio = rpcError.message.includes("non più disponibile")
       ? "Questo orario è appena stato richiesto da un'altra cliente. Scegline un altro e riprova."
-      : "Non siamo riusciti a inviare la richiesta. Riprova tra un attimo.";
+      : rpcError.message.includes("buono")
+        ? rpcError.message
+        : "Non siamo riusciti a inviare la richiesta. Riprova tra un attimo.";
     return NextResponse.json({ ok: false, error: messaggio }, { status: 409 });
   }
 

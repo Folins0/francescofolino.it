@@ -5,11 +5,17 @@ import { createClient } from "@/lib/supabase/client";
 import { attivaNotifichePush, pushSupportato, statoSubscriptionAttuale } from "@/lib/push-client";
 import { formattaGiornoBreve, nomeGiorno } from "@/lib/week";
 import type { AvailableSlotRow, BookingRequestRow, ServiceRow } from "@/types/database";
+import type { BuonoConServizio } from "@/types/buoni";
 
 export interface BookingRequestConDettagli extends BookingRequestRow {
   slot?: AvailableSlotRow | null;
   service?: ServiceRow | null;
   serviceExtra?: ServiceRow | null;
+  buono?: BuonoConServizio | null;
+}
+
+export function dettaglioBuono(buono: BuonoConServizio): string {
+  return buono.tipo === "valore" ? `${buono.valore_chf} CHF` : buono.servizio_nome ?? "servizio";
 }
 
 function formattaOra(ora: string): string {
@@ -45,19 +51,36 @@ export function Richieste({
           const nuova = payload.new as BookingRequestRow;
           if (nuova.stato !== "in_attesa") return;
 
-          const [{ data: slot }, { data: service }, { data: serviceExtra }] = await Promise.all([
+          const [{ data: slot }, { data: service }, { data: serviceExtra }, { data: buono }] = await Promise.all([
             supabase.from("available_slots").select("*").eq("id", nuova.slot_id).maybeSingle(),
             supabase.from("services").select("*").eq("id", nuova.service_id).maybeSingle(),
             nuova.service_id_extra
               ? supabase.from("services").select("*").eq("id", nuova.service_id_extra).maybeSingle()
               : Promise.resolve({ data: null }),
+            nuova.buono_id
+              ? supabase.from("buoni").select("*").eq("id", nuova.buono_id).maybeSingle()
+              : Promise.resolve({ data: null }),
           ]);
+
+          let buonoConServizio: BuonoConServizio | null = null;
+          if (buono) {
+            const { data: servizioBuono } = buono.service_id
+              ? await supabase.from("services").select("nome").eq("id", buono.service_id).maybeSingle()
+              : { data: null };
+            buonoConServizio = { ...buono, servizio_nome: servizioBuono?.nome ?? null };
+          }
 
           setRichieste((prev) => {
             if (prev.some((r) => r.id === nuova.id)) return prev;
             return [
               ...prev,
-              { ...nuova, slot: slot ?? null, service: service ?? null, serviceExtra: serviceExtra ?? null },
+              {
+                ...nuova,
+                slot: slot ?? null,
+                service: service ?? null,
+                serviceExtra: serviceExtra ?? null,
+                buono: buonoConServizio,
+              },
             ];
           });
         }
@@ -212,6 +235,12 @@ export function Richieste({
               {(r.serviceExtra || r.prezzo_totale_chf > 0) && (
                 <p className="mt-1 text-xs text-stone-500">
                   Totale: {r.prezzo_totale_chf} CHF · {r.durata_minuti} min
+                </p>
+              )}
+
+              {r.buono && (
+                <p className="mt-2 inline-block rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
+                  🎁 Buono {r.buono.codice}: {dettaglioBuono(r.buono)}
                 </p>
               )}
 

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { caricaBuoniById } from "@/lib/buoniDb";
 import { Calendario } from "@/components/admin/Calendario";
 import type { AvailableSlotRow, BookingRequestRow, ServiceRow } from "@/types/database";
 import type { BookingRequestConDettagli } from "@/components/admin/Richieste";
@@ -26,12 +27,17 @@ async function getPrenotazioniConfermate(
 
   const slotById = new Map<string, AvailableSlotRow>(slots.map((s: AvailableSlotRow) => [s.id, s]));
   const servizioById = new Map<string, ServiceRow>(servizi.map((s) => [s.id, s]));
+  const buonoIds = [
+    ...new Set((prenotazioni ?? []).map((p: BookingRequestRow) => p.buono_id).filter(Boolean) as string[]),
+  ];
+  const buonoById = await caricaBuoniById(supabase, buonoIds);
 
   return (prenotazioni ?? []).map((p: BookingRequestRow) => ({
     ...p,
     slot: slotById.get(p.slot_id) ?? null,
     service: servizioById.get(p.service_id) ?? null,
     serviceExtra: p.service_id_extra ? servizioById.get(p.service_id_extra) ?? null : null,
+    buono: p.buono_id ? buonoById.get(p.buono_id) ?? null : null,
   }));
 }
 

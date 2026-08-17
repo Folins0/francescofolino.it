@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import { formattaGiornoBreve, nomeGiorno } from "@/lib/week";
 import { formattaDurata } from "@/lib/services";
 import { TELEFONO_REGEX } from "@/lib/validation";
 import type { AvailableSlotRow, ServiceRow } from "@/types/database";
+import type { VerificaBuonoResult } from "@/types/buoni";
 
 function formattaOra(ora: string): string {
   return ora.slice(0, 5); // "HH:MM:SS" -> "HH:MM"
@@ -130,6 +132,26 @@ export function BookingForm({
   const [errore, setErrore] = useState<string | null>(null);
   const [inviata, setInviata] = useState(false);
 
+  const [hoUnBuono, setHoUnBuono] = useState(false);
+  const [codiceBuono, setCodiceBuono] = useState("");
+  const [verificaBuono, setVerificaBuono] = useState<VerificaBuonoResult | "verificando" | null>(null);
+
+  async function handleVerificaBuono() {
+    const codice = codiceBuono.trim();
+    if (!codice) {
+      setVerificaBuono(null);
+      return;
+    }
+    setVerificaBuono("verificando");
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc("verifica_buono", { p_codice: codice });
+    if (error || !data || data.length === 0) {
+      setVerificaBuono({ valido: false, tipo: null, valore_chf: null, servizio_nome: null, messaggio: "Errore durante il controllo del codice" });
+      return;
+    }
+    setVerificaBuono(data[0] as VerificaBuonoResult);
+  }
+
   const orarioValido = orarioPreferito !== "" && orariScelta.includes(orarioPreferito);
 
   const validazioneOk =
@@ -164,6 +186,7 @@ export function BookingForm({
           prezzoChf: prezzoTotale,
           orarioPreferito,
           note: note.trim() || null,
+          buonoCodice: hoUnBuono && codiceBuono.trim() ? codiceBuono.trim() : null,
           giornoLabel: slotScelto ? formattaGiornoBreve(slotScelto.giorno) : "",
           orarioLabel: `${orarioPreferito}–${daMinuti(toMinuti(orarioPreferito) + durataTotale)}`,
           servizioLabel: [servizioPrincipale?.nome, servizioExtra?.nome].filter(Boolean).join(" + "),
@@ -378,6 +401,60 @@ export function BookingForm({
           onChange={(e) => setNote(e.target.value)}
           placeholder="Preferenze particolari, colore, ecc."
         />
+      </div>
+
+      <div className="rounded-xl border border-marble-200 bg-white/70 p-4">
+        <label className="flex items-center gap-2 text-sm font-medium text-stone-700">
+          <input
+            type="checkbox"
+            checked={hoUnBuono}
+            onChange={(e) => {
+              setHoUnBuono(e.target.checked);
+              if (!e.target.checked) {
+                setCodiceBuono("");
+                setVerificaBuono(null);
+              }
+            }}
+            className="h-4 w-4 rounded border-marble-300 text-coral-700 focus:ring-coral-300"
+          />
+          Ho un codice buono
+        </label>
+
+        {hoUnBuono && (
+          <div className="mt-3">
+            <label className="mb-1 block text-sm font-medium text-stone-600" htmlFor="codice-buono">
+              Codice buono
+            </label>
+            <input
+              id="codice-buono"
+              type="text"
+              className="w-full rounded-xl border border-marble-300 bg-white px-4 py-2.5 uppercase text-stone-800 placeholder:normal-case placeholder:text-stone-400 focus:border-coral-400 focus:outline-none focus:ring-2 focus:ring-coral-200"
+              value={codiceBuono}
+              onChange={(e) => {
+                setCodiceBuono(e.target.value);
+                setVerificaBuono(null);
+              }}
+              onBlur={handleVerificaBuono}
+              placeholder="es. SHOGA-AB12CD"
+            />
+            {verificaBuono === "verificando" && (
+              <p className="mt-1.5 text-sm text-stone-500">Verifica in corso…</p>
+            )}
+            {verificaBuono && verificaBuono !== "verificando" && (
+              <p
+                className={`mt-1.5 text-sm ${verificaBuono.valido ? "text-emerald-700" : "text-rose-700"}`}
+              >
+                {verificaBuono.valido
+                  ? `✓ Buono valido: ${
+                      verificaBuono.tipo === "valore"
+                        ? `${verificaBuono.valore_chf} CHF`
+                        : verificaBuono.servizio_nome
+                    }`
+                  : `✗ ${verificaBuono.messaggio}`}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {errore && (

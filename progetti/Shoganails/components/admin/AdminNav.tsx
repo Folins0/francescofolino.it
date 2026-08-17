@@ -8,6 +8,7 @@ const TABS = [
   { href: "/admin/calendario", label: "Calendario" },
   { href: "/admin/settimana", label: "Nuova settimana" },
   { href: "/admin/foto", label: "Foto del sito" },
+  { href: "/admin/buoni", label: "Buoni" },
 ];
 
 export function AdminNav() {
