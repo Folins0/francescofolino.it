@@ -22,6 +22,13 @@ export function oggiISO(ref: Date = new Date()): string {
   return toISODate(ref);
 }
 
+/** Data di domani in formato ISO "YYYY-MM-DD" (fuso orario locale). */
+export function domaniISO(ref: Date = new Date()): string {
+  const d = new Date(ref);
+  d.setDate(d.getDate() + 1);
+  return toISODate(d);
+}
+
 /** Restituisce il lunedì della settimana di `ref` (default: oggi), a mezzanotte locale. */
 export function startOfWeek(ref: Date = new Date()): Date {
   const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());

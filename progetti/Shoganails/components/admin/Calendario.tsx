@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { formattaGiornoBreve, nomeGiorno } from "@/lib/week";
+import { MessageCircle } from "lucide-react";
+import { domaniISO, formattaGiornoBreve, nomeGiorno } from "@/lib/week";
+import { linkWhatsapp } from "@/lib/whatsapp";
 import type { ServiceRow } from "@/types/database";
 import { dettaglioBuono, type BookingRequestConDettagli } from "@/components/admin/Richieste";
 
@@ -36,6 +38,12 @@ function creaForm(p: BookingRequestConDettagli): FormModifica {
   };
 }
 
+function messaggioPromemoria(p: BookingRequestConDettagli): string {
+  const servizio = [p.service?.nome, p.serviceExtra?.nome].filter(Boolean).join(" + ") || "il trattamento";
+  const ora = p.slot ? formattaOra(p.slot.ora_inizio) : "";
+  return `Ciao ${p.nome_cliente}! Ti ricordiamo il tuo appuntamento da Shoganails domani alle ${ora} per ${servizio}. A domani! 💅`;
+}
+
 function ordinaPerData(lista: BookingRequestConDettagli[]): BookingRequestConDettagli[] {
   return [...lista].sort((a, b) => {
     const da = a.slot ? `${a.slot.giorno} ${a.slot.ora_inizio}` : "";
@@ -45,6 +53,7 @@ function ordinaPerData(lista: BookingRequestConDettagli[]): BookingRequestConDet
 }
 
 export function Calendario({ prenotazioniIniziali, servizi }: CalendarioProps) {
+  const domani = domaniISO();
   const [prenotazioni, setPrenotazioni] = useState(ordinaPerData(prenotazioniIniziali));
   const [modificandoId, setModificandoId] = useState<string | null>(null);
   const [form, setForm] = useState<FormModifica | null>(null);
@@ -315,7 +324,19 @@ export function Calendario({ prenotazioniIniziali, servizi }: CalendarioProps) {
                         <p className="mt-1 text-sm italic text-stone-500">{`"${p.note}"`}</p>
                       )}
 
-                      <div className="mt-4 flex gap-3">
+                      {p.slot?.giorno === domani && (
+                        <a
+                          href={linkWhatsapp(p.telefono_cliente, messaggioPromemoria(p))}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                        >
+                          <MessageCircle size={16} />
+                          Ricorda appuntamento su WhatsApp
+                        </a>
+                      )}
+
+                      <div className="mt-3 flex gap-3">
                         <button
                           type="button"
                           onClick={() => iniziaModifica(p)}

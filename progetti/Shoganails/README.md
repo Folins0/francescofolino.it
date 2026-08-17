@@ -162,17 +162,22 @@ rientrare nell'app e toccare di nuovo "Attiva notifiche".
   - **Richieste** (`/admin`, `components/admin/Richieste.tsx`): mostra in tempo reale
     (Supabase Realtime) le nuove richieste con stato `in_attesa` — nome,
     telefono, servizio, orario. Bottone **"Attiva notifiche"** per registrare
-    il dispositivo alle notifiche push. Per ogni richiesta, due bottoni:
-    **"Confermato"** (marca booking e slot come confermati) e
-    **"Rifiutato"** (libera di nuovo lo slot). Nessun messaggio viene inviato
-    automaticamente: la conferma vera con la cliente resta su WhatsApp.
+    il dispositivo alle notifiche push. Per ogni richiesta, il bottone
+    **"Conferma appuntamento su WhatsApp"** (`lib/whatsapp.ts`) apre la chat
+    WhatsApp della cliente con un messaggio di conferma già scritto (giorno,
+    orario, servizio) — resta comunque lei a doverlo inviare, nessun invio
+    automatico. Sotto, due bottoni: **"Confermato"** (marca booking e slot
+    come confermati) e **"Rifiutato"** (libera di nuovo lo slot).
   - **Calendario** (`/admin/calendario`, `components/admin/Calendario.tsx`):
     tutte le prenotazioni confermate da oggi in poi, raggruppate per giorno.
-    Ogni appuntamento si può modificare (nome, telefono, servizio, note,
-    giorno/orario — `app/api/admin/modifica-prenotazione/route.ts`) o
-    cancellare (libera di nuovo lo slot, riusa la stessa logica del
-    "Rifiutato" delle Richieste). Nessun messaggio automatico viene inviato
-    alla cliente in nessuno dei due casi. Se configurato (vedi sezione
+    Per gli appuntamenti **di domani** compare anche il bottone **"Ricorda
+    appuntamento su WhatsApp"**, stesso principio: apre la chat con un
+    promemoria già scritto, da inviare a mano. Ogni appuntamento si può
+    modificare (nome, telefono, servizio, note, giorno/orario —
+    `app/api/admin/modifica-prenotazione/route.ts`) o cancellare (libera di
+    nuovo lo slot, riusa la stessa logica del "Rifiutato" delle Richieste).
+    Nessun messaggio automatico viene inviato alla cliente in nessuno dei due
+    casi. Se configurato (vedi sezione
     "Google Calendar" sopra), ogni conferma/modifica/cancellazione
     sincronizza in tempo reale l'evento su Google Calendar
     (`lib/google-calendar.ts`) — best effort, non blocca l'operazione se
