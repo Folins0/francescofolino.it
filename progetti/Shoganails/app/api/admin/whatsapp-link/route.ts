@@ -4,6 +4,16 @@ import { linkWhatsapp } from "@/lib/whatsapp";
 
 export const runtime = "nodejs";
 
+const PREPARAZIONE_UNGHIE = `Per permettermi di lavorare al meglio e garantire una buona durata del trattamento, ti chiedo di:
+
+• Non applicare creme, oli o olio per cuticole sulle mani e sulle unghie dal giorno prima.
+• Non tagliare o sistemare le cuticole e non limare le unghie autonomamente.
+• Se hai smalto normale, ricordati di rimuoverlo prima dell'appuntamento.
+• Non applicare altri prodotti sulle unghie prima di venire.
+• Evitare, per quanto possibile, di stressare o danneggiare le unghie prima del trattamento.
+
+💗 La preparazione delle unghie verrà effettuata direttamente durante l'appuntamento.`;
+
 /**
  * Costruisce il link wa.me per il messaggio di conferma/promemoria,
  * includendo l'indirizzo dello studio (STUDIO_INDIRIZZO, solo env var
@@ -40,7 +50,7 @@ export async function GET(request: Request) {
   const testo =
     tipo === "conferma"
       ? `Ciao ${nome}! Confermo il tuo appuntamento da Shoganails per ${servizio}, ${quando}.${mappa}\n\nA presto! 💅`
-      : `Ciao ${nome}! Ti ricordiamo il tuo appuntamento da Shoganails domani alle ${quando} per ${servizio}.${mappa}\n\nA domani! 💅`;
+      : `Ciao ${nome}! Ti ricordiamo il tuo appuntamento da Shoganails domani alle ${quando} per ${servizio}.${mappa}\n\n${PREPARAZIONE_UNGHIE}\n\nTi aspetto! ✨\nShoganails 💅🏻`;
 
   return NextResponse.json({ ok: true, url: linkWhatsapp(telefono, testo) });
 }
