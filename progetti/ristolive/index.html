@@ -1,38 +1,133 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>RistoLive - Demo gestionale prenotazioni ristorante | Francesco Folino</title>
-    <meta name="description" content="Sistema di prenotazione tavoli in tempo reale sincronizzato con app gestionale, per ristoranti. Progetto demo di Francesco Folino.">
-    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
-    <style id="expo-reset">
-      /* These styles make the body full-height */
-      html,
-      body {
-        height: 100%;
-      }
-      /* These styles disable body scrolling if you are using <ScrollView> */
-      body {
-        overflow: hidden;
-      }
-      /* These styles make the root element full-height */
-      #root {
-        display: flex;
-        height: 100%;
-        flex: 1;
-      }
-    </style>
-  <link rel="icon" href="favicon.ico" /></head>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RistoLive - Demo gestionale prenotazioni ristorante | Francesco Folino</title>
+<meta name="description" content="Pannello per lo staff di un ristorante: prenotazioni, tavoli e piatto del mese sincronizzati con il sito. Progetto demo di Francesco Folino.">
+<link rel="icon" href="favicon.ico">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, "Segoe UI", Helvetica, Arial, sans-serif; background: #f4f4f5; color: #111; }
+  header { background: #fff; border-bottom: 1px solid #e4e4e7; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  header h1 { font-size: 1.15rem; }
+  .demo { font-size: .75rem; color: #71717a; border: 1px solid #e4e4e7; border-radius: 999px; padding: 3px 10px; }
+  nav { display: flex; gap: 6px; padding: 16px 24px 0; flex-wrap: wrap; }
+  nav button { font: inherit; font-size: .9rem; border: 1px solid #e4e4e7; background: #fff; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+  nav button[aria-selected="true"] { background: #111; color: #fff; border-color: #111; }
+  main { padding: 20px 24px 40px; max-width: 900px; }
+  .tab[hidden] { display: none; }
+  h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: #71717a; margin: 8px 0 10px; }
+  h2:not(:first-child) { margin-top: 28px; }
+  .riga { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e4e4e7; border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; }
+  .riga .info { flex: 1; }
+  .nome { font-weight: 600; }
+  .dett { font-size: .85rem; color: #71717a; margin-top: 2px; }
+  .btn { font: inherit; font-size: .85rem; font-weight: 600; border: 0; border-radius: 8px; padding: 8px 12px; color: #fff; background: #16a34a; cursor: pointer; }
+  .vuoto { color: #a1a1aa; font-style: italic; padding: 8px 0; }
+  .tavoli { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .tavolo { background: #fff; border: 1px solid #e4e4e7; border-left: 4px solid #16a34a; border-radius: 10px; padding: 12px 14px; }
+  .tavolo strong { display: block; font-size: 1.05rem; }
+  .tavolo span { font-size: .8rem; color: #71717a; }
+  .stato { display: block; margin-top: 8px; font-size: .75rem; font-weight: 600; color: #16a34a; }
+  .tavolo.prenotato { border-left-color: #ca8a04; } .tavolo.prenotato .stato { color: #ca8a04; }
+  .tavolo.occupato { border-left-color: #dc2626; } .tavolo.occupato .stato { color: #dc2626; }
+  .piatto { display: flex; gap: 18px; background: #fff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 16px; max-width: 620px; flex-wrap: wrap; }
+  .piatto img { width: 200px; max-width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 8px; }
+  .piatto .info { flex: 1; min-width: 200px; }
+  .badge { display: inline-block; font-size: .72rem; font-weight: 600; color: #16a34a; background: #f0fdf4; border-radius: 999px; padding: 3px 10px; margin-bottom: 8px; }
+  .piatto p { color: #52525b; font-size: .92rem; line-height: 1.5; margin-top: 6px; }
+</style>
+</head>
+<body>
+  <!-- Versione statica della demo, l'app Expo originale richiedeva il login su Supabase -->
+  <header>
+    <h1>RistoLive · Staff</h1>
+    <span class="demo">Demo · dati finti</span>
+  </header>
 
-  <body>
-    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
-    <!-- The root element for your Expo app. -->
-    <div id="root"></div>
-  <script src="_expo/static/js/web/index-5a9657ec87837dbbab01f3da9381b828.js" defer></script>
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-tab="prenotazioni">Prenotazioni</button>
+    <button role="tab" aria-selected="false" data-tab="tavoli">Tavoli</button>
+    <button role="tab" aria-selected="false" data-tab="piatto">Piatto del mese</button>
+  </nav>
+
+  <main>
+    <section class="tab" id="tab-prenotazioni">
+      <h2>In attesa</h2>
+      <div id="attesa"></div>
+      <h2>Confermate</h2>
+      <div id="confermate"></div>
+    </section>
+
+    <section class="tab" id="tab-tavoli" hidden>
+      <h2>Sala · stasera</h2>
+      <div class="tavoli">
+        <div class="tavolo"><strong>Tavolo 1</strong><span>Capienza 2</span><div class="stato">Libero</div></div>
+        <div class="tavolo occupato"><strong>Tavolo 2</strong><span>Capienza 4</span><div class="stato">Occupato</div></div>
+        <div class="tavolo prenotato"><strong>Tavolo 3</strong><span>Capienza 4</span><div class="stato">Prenotato · 20:30</div></div>
+        <div class="tavolo"><strong>Tavolo 4</strong><span>Capienza 6</span><div class="stato">Libero</div></div>
+        <div class="tavolo prenotato"><strong>Tavolo 5</strong><span>Capienza 2</span><div class="stato">Prenotato · 21:00</div></div>
+        <div class="tavolo occupato"><strong>Tavolo 6</strong><span>Capienza 8</span><div class="stato">Occupato</div></div>
+        <div class="tavolo"><strong>Tavolo 7</strong><span>Capienza 4</span><div class="stato">Libero</div></div>
+        <div class="tavolo"><strong>Tavolo 8</strong><span>Capienza 2</span><div class="stato">Libero</div></div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-piatto" hidden>
+      <h2>Pubblicato sul sito</h2>
+      <div class="piatto">
+        <img src="../osteria-folino/immagini/piatto-esempio.jpg" alt="Tagliere di antipasti toscani">
+        <div class="info">
+          <span class="badge">Attualmente pubblicato</span>
+          <div class="nome">Tagliere della casa</div>
+          <p>Salumi toscani, pecorino stagionato, crostini neri e verdure sott'olio fatte in casa.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+  document.querySelectorAll('[role="tab"]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('[role="tab"]').forEach(function (t) {
+        t.setAttribute('aria-selected', String(t === tab));
+        document.getElementById('tab-' + t.dataset.tab).hidden = t !== tab;
+      });
+    });
+  });
+
+  var attesa = [
+    { nome: 'Luca Bertini', dett: '4 persone · Ven 20:30' },
+    { nome: 'Chiara Neri', dett: '2 persone · Sab 21:00' }
+  ];
+  var confermate = [
+    { nome: 'Paolo Gentili', dett: '6 persone · Ven 20:00 · Tavolo 6' },
+    { nome: 'Anna Ricci', dett: '2 persone · Ven 20:15 · Tavolo 2' }
+  ];
+
+  function riga(p) {
+    var el = document.createElement('div');
+    el.className = 'riga';
+    el.innerHTML = '<div class="info"><div class="nome"></div><div class="dett"></div></div>';
+    el.querySelector('.nome').textContent = p.nome;
+    el.querySelector('.dett').textContent = p.dett;
+    return el;
+  }
+
+  function disegna() {
+    var a = document.getElementById('attesa'), c = document.getElementById('confermate');
+    a.innerHTML = ''; c.innerHTML = '';
+    if (!attesa.length) a.innerHTML = '<p class="vuoto">Nessuna prenotazione in attesa</p>';
+    attesa.forEach(function (p, i) {
+      var el = riga(p), b = document.createElement('button');
+      b.className = 'btn'; b.textContent = 'Conferma';
+      b.addEventListener('click', function () { confermate.push(attesa.splice(i, 1)[0]); disegna(); });
+      el.appendChild(b); a.appendChild(el);
+    });
+    confermate.forEach(function (p) { c.appendChild(riga(p)); });
+  }
+  disegna();
+</script>
 </body>
 </html>

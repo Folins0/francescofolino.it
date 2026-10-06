@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shoganails Gestione - Demo pannello con lettura AI turni | Francesco Folino</title>
-<meta name="description" content="Pannello gestionale per saloni con lettura automatica del foglio turni tramite AI. Progetto demo di Francesco Folino.">
+<title>Shoganails Gestione - Demo pannello gestionale salone | Francesco Folino</title>
+<meta name="description" content="Pannello gestionale per saloni: richieste, calendario, orari di lavoro e foto del sito. Progetto demo di Francesco Folino.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
             <nav>
                 <button class="voce-nav attiva" data-tab="richieste">📥 Richieste</button>
                 <button class="voce-nav" data-tab="calendario">📅 Calendario</button>
-                <button class="voce-nav" data-tab="settimana">🤖 Nuova settimana</button>
+                <button class="voce-nav" data-tab="settimana">🕒 Orari di lavoro</button>
                 <button class="voce-nav" data-tab="foto">🖼️ Foto</button>
             </nav>
         </aside>
@@ -31,13 +31,13 @@
             </section>
 
             <section id="tab-settimana" class="tab">
-                <h1>Nuova settimana</h1>
-                <div class="scheda-upload">
-                    <p>Carica una foto del foglio turni: l'IA lo legge e propone gli slot della settimana.</p>
-                    <button id="bottone-carica" class="bottone-primario">📷 Carica foto foglio turni</button>
-                    <div id="stato-ia" class="stato-ia" hidden></div>
-                    <div id="slot-settimana" class="slot-settimana" hidden></div>
-                </div>
+                <h1>Orari di lavoro</h1>
+                <form id="form-orari" class="scheda-upload">
+                    <p>Inserisci i tuoi orari della settimana: le clienti potranno prenotare solo negli slot liberi.</p>
+                    <div id="righe-orari" class="slot-settimana"></div>
+                    <button type="submit" class="bottone-primario">Salva orari</button>
+                    <div id="stato-orari" class="stato-ia" role="status" hidden></div>
+                </form>
             </section>
 
             <section id="tab-foto" class="tab">
