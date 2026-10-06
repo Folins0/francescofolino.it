@@ -12,7 +12,7 @@
   --radius: 18px;
   --shadow: 0 10px 30px rgba(28, 47, 94, .10);
   --serif: "Cormorant Garamond", Georgia, serif;
-  --sans: "Inter", system-ui, -apple-system, sans-serif;
+  --sans: "Inter", "GFS Didot", system-ui, -apple-system, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -375,4 +375,83 @@ legend, .field { font-size: .85rem; font-weight: 600; color: var(--navy); margin
   .words { gap: 12px; }
   .word { padding: 18px 14px; }
   .word-gr { font-size: 1.45rem; }
+}
+
+/* ===== Paesaggio isole ===== */
+.islands { display: block; width: 100%; height: 150px; margin-top: -30px; position: relative; }
+
+/* ===== Avviso dall'admin ===== */
+.notice { background: var(--olive); color: #fff; text-align: center; padding: 10px 16px; font-weight: 500; font-size: .95rem; }
+
+/* ===== Occasioni ===== */
+.section-occ { background: var(--cream); }
+.occs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 40px; }
+.occ {
+  background: #fff; border-radius: var(--radius); padding: 24px 18px; text-align: center;
+  border: 1px solid rgba(28,47,94,.08); box-shadow: 0 6px 18px rgba(28,47,94,.06);
+  display: flex; flex-direction: column; transition: transform .25s ease, box-shadow .25s ease;
+}
+.occ:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(28,47,94,.14); }
+.occ-icon { width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 50%; display: grid; place-items: center; background: var(--paper); color: var(--terra); }
+.occ-icon svg { width: 26px; height: 26px; }
+.occ h3 { font-size: 1.4rem; margin-bottom: 2px; }
+.occ-gr { font-family: var(--greek); color: var(--olive); margin: 0 0 10px; }
+.occ-text { font-size: .92rem; color: var(--muted); margin: 0 0 14px; }
+.occ-tag { margin: auto 0 0; padding-top: 12px; border-top: 1px dashed rgba(28,47,94,.2); font-size: .82rem; color: var(--muted); }
+.occ-tag strong { color: var(--navy); display: block; font-size: .9rem; }
+
+/* ===== Allergeni, stampa menù ===== */
+.allergens {
+  max-width: 640px; margin: 0 auto 22px; padding: 16px 20px; border-radius: 14px;
+  border: 1.5px dashed rgba(181,86,47,.45); background: rgba(255,255,255,.5); text-align: center;
+}
+.allergens h4 { margin-top: 0; color: var(--terra); }
+.allergens p { margin: 0; font-size: .92rem; color: var(--muted); }
+.btn-print { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; font-size: .92rem; box-shadow: none; }
+.btn-print svg { width: 20px; height: 20px; }
+
+/* ===== Contenuti dall'admin ===== */
+.chef-name { font: 600 1.5rem var(--serif); color: var(--olive-soft); margin: -4px 0 10px; }
+.chef-bio { white-space: pre-line; }
+.chef-photo.has-photo { padding: 0; overflow: hidden; }
+.chef-photo.has-photo img { width: 100%; height: 100%; object-fit: cover; }
+.tile.has-photo .tile-art { display: none; }
+.tile.has-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(0,0,0,.55)); }
+.tile.has-photo figcaption { z-index: 1; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.35); }
+.estimate { background: rgba(107,122,58,.1); color: var(--olive); border-radius: 12px; padding: 12px 16px; font-weight: 600; margin: 0 0 14px; text-align: center; }
+.legal { text-align: center; font-size: .82rem; margin: 0 0 8px; padding: 0 16px; opacity: .75; }
+.legal a { color: #fff; }
+
+@media (max-width: 1100px) { .occs { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 900px) { .islands { height: 110px; } }
+@media (max-width: 640px) {
+  .occs { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .occ { padding: 18px 12px; }
+  .occ:last-child { grid-column: span 2; }
+  .occ h3 { font-size: 1.2rem; }
+  .islands { height: 80px; margin-top: -10px; }
+}
+
+/* ===== Stampa: solo il menù ===== */
+.print-head { display: none; }
+@media print {
+  @page { margin: 14mm; }
+  body { background: #fff; }
+  .proto-bar, .notice, .nav, .fab, .footer, main > section:not(#menu), .btn-print, .menu-cap, #menu .divider { display: none !important; }
+  .js .reveal { opacity: 1 !important; transform: none !important; }
+  #menu { padding: 0; background: #fff; }
+  .print-head { display: flex !important; align-items: center; gap: 16px; margin-bottom: 10px; }
+  .print-head img { width: 70px; height: 70px; }
+  .print-head p { margin: 0; color: var(--navy); }
+  .menus { grid-template-columns: repeat(3, 1fr) !important; max-width: none !important; gap: 10px; margin-top: 16px; }
+  .menu-card { box-shadow: none; padding: 16px 12px; break-inside: avoid; }
+  .menu-card li, .menu-desc { font-size: 9.5pt; }
+  .menu-card h3 { font-size: 16pt; }
+  .menu-card h4 { margin: .7em 0 .2em; }
+  #menu h2 { font-size: 22pt; margin-bottom: 4px; }
+  .dessert { margin: 12px auto 8px; padding: 10px; }
+  .allergens { margin: 8px auto; padding: 8px 12px; }
+  .allergens p, .dessert p { font-size: 9pt; }
+  .dessert, .allergens { box-shadow: none; break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

@@ -7,13 +7,28 @@
   <meta name="description" content="Opa! Chef a domicilio e catering di cucina greca a Pisa. Menù tradizionali preparati a casa tua o da asporto, solo su prenotazione.">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#1c2f5e">
+  <link rel="canonical" href="https://francescofolino.it/progetti/opa/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:locale:alternate" content="en_GB">
+  <meta property="og:site_name" content="Opa! – Cucina greca a domicilio">
+  <meta property="og:url" content="https://francescofolino.it/progetti/opa/">
   <meta property="og:title" content="Opa! – Cucina greca a domicilio a Pisa">
-  <meta property="og:description" content="Vuoi viaggiare in Grecia senza lasciare Pisa? Chef a domicilio, catering e asporto.">
+  <meta property="og:description" content="Vuoi viaggiare in Grecia senza lasciare Pisa? Chef a domicilio, catering e asporto, solo su prenotazione.">
+  <meta property="og:image" content="https://francescofolino.it/progetti/opa/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Logo Opa! e scritta: Cucina greca a domicilio a Pisa">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Opa! – Cucina greca a domicilio a Pisa">
+  <meta name="twitter:description" content="Chef a domicilio, catering e asporto a Pisa, solo su prenotazione.">
+  <meta name="twitter:image" content="https://francescofolino.it/progetti/opa/og-image.jpg">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=GFS+Didot&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="preload" href="cormorant-garamond-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="fonts.css?v=6">
+  <link rel="stylesheet" href="style.css?v=6">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -68,6 +83,12 @@
         </g>
         <path d="M11 31 h3 v-2 h3 v2 h3 v-2 h3 v2 h3 v-2 h3 v2" fill="none" stroke="currentColor" stroke-width="1"/>
       </symbol>
+      <symbol id="i-egg" viewBox="0 0 24 24"><path d="M12 3C8 3 5 9.5 5 14a7 7 0 0 0 14 0c0-4.5-3-11-7-11z M6 13.5l3-2 3 2 3-2 3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-cake" viewBox="0 0 24 24"><path d="M4 20h16 M5 20v-7h14v7 M5 16c2 1.5 4.5 1.5 7 0s5-1.5 7 0 M8 13V9 M12 13V9 M16 13V9 M8 6.5v.5 M12 6.5v.5 M16 6.5v.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-case" viewBox="0 0 24 24"><path d="M3.5 8h17v11h-17z M9 8V5.5h6V8 M3.5 13h17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3.5h10V9 M7 17H4.5V9h15v8H17 M7 14h10v6.5H7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
     </defs>
   </svg>
 
@@ -90,6 +111,8 @@
       <a href="#prenota" class="btn btn-small" data-en="Book">Prenota</a>
     </div>
   </header>
+
+  <div class="notice" id="notice" hidden></div>
 
   <main id="top">
 
@@ -118,6 +141,30 @@
           <li data-en="<strong>Pisa</strong> &amp; surroundings"><strong>Pisa</strong> e dintorni</li>
         </ul>
       </div>
+      <svg class="islands" viewBox="0 0 1200 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a5fa8" stop-opacity=".55"/><stop offset="1" stop-color="#1c2f5e" stop-opacity=".8"/></linearGradient>
+        </defs>
+        <circle cx="1000" cy="112" r="30" fill="#b5562f" opacity=".2"/>
+        <path d="M0 150 C 140 120 260 112 380 128 C 470 140 520 104 600 96 C 700 86 760 124 860 132 C 980 142 1080 118 1200 128 V200 H0z" fill="#efe4cc"/>
+        <g stroke="#1c2f5e" stroke-width="1.6" fill="#fffdf7" stroke-linejoin="round">
+          <rect x="430" y="104" width="44" height="34"/><rect x="474" y="114" width="34" height="24"/>
+          <rect x="520" y="96" width="40" height="42"/><path d="M520 96 a20 20 0 0 1 40 0" fill="#1c2f5e"/><path d="M540 76 v-8 M536 72 h8" fill="none"/>
+          <rect x="560" y="108" width="52" height="30"/><rect x="612" y="100" width="36" height="38"/>
+          <rect x="648" y="112" width="44" height="26"/><rect x="692" y="104" width="30" height="34"/>
+          <path d="M692 104 a15 15 0 0 1 30 0" fill="#1c2f5e"/>
+          <rect x="722" y="116" width="40" height="22"/>
+        </g>
+        <g fill="#1c2f5e" opacity=".75">
+          <rect x="440" y="114" width="6" height="9"/><rect x="456" y="114" width="6" height="9"/><rect x="484" y="122" width="6" height="8"/>
+          <rect x="535" y="114" width="10" height="16" rx="5"/><rect x="572" y="116" width="6" height="9"/><rect x="592" y="116" width="6" height="9"/>
+          <rect x="624" y="112" width="12" height="18" rx="6"/><rect x="660" y="120" width="6" height="8"/><rect x="702" y="116" width="10" height="14" rx="5"/><rect x="736" y="122" width="6" height="8"/>
+        </g>
+        <path d="M0 150 C 200 142 400 158 600 150 C 800 142 1000 158 1200 150 V200 H0z" fill="url(#sea)"/>
+        <g fill="none" stroke="#fffdf7" stroke-width="1.6" stroke-linecap="round" opacity=".6">
+          <path d="M120 172 q12 -6 24 0 t24 0"/><path d="M340 182 q12 -6 24 0 t24 0"/><path d="M820 176 q12 -6 24 0 t24 0"/><path d="M1040 186 q12 -6 24 0 t24 0"/>
+        </g>
+      </svg>
       <div class="meander" aria-hidden="true"></div>
     </section>
 
@@ -168,10 +215,57 @@
       </div>
     </section>
 
+    <!-- OCCASIONI -->
+    <section id="occasioni" class="section section-occ">
+      <div class="container">
+        <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
+        <p class="eyebrow center reveal" data-en="Every occasion is a good one">Ogni occasione è buona</p>
+        <h2 class="center reveal" data-en="Made for your occasion">Per la tua occasione</h2>
+        <div class="occs">
+          <article class="occ reveal">
+            <div class="occ-icon"><svg><use href="#i-egg"/></svg></div>
+            <h3 data-en="Greek Easter">Pasqua greca</h3>
+            <p class="occ-gr" lang="el">Πάσχα</p>
+            <p class="occ-text" data-en="Celebrate Easter the Greek way, including Orthodox Easter, which often falls on a different date.">Festeggia la Pasqua alla greca, anche quella ortodossa, che spesso cade in una data diversa dalla nostra.</p>
+            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Catering / takeaway">Catering / asporto</strong></p>
+          </article>
+          <article class="occ reveal">
+            <div class="occ-icon"><svg><use href="#i-star"/></svg></div>
+            <h3 data-en="Christmas &amp; holidays">Natale e feste</h3>
+            <p class="occ-gr" lang="el">Χριστούγεννα</p>
+            <p class="occ-text" data-en="A holiday lunch with a twist, without spending the day in the kitchen.">Un pranzo delle feste diverso dal solito, senza passare la giornata ai fornelli.</p>
+            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Ready to serve">Pronto in tavola</strong></p>
+          </article>
+          <article class="occ reveal">
+            <div class="occ-icon"><svg><use href="#i-cake"/></svg></div>
+            <h3 data-en="Birthdays &amp; anniversaries">Compleanni e ricorrenze</h3>
+            <p class="occ-gr" lang="el">Γενέθλια</p>
+            <p class="occ-text" data-en="Mezedes to share in the middle of the table: perfect for a crowd.">Mezedes da condividere al centro della tavola: perfetti quando si è in tanti.</p>
+            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Catering / takeaway">Catering / asporto</strong></p>
+          </article>
+          <article class="occ reveal">
+            <div class="occ-icon"><svg><use href="#i-heart"/></svg></div>
+            <h3 data-en="Romantic dinner">Cena romantica</h3>
+            <p class="occ-gr" lang="el">Αγάπη</p>
+            <p class="occ-text" data-en="An evening for two with the chef cooking for you and leaving the kitchen spotless.">Una serata a due con lo chef che cucina per voi e poi vi lascia la cucina in ordine.</p>
+            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Private chef">Chef a domicilio</strong></p>
+          </article>
+          <article class="occ reveal">
+            <div class="occ-icon"><svg><use href="#i-case"/></svg></div>
+            <h3 data-en="Corporate dinners">Cene aziendali</h3>
+            <p class="occ-gr" lang="el">Εταιρικά</p>
+            <p class="occ-text" data-en="A team or client dinner with a menu people will talk about.">Una cena di squadra o con i clienti, con un menù che fa parlare di sé.</p>
+            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Private chef">Chef a domicilio</strong></p>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <!-- MENU -->
     <section id="menu" class="section section-paper">
       <div class="container">
         <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
+        <div class="print-head"><img src="logo.svg" alt=""><p><strong>Opa! – Cucina greca a domicilio · Pisa</strong><br>francescofolino.it/progetti/opa · Instagram @opa_cucinagreca_chefadomicilio</p></div>
         <p class="eyebrow center reveal">Sfizi di Grecia</p>
         <h2 class="center reveal" data-en="Our menus">I nostri menù</h2>
         <p class="center muted reveal" data-en="Every menu includes mezedes, a main course and a dessert of your choice.">Ogni menù comprende mezedes, piatto principale e un dolce a scelta.</p>
@@ -192,7 +286,7 @@
             <ul>
               <li data-en="<strong>Pita gyros</strong> <span class='gr' lang='el'>Πίτα γύρος</span> — spiced meat, tzatziki, tomato, onion and fries"><strong>Pita gyros</strong> <span class='gr' lang='el'>Πίτα γύρος</span> — carne speziata, tzatziki, pomodoro, cipolla e patate</li>
             </ul>
-            <p class="menu-price" data-en="Price coming soon">Prezzo in arrivo</p>
+            <p class="menu-price" data-cms-price data-en="Price coming soon">Prezzo in arrivo</p>
           </article>
 
           <article class="menu-card reveal">
@@ -210,7 +304,7 @@
             <ul>
               <li data-en="<strong>Moussaká</strong> <span class='gr' lang='el'>Μουσακάς</span> — aubergine, potatoes, meat ragù and béchamel"><strong>Moussaká</strong> <span class='gr' lang='el'>Μουσακάς</span> — melanzane, patate, ragù di carne e besciamella</li>
             </ul>
-            <p class="menu-price" data-en="Price coming soon">Prezzo in arrivo</p>
+            <p class="menu-price" data-cms-price data-en="Price coming soon">Prezzo in arrivo</p>
           </article>
 
           <article class="menu-card reveal">
@@ -229,7 +323,7 @@
               <li data-en="<strong>Keftedes</strong> <span class='gr' lang='el'>Κεφτέδες</span> — spiced meatballs with lemon"><strong>Keftedes</strong> <span class='gr' lang='el'>Κεφτέδες</span> — polpette di carne speziate con limone</li>
               <li data-en="1 pita on the side">1 pita d'accompagnamento</li>
             </ul>
-            <p class="menu-price" data-en="Price coming soon">Prezzo in arrivo</p>
+            <p class="menu-price" data-cms-price data-en="Price coming soon">Prezzo in arrivo</p>
           </article>
         </div>
 
@@ -237,6 +331,11 @@
           <h4 data-en="Dessert of your choice, for every menu">Dolce a scelta, per tutti i menù</h4>
           <p data-en="<strong>Ravani</strong> <span class='gr' lang='el'>Ραβανί</span> semolina and citrus cake &nbsp;or&nbsp; <strong>Bougatsa</strong> <span class='gr' lang='el'>Μπουγάτσα</span> custard pie"><strong>Ravani</strong> <span class='gr' lang='el'>Ραβανί</span> al semolino e agrumi &nbsp;oppure&nbsp; <strong>Bougatsa</strong> <span class='gr' lang='el'>Μπουγάτσα</span> alla crema</p>
         </div>
+        <div class="allergens reveal">
+          <h4 data-en="Allergens">Allergeni</h4>
+          <p data-en="Allergen details for each dish will be listed here soon. In the meantime, tell us about any allergy or intolerance in your request and we'll reply with full information.">Il dettaglio degli allergeni di ogni piatto sarà indicato qui a breve. Nel frattempo segnala allergie e intolleranze nella richiesta: ti risponderemo con tutte le informazioni.</p>
+        </div>
+        <p class="center"><button type="button" class="btn btn-ghost btn-print" id="print-menu"><svg aria-hidden="true"><use href="#i-print"/></svg> <span data-en="Download the menu (PDF)">Scarica il menù (PDF)</span></button></p>
         <p class="center muted small" data-en="Special requests or a tailor-made menu? Mention it in your request.">Hai esigenze particolari o vuoi un menù su misura? Scrivilo nella richiesta.</p>
       </div>
     </section>
@@ -339,12 +438,14 @@
     <section id="chef" class="section section-navy">
       <svg class="chef-branch" width="0" height="0" aria-hidden="true"><use href="#olive-branch"/></svg>
       <div class="container chef">
-        <div class="chef-photo reveal" aria-hidden="true"><img src="logo.svg" alt=""></div>
+        <div class="chef-photo reveal"><img src="logo.svg" alt="" id="chef-img"></div>
         <div class="reveal">
           <p class="eyebrow" data-en="The chef">Lo chef</p>
           <h2 data-en="I'm not a silent guest!">Non sono un ospite silenzioso!</h2>
           <p data-en="I love chatting, talking in the kitchen and telling stories about Greek dishes. If you're curious about the tricks of traditional cooking, you're in the right place.">Mi piace chiacchierare, scambiare due parole ai fornelli e raccontare qualcosa sui piatti greci. Se sei curioso di scoprire i trucchi della cucina tradizionale, sei nel posto giusto.</p>
-          <p class="muted-light"><em data-en="[The chef's name, a photo and a short bio will go here.]">[Qui andranno il nome dello chef, una foto e due righe sulla sua storia.]</em></p>
+          <p class="chef-name" id="chef-name" hidden></p>
+          <p class="chef-bio" id="chef-bio" hidden></p>
+          <p class="muted-light" id="chef-placeholder"><em data-en="[The chef's name, a photo and a short bio will go here.]">[Qui andranno il nome dello chef, una foto e due righe sulla sua storia.]</em></p>
           <blockquote data-en="«Filoxenia: love for the stranger, the art of welcoming whoever comes to our table like an old friend.»">«Filoxenia: l'amore per lo straniero, l'arte di accogliere chi arriva alla nostra tavola come un vecchio amico.»</blockquote>
         </div>
       </div>
@@ -443,6 +544,8 @@
             <textarea name="note" rows="3"></textarea>
           </label>
 
+          <p class="estimate" id="estimate" hidden></p>
+
           <p class="form-error" id="form-error" role="alert" hidden></p>
 
           <div class="preview" id="preview" hidden>
@@ -473,11 +576,13 @@
         <a href="https://www.facebook.com/profile.php?id=61594585724199" target="_blank" rel="noopener">Facebook</a>
       </div>
     </div>
+    <p class="legal"><span data-en="Business details (VAT no.) coming soon">Dati attività e P.IVA in arrivo</span> · <a href="privacy.html" data-en="Privacy">Privacy</a></p>
     <p class="credit"><span data-en="Website by">Sito realizzato da</span> <a href="https://francescofolino.it">Francesco Folino</a></p>
   </footer>
 
   <a href="#prenota" class="fab" data-en="Book">Prenota</a>
 
-  <script src="script.js?v=4"></script>
+  <script src="config.js?v=6"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>

@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · Opa!</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1c2f5e">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="fonts.css?v=6">
+  <style>
+    :root { --navy:#1c2f5e; --navy-deep:#13213f; --paper:#f6efdf; --cream:#fffdf7; --olive:#6b7a3a; --terra:#b5562f; --ink:#2a2a2a; --muted:#6b6457;
+      --serif:"Cormorant Garamond", Georgia, serif; --sans:"Inter", system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.5; }
+    header { background: var(--navy); color: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 5; }
+    header img { width: 40px; height: 40px; border-radius: 50%; background: #fff; }
+    header h1 { font: 600 1.4rem var(--serif); margin: 0; flex: 1; }
+    header a { color: #fff; font-size: .9rem; }
+    main { width: min(720px, 100% - 32px); margin: 24px auto 120px; }
+    .card { background: #fff; border-radius: 16px; padding: 22px 20px; margin-bottom: 16px; box-shadow: 0 6px 18px rgba(28,47,94,.07); }
+    h2 { font: 600 1.5rem var(--serif); color: var(--navy); margin: 0 0 4px; }
+    .hint { color: var(--muted); font-size: .88rem; margin: 0 0 14px; }
+    label { display: block; font-size: .85rem; font-weight: 600; color: var(--navy); margin: 12px 0 6px; }
+    input[type=text], input[type=password], input[type=tel], input[type=number], textarea {
+      width: 100%; font: 400 1rem var(--sans); padding: 12px 14px; border-radius: 12px;
+      border: 1.5px solid rgba(28,47,94,.2); background: var(--cream); color: var(--ink);
+    }
+    input:focus, textarea:focus { outline: none; border-color: var(--navy); }
+    textarea { min-height: 110px; resize: vertical; }
+    .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; cursor: pointer; background: var(--navy); color: #fff;
+      font: 600 1rem var(--sans); padding: 14px 24px; border-radius: 999px; text-decoration: none; }
+    .btn:disabled { opacity: .6; cursor: wait; }
+    .btn-light { background: transparent; color: var(--navy); box-shadow: inset 0 0 0 1.5px rgba(28,47,94,.35); padding: 9px 14px; font-size: .88rem; }
+    .btn-danger { color: var(--terra); box-shadow: inset 0 0 0 1.5px rgba(181,86,47,.4); }
+    .photo { display: flex; gap: 14px; align-items: center; margin-top: 8px; }
+    .thumb { width: 96px; height: 96px; border-radius: 12px; background: var(--paper) center/cover no-repeat; flex: none; display: grid; place-items: center; color: var(--muted); font-size: .75rem; text-align: center; border: 1px solid rgba(28,47,94,.1); }
+    .photo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .slot { border-top: 1px dashed rgba(28,47,94,.18); padding-top: 14px; margin-top: 14px; }
+    .slot:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+    .savebar { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(255,253,247,.96); backdrop-filter: blur(6px); border-top: 1px solid rgba(28,47,94,.1);
+      padding: 12px 16px; display: flex; gap: 12px; align-items: center; justify-content: center; }
+    .status { font-size: .9rem; font-weight: 600; }
+    .ok { color: var(--olive); } .err { color: var(--terra); }
+    .login { max-width: 420px; margin: 12vh auto; text-align: center; }
+    .login img { width: 110px; margin: 0 auto 10px; display: block; }
+    .setup ol { padding-left: 20px; } .setup li { margin: 6px 0; }
+    code { background: var(--paper); padding: 1px 6px; border-radius: 6px; }
+    @media (max-width: 560px) { .row { grid-template-columns: 1fr; } .row2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- Non ancora collegata -->
+  <main id="setup" class="setup" hidden>
+    <div class="card">
+      <h2>Pagina admin non ancora collegata</h2>
+      <p class="hint">Serve un'attivazione di 5 minuti su Google, una volta sola.</p>
+      <ol>
+        <li>Apri <a href="https://script.google.com" target="_blank" rel="noopener">script.google.com</a> e crea un nuovo progetto.</li>
+        <li>Incolla il codice del file <code>admin-apps-script.gs</code> e salva.</li>
+        <li>In <em>Impostazioni progetto → Proprietà script</em> aggiungi <code>ADMIN_PASSWORD</code> con la password scelta.</li>
+        <li><em>Esegui il deployment → Nuovo deployment → App web</em> (esegui come: Me, accesso: Chiunque) e copia l'URL <code>/exec</code>.</li>
+        <li>Inserisci l'URL in <code>config.js</code> alla voce <code>CMS_URL</code> e pubblica il file.</li>
+      </ol>
+    </div>
+  </main>
+
+  <!-- Accesso -->
+  <main id="login" class="login" hidden>
+    <img src="logo.svg" alt="Opa!">
+    <div class="card">
+      <h2>Area riservata</h2>
+      <p class="hint">Inserisci la password per modificare il sito.</p>
+      <form id="login-form">
+        <input type="password" id="pw" autocomplete="current-password" placeholder="Password" required>
+        <p class="status err" id="login-msg"></p>
+        <button class="btn" type="submit" id="login-btn">Entra</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Editor -->
+  <div id="editor" hidden>
+    <header>
+      <img src="logo.svg" alt="">
+      <h1>Admin Opa!</h1>
+      <a href="./" target="_blank" rel="noopener">Vedi il sito ↗</a>
+    </header>
+    <main>
+      <form id="content-form">
+        <section class="card">
+          <h2>Prezzi dei menù</h2>
+          <p class="hint">Solo il numero in euro, a persona. Lascia vuoto per mostrare "Prezzo in arrivo".</p>
+          <div class="row">
+            <div><label for="p1">Menù 1 · O Meraklis</label><input type="number" min="0" step="0.5" id="p1" inputmode="decimal"></div>
+            <div><label for="p2">Menù 2 · Oikogeneia</label><input type="number" min="0" step="0.5" id="p2" inputmode="decimal"></div>
+            <div><label for="p3">Menù 3 · To Steki</label><input type="number" min="0" step="0.5" id="p3" inputmode="decimal"></div>
+          </div>
+          <div class="row2">
+            <div><label for="pn-it">Testo dopo il prezzo</label><input type="text" id="pn-it" placeholder="a persona"></div>
+            <div><label for="pn-en">…in inglese</label><input type="text" id="pn-en" placeholder="per person"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Lo chef</h2>
+          <label for="chef-name">Nome</label>
+          <input type="text" id="chef-name" maxlength="60">
+          <label for="bio-it">Presentazione</label>
+          <textarea id="bio-it" maxlength="900" placeholder="Due righe sulla tua storia e sulla tua cucina…"></textarea>
+          <label for="bio-en">Presentazione in inglese (facoltativa)</label>
+          <textarea id="bio-en" maxlength="900"></textarea>
+          <label>Foto</label>
+          <div class="photo" data-photo="chef">
+            <div class="thumb">Nessuna foto</div>
+            <div class="photo-actions">
+              <label class="btn btn-light" style="margin:0">Scegli foto<input type="file" accept="image/*" hidden></label>
+              <button type="button" class="btn btn-light btn-danger" data-remove>Rimuovi</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Galleria</h2>
+          <p class="hint">Sei riquadri. Puoi cambiare foto e titolo di ognuno.</p>
+          <div id="gallery"></div>
+        </section>
+
+        <section class="card">
+          <h2>Avviso in evidenza</h2>
+          <p class="hint">Una frase che compare in cima al sito (es. "Prenotazioni aperte per Pasqua!"). Lascia vuoto per non mostrarla.</p>
+          <label for="n-it">Testo</label><input type="text" id="n-it" maxlength="160">
+          <label for="n-en">In inglese (facoltativo)</label><input type="text" id="n-en" maxlength="160">
+        </section>
+
+        <section class="card">
+          <h2>WhatsApp</h2>
+          <p class="hint">Numero per le prenotazioni, con prefisso (es. 39 333 1234567). Se lo inserisci compare il pulsante "Invia su WhatsApp".</p>
+          <input type="tel" id="wa" inputmode="tel" placeholder="39 333 1234567">
+        </section>
+      </form>
+    </main>
+    <div class="savebar">
+      <span class="status" id="save-msg"></span>
+      <button class="btn" id="save-btn" type="button">Salva e pubblica</button>
+    </div>
+  </div>
+
+  <script src="config.js?v=6"></script>
+  <script>
+    const API = (window.OPA_CONFIG || {}).CMS_URL;
+    const DEFAULT_TITLES = ["Moussaká", "Spanakopita", "Pita gyros", "Tzatziki", "Keftedes", "Bougatsa"];
+    const $ = id => document.getElementById(id);
+    let password = "";
+    let photos = { chef: "", g: ["", "", "", "", "", ""] };
+
+    async function call(body) {
+      const res = await fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) });
+      return res.json();
+    }
+    const errorText = e => ({
+      wrong_password: "Password sbagliata.", no_password_set: "Password non impostata nello script.",
+      too_big: "Contenuto troppo grande: accorcia i testi o usa una foto più piccola."
+    }[e] || "Errore: " + e);
+
+    // ---------- Accesso ----------
+    if (!API) { $("setup").hidden = false; }
+    else {
+      try { password = sessionStorage.getItem("opa-admin") || ""; } catch {}
+      password ? start() : ($("login").hidden = false);
+    }
+
+    $("login-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      $("login-btn").disabled = true; $("login-msg").textContent = "";
+      try {
+        const r = await call({ action: "check", password: $("pw").value });
+        if (!r.ok) throw new Error(errorText(r.error));
+        password = $("pw").value;
+        try { sessionStorage.setItem("opa-admin", password); } catch {}
+        $("login").hidden = true; start();
+      } catch (err) { $("login-msg").textContent = err.message === "Failed to fetch" ? "Servizio non raggiungibile." : err.message; }
+      $("login-btn").disabled = false;
+    });
+
+    // ---------- Editor ----------
+    function setThumb(box, url) {
+      const t = box.querySelector(".thumb");
+      t.style.backgroundImage = url ? `url("${url}")` : "";
+      t.textContent = url ? "" : "Nessuna foto";
+    }
+
+    function buildGallery() {
+      const wrap = $("gallery");
+      DEFAULT_TITLES.forEach((d, i) => {
+        wrap.insertAdjacentHTML("beforeend", `
+          <div class="slot">
+            <label for="gt${i}">Riquadro ${i + 1} – titolo</label>
+            <input type="text" id="gt${i}" maxlength="40" placeholder="${d}">
+            <div class="photo" data-photo="g${i}">
+              <div class="thumb">Nessuna foto</div>
+              <div class="photo-actions">
+                <label class="btn btn-light" style="margin:0">Scegli foto<input type="file" accept="image/*" hidden></label>
+                <button type="button" class="btn btn-light btn-danger" data-remove>Rimuovi</button>
+              </div>
+            </div>
+          </div>`);
+      });
+    }
+
+    async function start() {
+      buildGallery();
+      $("editor").hidden = false;
+      try {
+        const c = await (await fetch(API)).json();
+        fill(c);
+      } catch { msg("Impossibile leggere i contenuti attuali.", true); }
+      wirePhotos();
+    }
+
+    function fill(c) {
+      const p = c.prices || [];
+      ["p1", "p2", "p3"].forEach((id, i) => $(id).value = p[i] ?? "");
+      $("pn-it").value = c.priceNote?.it || ""; $("pn-en").value = c.priceNote?.en || "";
+      $("chef-name").value = c.chef?.name || "";
+      $("bio-it").value = c.chef?.bio?.it || ""; $("bio-en").value = c.chef?.bio?.en || "";
+      photos.chef = c.chef?.photo || "";
+      setThumb(document.querySelector('[data-photo="chef"]'), photos.chef);
+      (c.gallery || []).forEach((g, i) => {
+        if (i > 5) return;
+        $("gt" + i).value = g.title || "";
+        photos.g[i] = g.photo || "";
+        setThumb(document.querySelector(`[data-photo="g${i}"]`), photos.g[i]);
+      });
+      $("n-it").value = c.notice?.it || ""; $("n-en").value = c.notice?.en || "";
+      $("wa").value = c.whatsapp || "";
+    }
+
+    // Riduce la foto (max 1600 px) prima di caricarla
+    function resize(file) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const s = Math.min(1, 1600 / Math.max(img.width, img.height));
+          const cv = document.createElement("canvas");
+          cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s);
+          cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+          URL.revokeObjectURL(img.src);
+          resolve(cv.toDataURL("image/jpeg", 0.82).split(",")[1]);
+        };
+        img.onerror = () => reject(new Error("Formato immagine non supportato."));
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    function wirePhotos() {
+      document.querySelectorAll("[data-photo]").forEach(box => {
+        const key = box.dataset.photo;
+        const setPhoto = url => { key === "chef" ? photos.chef = url : photos.g[+key.slice(1)] = url; setThumb(box, url); };
+        box.querySelector("input[type=file]").addEventListener("change", async e => {
+          const file = e.target.files[0]; if (!file) return;
+          box.querySelector(".thumb").textContent = "Carico…";
+          try {
+            const data = await resize(file);
+            const r = await call({ action: "upload", password, data, mime: "image/jpeg", name: `${key}-${Date.now()}.jpg` });
+            if (!r.ok) throw new Error(errorText(r.error));
+            setPhoto(r.url);
+            msg("Foto caricata: ricordati di premere Salva e pubblica.");
+          } catch (err) { setThumb(box, key === "chef" ? photos.chef : photos.g[+key.slice(1)]); msg(err.message, true); }
+          e.target.value = "";
+        });
+        box.querySelector("[data-remove]").addEventListener("click", () => setPhoto(""));
+      });
+    }
+
+    function collect() {
+      return {
+        prices: ["p1", "p2", "p3"].map(id => $(id).value === "" ? null : parseFloat($(id).value)),
+        priceNote: { it: $("pn-it").value, en: $("pn-en").value },
+        chef: { name: $("chef-name").value, bio: { it: $("bio-it").value, en: $("bio-en").value }, photo: photos.chef },
+        gallery: DEFAULT_TITLES.map((_, i) => ({ title: $("gt" + i).value, photo: photos.g[i] })),
+        notice: { it: $("n-it").value, en: $("n-en").value },
+        whatsapp: $("wa").value
+      };
+    }
+
+    function msg(text, err) { const m = $("save-msg"); m.textContent = text; m.className = "status " + (err ? "err" : "ok"); }
+
+    $("save-btn").addEventListener("click", async () => {
+      const b = $("save-btn"); b.disabled = true; msg("Salvataggio…");
+      try {
+        const r = await call({ action: "save", password, content: collect() });
+        if (!r.ok) throw new Error(errorText(r.error));
+        msg("Salvato ✓ Il sito è aggiornato.");
+      } catch (err) { msg(err.message === "Failed to fetch" ? "Servizio non raggiungibile, riprova." : err.message, true); }
+      b.disabled = false;
+    });
+  </script>
+</body>
+</html>
