@@ -347,7 +347,7 @@
 
       <div class="service-card">
         <h3 data-it="Automazioni IA per attività locali" data-en="AI automation for local businesses">Automazioni IA per attività locali</h3>
-        <p data-it="Integrazioni con IA per automatizzare processi ripetitivi: lettura documenti, risposte automatiche a richieste, notifiche intelligenti (come la lettura del foglio turni in Shoganails)." data-en="AI integrations to automate repetitive processes: document reading, automatic replies to requests, smart notifications (like the shift-sheet reading in Shoganails).">Integrazioni con IA per automatizzare processi ripetitivi: lettura documenti, risposte automatiche a richieste, notifiche intelligenti (come la lettura del foglio turni in Shoganails).</p>
+        <p data-it="Meno tempo al telefono e sulle email: risposte automatiche alle domande frequenti dei clienti, promemoria degli appuntamenti, lettura di ordini, fatture e documenti." data-en="Less time on the phone and in your inbox: automatic answers to customers' common questions, appointment reminders, and reading orders, invoices and documents for you.">Meno tempo al telefono e sulle email: risposte automatiche alle domande frequenti dei clienti, promemoria degli appuntamenti, lettura di ordini, fatture e documenti.</p>
         <ul class="tech-stack"><li>Anthropic API</li><li>Next.js</li><li>Python</li></ul>
         <!-- PREZZO PLACEHOLDER: indicativo, da confermare -->
         <p class="service-price" data-it="a partire da €400" data-en="starting at €400">a partire da €400</p>
@@ -586,6 +586,22 @@
   }
   window.addEventListener('resize', sizeThumbs);
   sizeThumbs();
+
+  // comparsa allo scroll: la classe la mette JS, quindi senza JS (o con movimento ridotto) tutto resta visibile
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    const revealIO = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        revealIO.unobserve(entry.target);
+      }
+    }), { rootMargin: '0px 0px -10% 0px' });
+    document.querySelectorAll('section.block > h2, section.block > p, .project-system, .subsection-title, .project-grid.compact > div, .service-card, .steps li, .skills, .faq details, #contattiForm').forEach(el => {
+      const siblings = el.matches('.service-card, .steps li, .project-grid.compact > div, .faq details') ? [...el.parentElement.children] : [el];
+      el.style.setProperty('--reveal-delay', `${siblings.indexOf(el) * 80}ms`);
+      el.classList.add('reveal');
+      revealIO.observe(el);
+    });
+  }
 
   // mini-browser progetti: apre il sito vero dentro un modale, lo scarica solo al click
   const modal = document.getElementById('projectModal');

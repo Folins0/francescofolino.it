@@ -272,6 +272,16 @@ section.block > p { line-height: 1.75; color: var(--text); font-size: 1.05rem; }
 #chi-sono p { max-width: 620px; }
 #chi-sono .skills { margin-top: 1.5rem; }
 
+/* ---------- comparsa allo scroll ---------- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.revealed { opacity: 1; transform: none; }
+
 /* ---------- competenze ---------- */
 
 .skills { list-style: none; display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .5rem; }
