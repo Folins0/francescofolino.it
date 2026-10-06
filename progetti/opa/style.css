@@ -323,3 +323,56 @@ legend, .field { font-size: .85rem; font-weight: 600; color: var(--navy); margin
   .tile figcaption { font-size: 1.15rem; }
   .tile-big figcaption { font-size: 1.6rem; }
 }
+
+/* ===== Riferimenti greci ===== */
+:root { --greek: "GFS Didot", "Cormorant Garamond", Georgia, serif; }
+.gr { font-family: var(--greek); color: var(--terra); font-size: .92em; white-space: nowrap; }
+.menu-gr { font-family: var(--greek); color: var(--olive); margin: -6px 0 8px; font-size: 1.05rem; }
+.menu-card { padding-top: 40px; }
+.menu-cap {
+  position: absolute; top: -17px; left: 50%; transform: translateX(-50%);
+  width: 96px; height: 32px; color: var(--navy);
+  background: var(--paper); padding: 0 8px; box-sizing: content-box;
+}
+.tile figcaption span { display: block; font: 400 .95rem var(--greek); opacity: .85; margin-top: 2px; }
+.tile-big figcaption span { font-size: 1.2rem; }
+
+/* Divider con anfora */
+.divider { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 auto 18px; max-width: 260px; color: var(--terra); }
+.divider span { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(181,86,47,.5)); }
+.divider span:last-child { background: linear-gradient(90deg, rgba(181,86,47,.5), transparent); }
+.divider svg { width: 26px; height: 40px; flex: none; }
+
+/* Dizionario */
+.section-dict {
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(28,47,94,.06), transparent 60%),
+    var(--cream);
+}
+.dict-col { position: absolute; top: 60px; width: 70px; height: calc(100% - 120px); color: var(--navy); opacity: .12; }
+.dict-col-l { left: max(10px, calc((100% - 1260px) / 2)); }
+.dict-col-r { right: max(10px, calc((100% - 1260px) / 2)); }
+.words { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 40px; }
+.word {
+  background: #fff; border-radius: var(--radius); padding: 24px 20px 22px; text-align: center;
+  border: 1px solid rgba(28,47,94,.08); box-shadow: 0 6px 18px rgba(28,47,94,.06);
+  border-top: 3px solid var(--navy);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.word:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(28,47,94,.14); }
+.word p { margin: 0; }
+.word-gr { font: 400 1.8rem var(--greek); color: var(--navy); line-height: 1.2; }
+.word-tr { font: italic 600 1.2rem var(--serif); color: var(--terra); margin-top: 4px !important; }
+.word-pr { font-size: .78rem; letter-spacing: .08em; color: var(--olive); margin: 2px 0 12px !important; }
+.word-def { font-size: .92rem; color: var(--muted); }
+
+@media (max-width: 1000px) {
+  .words { grid-template-columns: repeat(2, 1fr); }
+  .dict-col { display: none; }
+}
+@media (max-width: 640px) {
+  .words { gap: 12px; }
+  .word { padding: 18px 14px; }
+  .word-gr { font-size: 1.45rem; }
+}

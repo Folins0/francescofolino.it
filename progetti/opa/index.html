@@ -12,8 +12,8 @@
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=GFS+Didot&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=4">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -42,6 +42,32 @@
       <symbol id="i-chef" viewBox="0 0 24 24"><path d="M7 15a4 4 0 1 1 1.4-7.8 4.2 4.2 0 0 1 7.2 0A4 4 0 1 1 17 15v5H7z M7 17.5h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
       <symbol id="i-cloche" viewBox="0 0 24 24"><path d="M2.5 18.5h19 M4.5 18.5a7.5 7.5 0 0 1 15 0 M12 11V8.5 M10 8.5h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
       <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8.5h14l-1.2 12H6.2z M9 8.5V7a3 3 0 0 1 6 0v1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="ionic" viewBox="0 0 120 40">
+        <rect x="8" y="3" width="104" height="6" rx="1" fill="currentColor"/>
+        <g fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M20 9 H100"/>
+          <circle cx="19" cy="22" r="10"/><circle cx="19" cy="22" r="5"/>
+          <circle cx="101" cy="22" r="10"/><circle cx="101" cy="22" r="5"/>
+          <path d="M29 22 Q60 38 91 22"/>
+        </g>
+        <g fill="currentColor"><circle cx="19" cy="22" r="1.8"/><circle cx="101" cy="22" r="1.8"/>
+          <ellipse cx="46" cy="19" rx="3.5" ry="4.5"/><ellipse cx="60" cy="20" rx="3.5" ry="4.5"/><ellipse cx="74" cy="19" rx="3.5" ry="4.5"/></g>
+      </symbol>
+      <symbol id="column" viewBox="0 0 60 300">
+        <rect x="2" y="2" width="56" height="6" fill="currentColor"/>
+        <g fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="16" r="6"/><circle cx="51" cy="16" r="6"/><path d="M15 16 Q30 26 45 16"/></g>
+        <rect x="10" y="26" width="40" height="248" fill="none" stroke="currentColor" stroke-width="2"/>
+        <g stroke="currentColor" stroke-width="1.4"><path d="M18 30 V270 M26 30 V270 M34 30 V270 M42 30 V270"/></g>
+        <rect x="6" y="276" width="48" height="8" fill="currentColor"/><rect x="2" y="288" width="56" height="10" fill="currentColor"/>
+      </symbol>
+      <symbol id="amphora" viewBox="0 0 40 60">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M14 4 H26 M15 4 V10 C15 14 33 18 33 31 C33 44 25 51 22 53 V56 H18 V53 C15 51 7 44 7 31 C7 18 25 14 25 10 V4"/>
+          <path d="M15 11 C6 10 6 21 10 24 M25 11 C34 10 34 21 30 24"/>
+          <path d="M8.5 28 H31.5 M8.5 34 H31.5"/>
+        </g>
+        <path d="M11 31 h3 v-2 h3 v2 h3 v-2 h3 v2 h3 v-2 h3 v2" fill="none" stroke="currentColor" stroke-width="1"/>
+      </symbol>
     </defs>
   </svg>
 
@@ -55,6 +81,7 @@
     <nav class="nav-links" aria-label="Sezioni">
       <a href="#servizi" data-en="Services">Servizi</a>
       <a href="#menu" data-en="Menus">Menù</a>
+      <a href="#dizionario" data-en="Dictionary">Dizionario</a>
       <a href="#galleria" data-en="Gallery">Galleria</a>
       <a href="#faq">FAQ</a>
     </nav>
@@ -68,11 +95,11 @@
 
     <!-- HERO -->
     <section class="hero">
-      <svg class="hero-branch hero-branch-l" aria-hidden="true"><use href="#olive-branch"/></svg>
-      <svg class="hero-branch hero-branch-r" aria-hidden="true"><use href="#olive-branch"/></svg>
+      <svg class="hero-branch hero-branch-l" width="0" height="0" aria-hidden="true"><use href="#olive-branch"/></svg>
+      <svg class="hero-branch hero-branch-r" width="0" height="0" aria-hidden="true"><use href="#olive-branch"/></svg>
       <div class="hero-inner">
         <div class="seal">
-          <svg class="seal-ring" viewBox="0 0 200 200" aria-hidden="true">
+          <svg class="seal-ring" viewBox="0 0 200 200" width="210" height="210" aria-hidden="true">
             <defs><path id="ring" d="M100 100 m-82 0 a82 82 0 1 1 164 0 a82 82 0 1 1 -164 0"/></defs>
             <text><textPath href="#ring">ΚΑΛΗ ΟΡΕΞΗ · OPA! · PISA · ΚΑΛΗ ΟΡΕΞΗ · OPA! · PISA ·</textPath></text>
           </svg>
@@ -97,6 +124,7 @@
     <!-- SERVIZI -->
     <section id="servizi" class="section">
       <div class="container">
+        <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
         <p class="eyebrow center reveal" data-en="Choose your atmosphere">Scegli l'atmosfera giusta</p>
         <h2 class="center reveal" data-en="Three ways to bring Greece to your table">Tre modi per portare la Grecia in tavola</h2>
 
@@ -143,55 +171,62 @@
     <!-- MENU -->
     <section id="menu" class="section section-paper">
       <div class="container">
+        <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
         <p class="eyebrow center reveal">Sfizi di Grecia</p>
         <h2 class="center reveal" data-en="Our menus">I nostri menù</h2>
         <p class="center muted reveal" data-en="Every menu includes mezedes, a main course and a dessert of your choice.">Ogni menù comprende mezedes, piatto principale e un dolce a scelta.</p>
 
         <div class="menus">
           <article class="menu-card reveal">
+            <svg class="menu-cap" aria-hidden="true"><use href="#ionic"/></svg>
             <p class="menu-num" data-en="Menu 1">Menù 1</p>
             <h3>Psistaria <em>"O Meraklis"</em></h3>
+            <p class="menu-gr" lang="el">Ψησταριά «Ο Μερακλής»</p>
             <p class="menu-desc" data-en="A flavourful journey celebrating the Greek grill tradition.">Un percorso saporito che celebra la tradizione della griglia greca.</p>
             <h4>Mezedes</h4>
             <ul>
-              <li data-en="<strong>Tzatziki</strong> — Greek yogurt, garlic and cucumber dip"><strong>Tzatziki</strong> — salsa di yogurt greco, aglio e cetriolo</li>
-              <li data-en="<strong>Kolokithokeftedes</strong> — courgette, feta and mint fritters"><strong>Kolokithokeftedes</strong> — polpette di zucchine, feta e menta</li>
+              <li data-en="<strong>Tzatziki</strong> <span class='gr' lang='el'>Τζατζίκι</span> — Greek yogurt, garlic and cucumber dip"><strong>Tzatziki</strong> <span class='gr' lang='el'>Τζατζίκι</span> — salsa di yogurt greco, aglio e cetriolo</li>
+              <li data-en="<strong>Kolokithokeftedes</strong> <span class='gr' lang='el'>Κολοκυθοκεφτέδες</span> — courgette, feta and mint fritters"><strong>Kolokithokeftedes</strong> <span class='gr' lang='el'>Κολοκυθοκεφτέδες</span> — polpette di zucchine, feta e menta</li>
             </ul>
             <h4 data-en="Main course">Piatto principale</h4>
             <ul>
-              <li data-en="<strong>Pita gyros</strong> — spiced meat, tzatziki, tomato, onion and fries"><strong>Pita gyros</strong> — carne speziata, tzatziki, pomodoro, cipolla e patate</li>
+              <li data-en="<strong>Pita gyros</strong> <span class='gr' lang='el'>Πίτα γύρος</span> — spiced meat, tzatziki, tomato, onion and fries"><strong>Pita gyros</strong> <span class='gr' lang='el'>Πίτα γύρος</span> — carne speziata, tzatziki, pomodoro, cipolla e patate</li>
             </ul>
             <p class="menu-price" data-en="Price coming soon">Prezzo in arrivo</p>
           </article>
 
           <article class="menu-card reveal">
+            <svg class="menu-cap" aria-hidden="true"><use href="#ionic"/></svg>
             <p class="menu-num" data-en="Menu 2">Menù 2</p>
             <h3><em>"Oikogeneia"</em></h3>
+            <p class="menu-gr" lang="el">«Οικογένεια»</p>
             <p class="menu-desc" data-en="A balanced menu of filled filo pastry and feta.">Un menù equilibrato che unisce sfoglia ripiena e feta.</p>
             <h4>Mezedes</h4>
             <ul>
-              <li data-en="<strong>Spanakopita</strong> — filo pie with spinach and feta"><strong>Spanakopita</strong> — tortino in pasta fillo con spinaci e feta</li>
-              <li data-en="<strong>Dolmadakia</strong> — vine leaves stuffed with rice (2 each)"><strong>Dolmadakia</strong> — involtini di foglie di vite con riso (2 a testa)</li>
+              <li data-en="<strong>Spanakopita</strong> <span class='gr' lang='el'>Σπανακόπιτα</span> — filo pie with spinach and feta"><strong>Spanakopita</strong> <span class='gr' lang='el'>Σπανακόπιτα</span> — tortino in pasta fillo con spinaci e feta</li>
+              <li data-en="<strong>Dolmadakia</strong> <span class='gr' lang='el'>Ντολμαδάκια</span> — vine leaves stuffed with rice (2 each)"><strong>Dolmadakia</strong> <span class='gr' lang='el'>Ντολμαδάκια</span> — involtini di foglie di vite con riso (2 a testa)</li>
             </ul>
             <h4 data-en="Main course">Piatto principale</h4>
             <ul>
-              <li data-en="<strong>Moussaká</strong> — aubergine, potatoes, meat ragù and béchamel"><strong>Moussaká</strong> — melanzane, patate, ragù di carne e besciamella</li>
+              <li data-en="<strong>Moussaká</strong> <span class='gr' lang='el'>Μουσακάς</span> — aubergine, potatoes, meat ragù and béchamel"><strong>Moussaká</strong> <span class='gr' lang='el'>Μουσακάς</span> — melanzane, patate, ragù di carne e besciamella</li>
             </ul>
             <p class="menu-price" data-en="Price coming soon">Prezzo in arrivo</p>
           </article>
 
           <article class="menu-card reveal">
+            <svg class="menu-cap" aria-hidden="true"><use href="#ionic"/></svg>
             <p class="menu-num" data-en="Menu 3">Menù 3</p>
             <h3>Taverna <em>"To Steki"</em></h3>
+            <p class="menu-gr" lang="el">Ταβέρνα «Το Στέκι»</p>
             <p class="menu-desc" data-en="A triumph of Mediterranean flavours and home cooking.">Un trionfo di sapori mediterranei e profumi di casa.</p>
             <h4>Mezedes</h4>
             <ul>
-              <li data-en="<strong>Flogheres</strong> — filo rolls with melting cheese, sesame and honey"><strong>Flogheres</strong> — involtini di fillo con formaggio filante, sesamo e miele</li>
-              <li data-en="<strong>Dolmadakia</strong> — vine leaves stuffed with rice (2 each)"><strong>Dolmadakia</strong> — involtini di foglie di vite con riso (2 a testa)</li>
+              <li data-en="<strong>Flogheres</strong> <span class='gr' lang='el'>Φλογέρες</span> — filo rolls with melting cheese, sesame and honey"><strong>Flogheres</strong> <span class='gr' lang='el'>Φλογέρες</span> — involtini di fillo con formaggio filante, sesamo e miele</li>
+              <li data-en="<strong>Dolmadakia</strong> <span class='gr' lang='el'>Ντολμαδάκια</span> — vine leaves stuffed with rice (2 each)"><strong>Dolmadakia</strong> <span class='gr' lang='el'>Ντολμαδάκια</span> — involtini di foglie di vite con riso (2 a testa)</li>
             </ul>
             <h4 data-en="Main course">Piatto principale</h4>
             <ul>
-              <li data-en="<strong>Keftedes</strong> — spiced meatballs with lemon"><strong>Keftedes</strong> — polpette di carne speziate con limone</li>
+              <li data-en="<strong>Keftedes</strong> <span class='gr' lang='el'>Κεφτέδες</span> — spiced meatballs with lemon"><strong>Keftedes</strong> <span class='gr' lang='el'>Κεφτέδες</span> — polpette di carne speziate con limone</li>
               <li data-en="1 pita on the side">1 pita d'accompagnamento</li>
             </ul>
             <p class="menu-price" data-en="Price coming soon">Prezzo in arrivo</p>
@@ -200,24 +235,87 @@
 
         <div class="dessert reveal">
           <h4 data-en="Dessert of your choice, for every menu">Dolce a scelta, per tutti i menù</h4>
-          <p data-en="<strong>Ravani</strong> semolina and citrus cake &nbsp;or&nbsp; <strong>Bougatsa</strong> custard pie"><strong>Ravani</strong> al semolino e agrumi &nbsp;oppure&nbsp; <strong>Bougatsa</strong> alla crema</p>
+          <p data-en="<strong>Ravani</strong> <span class='gr' lang='el'>Ραβανί</span> semolina and citrus cake &nbsp;or&nbsp; <strong>Bougatsa</strong> <span class='gr' lang='el'>Μπουγάτσα</span> custard pie"><strong>Ravani</strong> <span class='gr' lang='el'>Ραβανί</span> al semolino e agrumi &nbsp;oppure&nbsp; <strong>Bougatsa</strong> <span class='gr' lang='el'>Μπουγάτσα</span> alla crema</p>
         </div>
         <p class="center muted small" data-en="Special requests or a tailor-made menu? Mention it in your request.">Hai esigenze particolari o vuoi un menù su misura? Scrivilo nella richiesta.</p>
+      </div>
+    </section>
+
+    <!-- DIZIONARIO -->
+    <section id="dizionario" class="section section-dict">
+      <svg class="dict-col dict-col-l" width="0" height="0" aria-hidden="true"><use href="#column"/></svg>
+      <svg class="dict-col dict-col-r" width="0" height="0" aria-hidden="true"><use href="#column"/></svg>
+      <div class="container">
+        <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
+        <p class="eyebrow center reveal" data-en="Say it in Greek">Dillo in greco</p>
+        <h2 class="center reveal" data-en="A little Greek dictionary for the table">Piccolo dizionario greco a tavola</h2>
+        <p class="center muted reveal" data-en="Eight words to feel at home in Greece (and to surprise your guests).">Otto parole per sentirsi in Grecia (e stupire i tuoi ospiti).</p>
+        <div class="words">
+          <article class="word reveal">
+            <p class="word-gr" lang="el">Ωπα!</p>
+            <p class="word-tr">Opa!</p>
+            <p class="word-pr">[ò-pa]</p>
+            <p class="word-def" data-en="The festive cry: shouted when dancing, toasting or breaking a plate.">Il grido di festa: si urla quando si balla, si brinda o si rompe un piatto.</p>
+          </article>
+          <article class="word reveal">
+            <p class="word-gr" lang="el">Καλή όρεξη</p>
+            <p class="word-tr">Kalí órexi</p>
+            <p class="word-pr">[ka-lì ò-rek-si]</p>
+            <p class="word-def" data-en="Enjoy your meal.">Buon appetito.</p>
+          </article>
+          <article class="word reveal">
+            <p class="word-gr" lang="el">Γεια μας!</p>
+            <p class="word-tr">Yamas!</p>
+            <p class="word-pr">[ya-màs]</p>
+            <p class="word-def" data-en="To our health! The Greek toast.">Alla nostra salute! Il brindisi greco.</p>
+          </article>
+          <article class="word reveal">
+            <p class="word-gr" lang="el">Φιλοξενία</p>
+            <p class="word-tr">Filoxenía</p>
+            <p class="word-pr">[fi-lo-kse-nì-a]</p>
+            <p class="word-def" data-en="Hospitality: literally “love for the stranger”.">Ospitalità: letteralmente «amore per lo straniero».</p>
+          </article>
+          <article class="word reveal">
+            <p class="word-gr" lang="el">Μεζέδες</p>
+            <p class="word-tr">Mezédes</p>
+            <p class="word-pr">[me-zè-des]</p>
+            <p class="word-def" data-en="Small bites shared in the middle of the table.">Piccoli assaggi da condividere al centro della tavola.</p>
+          </article>
+          <article class="word reveal">
+            <p class="word-gr" lang="el">Μερακλής</p>
+            <p class="word-tr">Meraklís</p>
+            <p class="word-pr">[me-ra-klìs]</p>
+            <p class="word-def" data-en="Someone who does things with passion and enjoys life. Menu 1 is named after it.">Chi fa le cose con passione e sa godersi la vita. Dà il nome al Menù 1.</p>
+          </article>
+          <article class="word reveal">
+            <p class="word-gr" lang="el">Οικογένεια</p>
+            <p class="word-tr">Ikogénia</p>
+            <p class="word-pr">[i-ko-ghè-ni-a]</p>
+            <p class="word-def" data-en="Family. The name of Menu 2.">Famiglia. Il nome del Menù 2.</p>
+          </article>
+          <article class="word reveal">
+            <p class="word-gr" lang="el">Το Στέκι</p>
+            <p class="word-tr">To Stéki</p>
+            <p class="word-pr">[to stè-ki]</p>
+            <p class="word-def" data-en="The hangout, your favourite spot you always go back to. The name of Menu 3.">Il ritrovo, il locale di fiducia dove si torna sempre. Il nome del Menù 3.</p>
+          </article>
+        </div>
       </div>
     </section>
 
     <!-- GALLERIA -->
     <section id="galleria" class="section">
       <div class="container">
+        <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
         <p class="eyebrow center reveal" data-en="From our kitchen">Dalla nostra cucina</p>
         <h2 class="center reveal" data-en="Gallery">Galleria</h2>
         <div class="gallery">
-          <figure class="tile tile-navy tile-wide tile-big reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Moussaká</figcaption></figure>
-          <figure class="tile tile-terra reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Spanakopita</figcaption></figure>
-          <figure class="tile tile-olive reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Pita gyros</figcaption></figure>
-          <figure class="tile tile-paper reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Tzatziki</figcaption></figure>
-          <figure class="tile tile-terra reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Keftedes</figcaption></figure>
-          <figure class="tile tile-navy tile-wide reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Bougatsa</figcaption></figure>
+          <figure class="tile tile-navy tile-wide tile-big reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Moussaká<span lang="el">Μουσακάς</span></figcaption></figure>
+          <figure class="tile tile-terra reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Spanakopita<span lang="el">Σπανακόπιτα</span></figcaption></figure>
+          <figure class="tile tile-olive reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Pita gyros<span lang="el">Πίτα γύρος</span></figcaption></figure>
+          <figure class="tile tile-paper reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Tzatziki<span lang="el">Τζατζίκι</span></figcaption></figure>
+          <figure class="tile tile-terra reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Keftedes<span lang="el">Κεφτέδες</span></figcaption></figure>
+          <figure class="tile tile-navy tile-wide reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Bougatsa<span lang="el">Μπουγάτσα</span></figcaption></figure>
         </div>
         <p class="center muted small" data-en="Real photos coming soon.">Le foto vere arriveranno a breve.</p>
       </div>
@@ -239,7 +337,7 @@
 
     <!-- CHEF -->
     <section id="chef" class="section section-navy">
-      <svg class="chef-branch" aria-hidden="true"><use href="#olive-branch"/></svg>
+      <svg class="chef-branch" width="0" height="0" aria-hidden="true"><use href="#olive-branch"/></svg>
       <div class="container chef">
         <div class="chef-photo reveal" aria-hidden="true"><img src="logo.svg" alt=""></div>
         <div class="reveal">
@@ -255,6 +353,7 @@
     <!-- FAQ -->
     <section id="faq" class="section">
       <div class="container narrow">
+        <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
         <p class="eyebrow center reveal" data-en="Good to know">Da sapere</p>
         <h2 class="center reveal" data-en="Frequently asked questions">Domande frequenti</h2>
         <div class="faq reveal">
@@ -379,6 +478,6 @@
 
   <a href="#prenota" class="fab" data-en="Book">Prenota</a>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>
