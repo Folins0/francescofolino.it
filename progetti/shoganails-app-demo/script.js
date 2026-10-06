@@ -81,27 +81,37 @@ function disegnaCalendario() {
 disegnaRichieste();
 disegnaCalendario();
 
-document.getElementById('bottone-carica').addEventListener('click', function () {
-    var stato = document.getElementById('stato-ia');
-    var slot = document.getElementById('slot-settimana');
-    stato.hidden = false;
-    slot.hidden = true;
-    stato.textContent = "L'IA sta leggendo il foglio turni...";
+var orari = [
+    ['Lunedì', '09:00', '18:00'],
+    ['Martedì', '09:00', '18:00'],
+    ['Mercoledì', '', ''],
+    ['Giovedì', '09:00', '18:00'],
+    ['Venerdì', '09:00', '19:00'],
+    ['Sabato', '09:00', '15:00'],
+];
 
-    setTimeout(function () {
-        stato.hidden = true;
-        slot.hidden = false;
-        slot.innerHTML = [
-            ['Lunedì', '9:00 – 18:00'],
-            ['Martedì', '9:00 – 18:00'],
-            ['Mercoledì', 'Chiuso'],
-            ['Giovedì', '9:00 – 18:00'],
-            ['Venerdì', '9:00 – 19:00'],
-            ['Sabato', '9:00 – 15:00'],
-        ].map(function (giorno) {
-            return '<div class="slot-riga"><span>' + giorno[0] + '</span><span>' + giorno[1] + '</span></div>';
-        }).join('');
-    }, 1200);
+document.getElementById('righe-orari').innerHTML = orari.map(function (g, i) {
+    var chiuso = !g[1];
+    return '<div class="slot-riga">' +
+        '<span>' + g[0] + '</span>' +
+        '<span class="orario">' +
+        '<input type="time" aria-label="' + g[0] + ' apertura" value="' + g[1] + '"' + (chiuso ? ' disabled' : '') + '> – ' +
+        '<input type="time" aria-label="' + g[0] + ' chiusura" value="' + g[2] + '"' + (chiuso ? ' disabled' : '') + '>' +
+        '<label><input type="checkbox" data-giorno="' + i + '"' + (chiuso ? ' checked' : '') + '> Chiuso</label>' +
+        '</span></div>';
+}).join('');
+
+document.querySelectorAll('#righe-orari input[type="checkbox"]').forEach(function (box) {
+    box.addEventListener('change', function () {
+        box.closest('.slot-riga').querySelectorAll('input[type="time"]').forEach(function (t) { t.disabled = box.checked; });
+    });
+});
+
+document.getElementById('form-orari').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var stato = document.getElementById('stato-orari');
+    stato.hidden = false;
+    stato.textContent = 'Orari salvati: gli slot prenotabili sul sito sono aggiornati.';
 });
 
 var foto = ['💅', '💖', '✨', '🌸'];

@@ -135,6 +135,13 @@ h1 { font-size: 1.5em; margin-bottom: 24px; color: var(--rosa-scuro); }
     padding-bottom: 6px;
 }
 
+#form-orari .slot-settimana { margin: 0 0 18px; }
+.slot-riga { align-items: center; }
+.orario { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.orario input[type="time"] { font: inherit; padding: 4px 6px; border: 1px solid #e5d8dc; border-radius: 6px; }
+.orario input:disabled { opacity: .4; }
+.orario label { font-size: .85em; color: #777; display: flex; align-items: center; gap: 4px; }
+
 .griglia-foto {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
