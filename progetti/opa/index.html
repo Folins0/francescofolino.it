@@ -14,10 +14,38 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
 
-  <div class="proto-bar">Prototipo in lavorazione · prezzi e contatti in arrivo</div>
+  <!-- Simboli SVG riutilizzabili -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="olive-branch" viewBox="0 0 120 300">
+        <path d="M60 295 C 52 220, 58 140, 78 10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <g fill="currentColor">
+          <ellipse cx="44" cy="250" rx="9" ry="24" transform="rotate(-35 44 250)"/>
+          <ellipse cx="74" cy="228" rx="9" ry="24" transform="rotate(35 74 228)"/>
+          <ellipse cx="42" cy="196" rx="9" ry="24" transform="rotate(-40 42 196)"/>
+          <ellipse cx="77" cy="172" rx="9" ry="24" transform="rotate(40 77 172)"/>
+          <ellipse cx="47" cy="140" rx="9" ry="24" transform="rotate(-35 47 140)"/>
+          <ellipse cx="83" cy="116" rx="9" ry="24" transform="rotate(42 83 116)"/>
+          <ellipse cx="56" cy="86" rx="8" ry="22" transform="rotate(-30 56 86)"/>
+          <ellipse cx="88" cy="62" rx="8" ry="21" transform="rotate(40 88 62)"/>
+          <ellipse cx="68" cy="34" rx="7" ry="18" transform="rotate(-20 68 34)"/>
+        </g>
+        <g fill="currentColor" opacity=".55">
+          <circle cx="60" cy="212" r="8"/>
+          <circle cx="66" cy="128" r="7"/>
+        </g>
+      </symbol>
+      <symbol id="i-chef" viewBox="0 0 24 24"><path d="M7 15a4 4 0 1 1 1.4-7.8 4.2 4.2 0 0 1 7.2 0A4 4 0 1 1 17 15v5H7z M7 17.5h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-cloche" viewBox="0 0 24 24"><path d="M2.5 18.5h19 M4.5 18.5a7.5 7.5 0 0 1 15 0 M12 11V8.5 M10 8.5h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+      <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8.5h14l-1.2 12H6.2z M9 8.5V7a3 3 0 0 1 6 0v1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="proto-bar" data-en="Prototype in progress · prices and contacts coming soon">Prototipo in lavorazione · prezzi e contatti in arrivo</div>
 
   <header class="nav">
     <a href="#top" class="nav-brand" aria-label="Opa! home">
@@ -25,27 +53,43 @@
       <span>Opa!</span>
     </a>
     <nav class="nav-links" aria-label="Sezioni">
-      <a href="#servizi">Servizi</a>
-      <a href="#menu">Menù</a>
-      <a href="#come-funziona">Come funziona</a>
-      <a href="#chef">Lo chef</a>
+      <a href="#servizi" data-en="Services">Servizi</a>
+      <a href="#menu" data-en="Menus">Menù</a>
+      <a href="#galleria" data-en="Gallery">Galleria</a>
+      <a href="#faq">FAQ</a>
     </nav>
-    <a href="#prenota" class="btn btn-small">Prenota</a>
+    <div class="nav-right">
+      <button type="button" class="lang" id="lang-toggle" aria-label="Switch to English">EN</button>
+      <a href="#prenota" class="btn btn-small" data-en="Book">Prenota</a>
+    </div>
   </header>
 
   <main id="top">
 
     <!-- HERO -->
     <section class="hero">
+      <svg class="hero-branch hero-branch-l" aria-hidden="true"><use href="#olive-branch"/></svg>
+      <svg class="hero-branch hero-branch-r" aria-hidden="true"><use href="#olive-branch"/></svg>
       <div class="hero-inner">
-        <img class="hero-logo" src="logo.svg" alt="Logo Opa! Chef a domicilio, cucina greca" width="150" height="150">
-        <p class="eyebrow">Chef a domicilio · Catering · Asporto — Pisa</p>
-        <h1>Vuoi viaggiare in Grecia<br><em>senza lasciare Pisa?</em></h1>
-        <p class="lead">I veri sapori della cucina greca tradizionale, preparati a casa tua o pronti da ritirare. Solo su prenotazione.</p>
-        <div class="hero-cta">
-          <a href="#prenota" class="btn">Prenota la tua serata greca</a>
-          <a href="#menu" class="btn btn-ghost">Scopri i menù</a>
+        <div class="seal">
+          <svg class="seal-ring" viewBox="0 0 200 200" aria-hidden="true">
+            <defs><path id="ring" d="M100 100 m-82 0 a82 82 0 1 1 164 0 a82 82 0 1 1 -164 0"/></defs>
+            <text><textPath href="#ring">ΚΑΛΗ ΟΡΕΞΗ · OPA! · PISA · ΚΑΛΗ ΟΡΕΞΗ · OPA! · PISA ·</textPath></text>
+          </svg>
+          <img class="hero-logo" src="logo.svg" alt="Logo Opa! Chef a domicilio, cucina greca" width="150" height="150">
         </div>
+        <p class="eyebrow" data-en="Private chef · Catering · Takeaway — Pisa">Chef a domicilio · Catering · Asporto — Pisa</p>
+        <h1 data-en="Fancy a trip to Greece<br><em>without leaving Pisa?</em>">Vuoi viaggiare in Grecia<br><em>senza lasciare Pisa?</em></h1>
+        <p class="lead" data-en="Authentic traditional Greek food, cooked in your home or ready to pick up. By reservation only.">I veri sapori della cucina greca tradizionale, preparati a casa tua o pronti da ritirare. Solo su prenotazione.</p>
+        <div class="hero-cta">
+          <a href="#prenota" class="btn" data-en="Book your Greek night">Prenota la tua serata greca</a>
+          <a href="#menu" class="btn btn-ghost" data-en="See the menus">Scopri i menù</a>
+        </div>
+        <ul class="hero-facts">
+          <li data-en="<strong>3</strong> traditional menus"><strong>3</strong> menù tradizionali</li>
+          <li data-en="From <strong>4</strong> guests"><strong>4+</strong> persone</li>
+          <li data-en="<strong>Pisa</strong> &amp; surroundings"><strong>Pisa</strong> e dintorni</li>
+        </ul>
       </div>
       <div class="meander" aria-hidden="true"></div>
     </section>
@@ -53,43 +97,43 @@
     <!-- SERVIZI -->
     <section id="servizi" class="section">
       <div class="container">
-        <p class="eyebrow center">Scegli l'atmosfera giusta</p>
-        <h2 class="center">Tre modi per portare la Grecia in tavola</h2>
+        <p class="eyebrow center reveal" data-en="Choose your atmosphere">Scegli l'atmosfera giusta</p>
+        <h2 class="center reveal" data-en="Three ways to bring Greece to your table">Tre modi per portare la Grecia in tavola</h2>
 
         <div class="cards">
-          <article class="card">
-            <div class="card-icon" aria-hidden="true">👨‍🍳</div>
-            <h3>Chef a domicilio</h3>
-            <p class="card-tag">L'esperienza dal vivo</p>
-            <p>Arrivo circa un'ora e mezza prima di cena e cucino nella tua cucina: mezedes, sfoglie, griglia. Chiacchiere, consigli e qualche segreto della tradizione greca.</p>
+          <article class="card reveal">
+            <div class="card-icon"><svg><use href="#i-chef"/></svg></div>
+            <h3 data-en="Private chef">Chef a domicilio</h3>
+            <p class="card-tag" data-en="The live experience">L'esperienza dal vivo</p>
+            <p data-en="I arrive about an hour and a half before dinner and cook in your kitchen: mezedes, filo pies, grill. Chatting, tips and a few secrets of Greek tradition.">Arrivo circa un'ora e mezza prima di cena e cucino nella tua cucina: mezedes, sfoglie, griglia. Chiacchiere, consigli e qualche segreto della tradizione greca.</p>
             <ul class="ticks">
-              <li>Servizio e impiattamento</li>
-              <li>Un piccolo dono greco per gli ospiti</li>
-              <li>A fine serata, cucina pulita e in ordine</li>
+              <li data-en="Service and plating">Servizio e impiattamento</li>
+              <li data-en="A small Greek gift for your guests">Un piccolo dono greco per gli ospiti</li>
+              <li data-en="A clean, tidy kitchen at the end">A fine serata, cucina pulita e in ordine</li>
             </ul>
           </article>
 
-          <article class="card card-featured">
-            <div class="card-icon" aria-hidden="true">🍽️</div>
-            <h3>Pronto in tavola</h3>
-            <p class="card-tag">Massima intimità, zero "cantiere"</p>
-            <p>La preparazione pesante la faccio a casa mia: impasti, farciture e tagli arrivano pronti. Da te solo le cotture finali e l'impiattamento.</p>
+          <article class="card card-featured reveal">
+            <div class="card-icon"><svg><use href="#i-cloche"/></svg></div>
+            <h3 data-en="Ready to serve">Pronto in tavola</h3>
+            <p class="card-tag" data-en="Maximum privacy, zero mess">Massima intimità, zero "cantiere"</p>
+            <p data-en="The heavy prep happens in my kitchen: doughs, fillings and cuts arrive ready. At your place, only final cooking and plating.">La preparazione pesante la faccio a casa mia: impasti, farciture e tagli arrivano pronti. Da te solo le cotture finali e l'impiattamento.</p>
             <ul class="ticks">
-              <li>Niente disordine in cucina</li>
-              <li>Arrivo, cucino, servo e riordino</li>
-              <li>Ideale per cene romantiche o tra amici</li>
+              <li data-en="No mess in your kitchen">Niente disordine in cucina</li>
+              <li data-en="I arrive, cook, serve and tidy up">Arrivo, cucino, servo e riordino</li>
+              <li data-en="Perfect for romantic dinners or friends">Ideale per cene romantiche o tra amici</li>
             </ul>
           </article>
 
-          <article class="card">
-            <div class="card-icon" aria-hidden="true">🥙</div>
-            <h3>Catering &amp; asporto</h3>
-            <p class="card-tag">Per feste e ricorrenze</p>
-            <p>Pasqua, Natale, compleanni, il Primo Maggio: ti consegno tutto pronto, devi solo scaldare e servire. Possibile anche il ritiro da asporto.</p>
+          <article class="card reveal">
+            <div class="card-icon"><svg><use href="#i-bag"/></svg></div>
+            <h3 data-en="Catering &amp; takeaway">Catering &amp; asporto</h3>
+            <p class="card-tag" data-en="For parties and celebrations">Per feste e ricorrenze</p>
+            <p data-en="Easter, Christmas, birthdays, May Day: everything delivered ready, you just warm up and serve. Pick-up also available.">Pasqua, Natale, compleanni, il Primo Maggio: ti consegno tutto pronto, devi solo scaldare e servire. Possibile anche il ritiro da asporto.</p>
             <ul class="ticks">
-              <li>Menù su misura</li>
-              <li>Minimo 4 persone</li>
-              <li>Ritiro o consegna da concordare</li>
+              <li data-en="Tailor-made menu">Menù su misura</li>
+              <li data-en="Minimum 4 people">Minimo 4 persone</li>
+              <li data-en="Pick-up or delivery to be arranged">Ritiro o consegna da concordare</li>
             </ul>
           </article>
         </div>
@@ -99,93 +143,145 @@
     <!-- MENU -->
     <section id="menu" class="section section-paper">
       <div class="container">
-        <p class="eyebrow center">Sfizi di Grecia</p>
-        <h2 class="center">I nostri menù</h2>
-        <p class="center muted">Ogni menù comprende mezedes, piatto principale e un dolce a scelta.</p>
+        <p class="eyebrow center reveal">Sfizi di Grecia</p>
+        <h2 class="center reveal" data-en="Our menus">I nostri menù</h2>
+        <p class="center muted reveal" data-en="Every menu includes mezedes, a main course and a dessert of your choice.">Ogni menù comprende mezedes, piatto principale e un dolce a scelta.</p>
 
         <div class="menus">
-          <article class="menu-card">
-            <p class="menu-num">Menù 1</p>
+          <article class="menu-card reveal">
+            <p class="menu-num" data-en="Menu 1">Menù 1</p>
             <h3>Psistaria <em>"O Meraklis"</em></h3>
-            <p class="menu-desc">Un percorso saporito che celebra la tradizione della griglia greca.</p>
+            <p class="menu-desc" data-en="A flavourful journey celebrating the Greek grill tradition.">Un percorso saporito che celebra la tradizione della griglia greca.</p>
             <h4>Mezedes</h4>
             <ul>
-              <li><strong>Tzatziki</strong> — salsa di yogurt greco, aglio e cetriolo</li>
-              <li><strong>Kolokithokeftedes</strong> — polpette di zucchine, feta e menta</li>
+              <li data-en="<strong>Tzatziki</strong> — Greek yogurt, garlic and cucumber dip"><strong>Tzatziki</strong> — salsa di yogurt greco, aglio e cetriolo</li>
+              <li data-en="<strong>Kolokithokeftedes</strong> — courgette, feta and mint fritters"><strong>Kolokithokeftedes</strong> — polpette di zucchine, feta e menta</li>
             </ul>
-            <h4>Piatto principale</h4>
+            <h4 data-en="Main course">Piatto principale</h4>
             <ul>
-              <li><strong>Pita gyros</strong> — carne speziata, tzatziki, pomodoro, cipolla e patate</li>
+              <li data-en="<strong>Pita gyros</strong> — spiced meat, tzatziki, tomato, onion and fries"><strong>Pita gyros</strong> — carne speziata, tzatziki, pomodoro, cipolla e patate</li>
             </ul>
-            <p class="menu-price">Prezzo in arrivo</p>
+            <p class="menu-price" data-en="Price coming soon">Prezzo in arrivo</p>
           </article>
 
-          <article class="menu-card">
-            <p class="menu-num">Menù 2</p>
+          <article class="menu-card reveal">
+            <p class="menu-num" data-en="Menu 2">Menù 2</p>
             <h3><em>"Oikogeneia"</em></h3>
-            <p class="menu-desc">Un menù equilibrato che unisce sfoglia ripiena e feta.</p>
+            <p class="menu-desc" data-en="A balanced menu of filled filo pastry and feta.">Un menù equilibrato che unisce sfoglia ripiena e feta.</p>
             <h4>Mezedes</h4>
             <ul>
-              <li><strong>Spanakopita</strong> — tortino in pasta fillo con spinaci e feta</li>
-              <li><strong>Dolmadakia</strong> — involtini di foglie di vite con riso (2 a testa)</li>
+              <li data-en="<strong>Spanakopita</strong> — filo pie with spinach and feta"><strong>Spanakopita</strong> — tortino in pasta fillo con spinaci e feta</li>
+              <li data-en="<strong>Dolmadakia</strong> — vine leaves stuffed with rice (2 each)"><strong>Dolmadakia</strong> — involtini di foglie di vite con riso (2 a testa)</li>
             </ul>
-            <h4>Piatto principale</h4>
+            <h4 data-en="Main course">Piatto principale</h4>
             <ul>
-              <li><strong>Moussaká</strong> — melanzane, patate, ragù di carne e besciamella</li>
+              <li data-en="<strong>Moussaká</strong> — aubergine, potatoes, meat ragù and béchamel"><strong>Moussaká</strong> — melanzane, patate, ragù di carne e besciamella</li>
             </ul>
-            <p class="menu-price">Prezzo in arrivo</p>
+            <p class="menu-price" data-en="Price coming soon">Prezzo in arrivo</p>
           </article>
 
-          <article class="menu-card">
-            <p class="menu-num">Menù 3</p>
+          <article class="menu-card reveal">
+            <p class="menu-num" data-en="Menu 3">Menù 3</p>
             <h3>Taverna <em>"To Steki"</em></h3>
-            <p class="menu-desc">Un trionfo di sapori mediterranei e profumi di casa.</p>
+            <p class="menu-desc" data-en="A triumph of Mediterranean flavours and home cooking.">Un trionfo di sapori mediterranei e profumi di casa.</p>
             <h4>Mezedes</h4>
             <ul>
-              <li><strong>Flogheres</strong> — involtini di fillo con formaggio filante, sesamo e miele</li>
-              <li><strong>Dolmadakia</strong> — involtini di foglie di vite con riso (2 a testa)</li>
+              <li data-en="<strong>Flogheres</strong> — filo rolls with melting cheese, sesame and honey"><strong>Flogheres</strong> — involtini di fillo con formaggio filante, sesamo e miele</li>
+              <li data-en="<strong>Dolmadakia</strong> — vine leaves stuffed with rice (2 each)"><strong>Dolmadakia</strong> — involtini di foglie di vite con riso (2 a testa)</li>
             </ul>
-            <h4>Piatto principale</h4>
+            <h4 data-en="Main course">Piatto principale</h4>
             <ul>
-              <li><strong>Keftedes</strong> — polpette di carne speziate con limone</li>
-              <li>1 pita d'accompagnamento</li>
+              <li data-en="<strong>Keftedes</strong> — spiced meatballs with lemon"><strong>Keftedes</strong> — polpette di carne speziate con limone</li>
+              <li data-en="1 pita on the side">1 pita d'accompagnamento</li>
             </ul>
-            <p class="menu-price">Prezzo in arrivo</p>
+            <p class="menu-price" data-en="Price coming soon">Prezzo in arrivo</p>
           </article>
         </div>
 
-        <div class="dessert">
-          <h4>Dolce a scelta, per tutti i menù</h4>
-          <p><strong>Ravani</strong> al semolino e agrumi &nbsp;oppure&nbsp; <strong>Bougatsa</strong> alla crema</p>
+        <div class="dessert reveal">
+          <h4 data-en="Dessert of your choice, for every menu">Dolce a scelta, per tutti i menù</h4>
+          <p data-en="<strong>Ravani</strong> semolina and citrus cake &nbsp;or&nbsp; <strong>Bougatsa</strong> custard pie"><strong>Ravani</strong> al semolino e agrumi &nbsp;oppure&nbsp; <strong>Bougatsa</strong> alla crema</p>
         </div>
-        <p class="center muted small">Hai esigenze particolari o vuoi un menù su misura? Scrivilo nella richiesta.</p>
+        <p class="center muted small" data-en="Special requests or a tailor-made menu? Mention it in your request.">Hai esigenze particolari o vuoi un menù su misura? Scrivilo nella richiesta.</p>
+      </div>
+    </section>
+
+    <!-- GALLERIA -->
+    <section id="galleria" class="section">
+      <div class="container">
+        <p class="eyebrow center reveal" data-en="From our kitchen">Dalla nostra cucina</p>
+        <h2 class="center reveal" data-en="Gallery">Galleria</h2>
+        <div class="gallery">
+          <figure class="tile tile-navy tile-wide tile-big reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Moussaká</figcaption></figure>
+          <figure class="tile tile-terra reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Spanakopita</figcaption></figure>
+          <figure class="tile tile-olive reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Pita gyros</figcaption></figure>
+          <figure class="tile tile-paper reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Tzatziki</figcaption></figure>
+          <figure class="tile tile-terra reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Keftedes</figcaption></figure>
+          <figure class="tile tile-navy tile-wide reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Bougatsa</figcaption></figure>
+        </div>
+        <p class="center muted small" data-en="Real photos coming soon.">Le foto vere arriveranno a breve.</p>
       </div>
     </section>
 
     <!-- COME FUNZIONA -->
-    <section id="come-funziona" class="section">
+    <section id="come-funziona" class="section section-paper">
       <div class="container">
-        <p class="eyebrow center">Semplice come un brindisi</p>
-        <h2 class="center">Come funziona</h2>
+        <p class="eyebrow center reveal" data-en="As easy as a toast">Semplice come un brindisi</p>
+        <h2 class="center reveal" data-en="How it works">Come funziona</h2>
         <ol class="steps">
-          <li><span>1</span><h3>Scegli</h3><p>Il servizio e il menù che preferisci.</p></li>
-          <li><span>2</span><h3>Richiedi</h3><p>Indica data, numero di persone e zona di Pisa.</p></li>
-          <li><span>3</span><h3>Conferma</h3><p>Ti ricontatto per definire i dettagli.</p></li>
-          <li><span>4</span><h3>Opa!</h3><p>Ti godi la serata, al resto penso io.</p></li>
+          <li class="reveal"><span>1</span><h3 data-en="Choose">Scegli</h3><p data-en="The service and menu you like.">Il servizio e il menù che preferisci.</p></li>
+          <li class="reveal"><span>2</span><h3 data-en="Request">Richiedi</h3><p data-en="Date, number of guests and area.">Indica data, numero di persone e zona di Pisa.</p></li>
+          <li class="reveal"><span>3</span><h3 data-en="Confirm">Conferma</h3><p data-en="I get back to you to sort out the details.">Ti ricontatto per definire i dettagli.</p></li>
+          <li class="reveal"><span>4</span><h3>Opa!</h3><p data-en="Enjoy your evening, I'll take care of the rest.">Ti godi la serata, al resto penso io.</p></li>
         </ol>
       </div>
     </section>
 
     <!-- CHEF -->
     <section id="chef" class="section section-navy">
+      <svg class="chef-branch" aria-hidden="true"><use href="#olive-branch"/></svg>
       <div class="container chef">
-        <div class="chef-photo" aria-hidden="true"><img src="logo.svg" alt=""></div>
-        <div>
-          <p class="eyebrow">Lo chef</p>
-          <h2>Non sono un ospite silenzioso!</h2>
-          <p>Mi piace chiacchierare, scambiare due parole ai fornelli e raccontare qualcosa sui piatti greci. Se sei curioso di scoprire i trucchi della cucina tradizionale, sei nel posto giusto.</p>
-          <p class="muted-light"><em>[Qui andranno il nome dello chef, una foto e due righe sulla sua storia.]</em></p>
-          <blockquote>«Filoxenia: l'amore per lo straniero, l'arte di accogliere chi arriva alla nostra tavola come un vecchio amico.»</blockquote>
+        <div class="chef-photo reveal" aria-hidden="true"><img src="logo.svg" alt=""></div>
+        <div class="reveal">
+          <p class="eyebrow" data-en="The chef">Lo chef</p>
+          <h2 data-en="I'm not a silent guest!">Non sono un ospite silenzioso!</h2>
+          <p data-en="I love chatting, talking in the kitchen and telling stories about Greek dishes. If you're curious about the tricks of traditional cooking, you're in the right place.">Mi piace chiacchierare, scambiare due parole ai fornelli e raccontare qualcosa sui piatti greci. Se sei curioso di scoprire i trucchi della cucina tradizionale, sei nel posto giusto.</p>
+          <p class="muted-light"><em data-en="[The chef's name, a photo and a short bio will go here.]">[Qui andranno il nome dello chef, una foto e due righe sulla sua storia.]</em></p>
+          <blockquote data-en="«Filoxenia: love for the stranger, the art of welcoming whoever comes to our table like an old friend.»">«Filoxenia: l'amore per lo straniero, l'arte di accogliere chi arriva alla nostra tavola come un vecchio amico.»</blockquote>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="section">
+      <div class="container narrow">
+        <p class="eyebrow center reveal" data-en="Good to know">Da sapere</p>
+        <h2 class="center reveal" data-en="Frequently asked questions">Domande frequenti</h2>
+        <div class="faq reveal">
+          <details>
+            <summary data-en="Which areas do you cover?">Quali zone servite?</summary>
+            <p data-en="Pisa and the surrounding area. If you're a bit further out, write to us anyway: we'll see what we can do.">Pisa e dintorni. Se sei un po' più lontano scrivici comunque: vediamo insieme cosa si può fare.</p>
+          </details>
+          <details>
+            <summary data-en="How far in advance should I book?">Con quanto anticipo devo prenotare?</summary>
+            <p data-en="The earlier the better, especially for weekends and holidays. Send your request and we'll confirm availability.">Prima è, meglio è, soprattutto per weekend e festività. Invia la richiesta e ti confermiamo la disponibilità.</p>
+          </details>
+          <details>
+            <summary data-en="What's the minimum number of guests?">Qual è il numero minimo di persone?</summary>
+            <p data-en="Services start from 4 people.">I servizi partono da un minimo di 4 persone.</p>
+          </details>
+          <details>
+            <summary data-en="Allergies, vegetarians, intolerances?">Allergie, vegetariani, intolleranze?</summary>
+            <p data-en="Let us know in your request: where possible we'll adapt the dishes. Several mezedes are already vegetarian (tzatziki, spanakopita, dolmadakia).">Segnalalo nella richiesta: dove possibile adattiamo i piatti. Diversi mezedes sono già vegetariani (tzatziki, spanakopita, dolmadakia).</p>
+          </details>
+          <details>
+            <summary data-en="What do I need to have in my kitchen?">Cosa serve nella mia cucina?</summary>
+            <p data-en="Just a working hob and oven and your dishes for serving. With &quot;Ready to serve&quot; most of the work is done beforehand, so the kitchen stays almost untouched.">Basta un piano cottura e un forno funzionanti, più le tue stoviglie per servire. Con "Pronto in tavola" quasi tutto è già preparato, quindi la cucina resta praticamente intatta.</p>
+          </details>
+          <details>
+            <summary data-en="How does takeaway work?">Come funziona l'asporto?</summary>
+            <p data-en="You book like any other service and we agree on a pick-up time. You'll get everything ready to warm up and serve.">Prenoti come per gli altri servizi e concordiamo l'orario di ritiro. Ricevi tutto pronto da scaldare e servire.</p>
+          </details>
         </div>
       </div>
     </section>
@@ -193,73 +289,73 @@
     <!-- PRENOTA -->
     <section id="prenota" class="section section-paper">
       <div class="container narrow">
-        <p class="eyebrow center">Solo su prenotazione</p>
-        <h2 class="center">Richiedi la tua serata greca</h2>
-        <p class="center muted">Compila il modulo: il messaggio si prepara da solo e lo invii in chat.</p>
+        <p class="eyebrow center reveal" data-en="By reservation only">Solo su prenotazione</p>
+        <h2 class="center reveal" data-en="Request your Greek night">Richiedi la tua serata greca</h2>
+        <p class="center muted reveal" data-en="Fill in the form: the message writes itself and you send it in a chat.">Compila il modulo: il messaggio si prepara da solo e lo invii in chat.</p>
 
         <form id="booking" class="form" novalidate>
           <fieldset>
-            <legend>Servizio</legend>
+            <legend data-en="Service">Servizio</legend>
             <div class="chips">
-              <label><input type="radio" name="servizio" value="Chef a domicilio" checked><span>Chef a domicilio</span></label>
-              <label><input type="radio" name="servizio" value="Pronto in tavola"><span>Pronto in tavola</span></label>
-              <label><input type="radio" name="servizio" value="Catering / asporto"><span>Catering / asporto</span></label>
+              <label><input type="radio" name="servizio" checked><span data-en="Private chef">Chef a domicilio</span></label>
+              <label><input type="radio" name="servizio"><span data-en="Ready to serve">Pronto in tavola</span></label>
+              <label><input type="radio" name="servizio"><span data-en="Catering / takeaway">Catering / asporto</span></label>
             </div>
           </fieldset>
 
           <fieldset>
-            <legend>Menù</legend>
+            <legend data-en="Menu">Menù</legend>
             <div class="chips">
-              <label><input type="radio" name="menu" value="Menù 1 – Psistaria O Meraklis" checked><span>1 · O Meraklis</span></label>
-              <label><input type="radio" name="menu" value="Menù 2 – Oikogeneia"><span>2 · Oikogeneia</span></label>
-              <label><input type="radio" name="menu" value="Menù 3 – Taverna To Steki"><span>3 · To Steki</span></label>
-              <label><input type="radio" name="menu" value="Menù su misura"><span>Su misura</span></label>
+              <label><input type="radio" name="menu" checked><span>1 · O Meraklis</span></label>
+              <label><input type="radio" name="menu"><span>2 · Oikogeneia</span></label>
+              <label><input type="radio" name="menu"><span>3 · To Steki</span></label>
+              <label><input type="radio" name="menu"><span data-en="Tailor-made">Su misura</span></label>
             </div>
           </fieldset>
 
           <fieldset>
-            <legend>Dolce</legend>
+            <legend data-en="Dessert">Dolce</legend>
             <div class="chips">
-              <label><input type="radio" name="dolce" value="Ravani" checked><span>Ravani</span></label>
-              <label><input type="radio" name="dolce" value="Bougatsa"><span>Bougatsa</span></label>
-              <label><input type="radio" name="dolce" value="Decido dopo"><span>Decido dopo</span></label>
+              <label><input type="radio" name="dolce" checked><span>Ravani</span></label>
+              <label><input type="radio" name="dolce"><span>Bougatsa</span></label>
+              <label><input type="radio" name="dolce"><span data-en="Decide later">Decido dopo</span></label>
             </div>
           </fieldset>
 
           <div class="row">
-            <label class="field">Data
+            <label class="field"><span data-en="Date">Data</span>
               <input type="date" name="data" required>
             </label>
-            <label class="field">Persone
+            <label class="field"><span data-en="Guests">Persone</span>
               <input type="number" name="persone" min="4" value="4" required>
             </label>
           </div>
 
           <div class="row">
-            <label class="field">Nome
+            <label class="field"><span data-en="Name">Nome</span>
               <input type="text" name="nome" autocomplete="name" required>
             </label>
-            <label class="field">Zona / indirizzo
-              <input type="text" name="zona" placeholder="es. Pisa centro, Cascina…">
+            <label class="field"><span data-en="Area / address">Zona / indirizzo</span>
+              <input type="text" name="zona" placeholder="es. Pisa centro, Cascina…" data-en-placeholder="e.g. Pisa centre, Cascina…">
             </label>
           </div>
 
-          <label class="field">Note (allergie, occasione, richieste)
+          <label class="field"><span data-en="Notes (allergies, occasion, requests)">Note (allergie, occasione, richieste)</span>
             <textarea name="note" rows="3"></textarea>
           </label>
 
           <p class="form-error" id="form-error" role="alert" hidden></p>
 
           <div class="preview" id="preview" hidden>
-            <p class="preview-title">Il tuo messaggio</p>
+            <p class="preview-title" data-en="Your message">Il tuo messaggio</p>
             <pre id="preview-text"></pre>
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn" id="send-ig">Copia e scrivi su Instagram</button>
-            <button type="button" class="btn btn-ghost-dark" id="send-wa" hidden>Invia su WhatsApp</button>
+            <button type="submit" class="btn" id="send-ig" data-en="Copy &amp; message on Instagram">Copia e scrivi su Instagram</button>
+            <button type="button" class="btn btn-wa" id="send-wa" hidden data-en="Send on WhatsApp">Invia su WhatsApp</button>
           </div>
-          <p class="small muted center" id="copied" hidden>Messaggio copiato ✓ — incollalo nella chat di Instagram.</p>
+          <p class="small muted center" id="copied" hidden data-en="Message copied ✓ — paste it into the Instagram chat.">Messaggio copiato ✓ — incollalo nella chat di Instagram.</p>
         </form>
       </div>
     </section>
@@ -271,17 +367,17 @@
     <div class="container footer-inner">
       <div>
         <img src="logo.svg" alt="" width="64" height="64">
-        <p><strong>Opa! – Cucina greca a domicilio</strong><br>Pisa e dintorni · solo su prenotazione</p>
+        <p data-en="<strong>Opa! – Greek private chef</strong><br>Pisa &amp; surroundings · by reservation only"><strong>Opa! – Cucina greca a domicilio</strong><br>Pisa e dintorni · solo su prenotazione</p>
       </div>
       <div class="social">
         <a href="https://www.instagram.com/opa_cucinagreca_chefadomicilio/" target="_blank" rel="noopener">Instagram</a>
         <a href="https://www.facebook.com/profile.php?id=61594585724199" target="_blank" rel="noopener">Facebook</a>
       </div>
     </div>
-    <p class="credit">Sito realizzato da <a href="https://francescofolino.it">Francesco Folino</a></p>
+    <p class="credit"><span data-en="Website by">Sito realizzato da</span> <a href="https://francescofolino.it">Francesco Folino</a></p>
   </footer>
 
-  <a href="#prenota" class="fab">Prenota</a>
+  <a href="#prenota" class="fab" data-en="Book">Prenota</a>
 
   <script src="script.js"></script>
 </body>
