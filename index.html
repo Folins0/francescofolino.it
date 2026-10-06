@@ -106,7 +106,7 @@
                 <div class="browser-url">osteria-folino</div>
               </div>
               <div class="browser-body">
-                <iframe src="progetti/osteria-folino/index.html" tabindex="-1" title="Anteprima Osteria Folino"></iframe>
+                <img src="images/anteprime/osteria-folino.webp" alt="Anteprima di Osteria Folino" width="960" height="600" loading="lazy" decoding="async">
               </div>
             </div>
             <div class="project-meta">
@@ -144,7 +144,7 @@
                 <div class="browser-url">ristolive</div>
               </div>
               <div class="browser-body">
-                <iframe src="progetti/ristolive/index.html" tabindex="-1" title="Anteprima RistoLive"></iframe>
+                <img src="images/anteprime/ristolive.webp" alt="Anteprima di RistoLive" width="960" height="600" loading="lazy" decoding="async">
               </div>
             </div>
             <div class="project-meta">
@@ -187,7 +187,7 @@
                 <div class="browser-url">shoganails</div>
               </div>
               <div class="browser-body">
-                <iframe src="progetti/shoganails-demo/index.html" tabindex="-1" title="Anteprima Shoganails"></iframe>
+                <img src="images/anteprime/shoganails-demo.webp" alt="Anteprima di Shoganails" width="960" height="600" loading="lazy" decoding="async">
               </div>
             </div>
             <div class="project-meta">
@@ -225,7 +225,7 @@
                 <div class="browser-url">shoganails · gestione</div>
               </div>
               <div class="browser-body">
-                <iframe src="progetti/shoganails-app-demo/index.html" tabindex="-1" title="Anteprima Shoganails gestione"></iframe>
+                <img src="images/anteprime/shoganails-app-demo.webp" alt="Anteprima di Shoganails gestione" width="960" height="600" loading="lazy" decoding="async">
               </div>
             </div>
             <div class="project-meta">
@@ -268,7 +268,7 @@
             <div class="browser-url">astronaviga</div>
           </div>
           <div class="browser-body">
-            <iframe src="progetti/astronaviga/index.html" tabindex="-1" title="Anteprima AstroNaviga"></iframe>
+            <img src="images/anteprime/astronaviga.webp" alt="Anteprima di AstroNaviga" width="960" height="600" loading="lazy" decoding="async">
           </div>
         </div>
         <div class="project-meta">
@@ -297,7 +297,7 @@
             <div class="browser-url">teampreview</div>
           </div>
           <div class="browser-body">
-            <iframe src="progetti/Teampreview/index.html" tabindex="-1" title="Anteprima TeamPreview"></iframe>
+            <img src="images/anteprime/teampreview.webp" alt="Anteprima di TeamPreview" width="960" height="600" loading="lazy" decoding="async">
           </div>
         </div>
         <div class="project-meta">
@@ -575,17 +575,6 @@
   langToggle.addEventListener('click', () => {
     setLang(document.documentElement.lang === 'it' ? 'en' : 'it');
   });
-
-  // anteprima progetti: la pagina è disegnata a 1440x900, la scaliamo in base
-  // alla larghezza reale della card così si vede intera anche su schermi stretti
-  function sizeThumbs() {
-    document.querySelectorAll('.browser-body').forEach(box => {
-      const iframe = box.querySelector('iframe');
-      iframe.style.transform = `scale(${box.clientWidth / 1440})`;
-    });
-  }
-  window.addEventListener('resize', sizeThumbs);
-  sizeThumbs();
 
   // comparsa allo scroll: la classe la mette JS, quindi senza JS (o con movimento ridotto) tutto resta visibile
   if (!reduceMotion && 'IntersectionObserver' in window) {
