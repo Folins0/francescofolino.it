@@ -317,10 +317,7 @@ section.block > p { line-height: 1.75; color: var(--text); font-size: 1.05rem; }
 }
 .browser-card:hover { border-color: var(--accent); transform: translateY(-2px); }
 .browser-body { position: relative; aspect-ratio: 16/10; overflow: hidden; background: var(--bg-soft); }
-.browser-body iframe {
-  position: absolute; top: 0; left: 0; width: 1440px; height: 900px;
-  border: 0; transform: scale(.3333); transform-origin: top left; pointer-events: none;
-}
+.browser-body img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
 .project-meta { padding: 1rem 1.2rem 1.4rem; }
 .project-meta h3 { font-size: 1.1rem; margin-bottom: .3rem; }
 .project-meta p { font-size: .92rem; color: var(--muted); line-height: 1.5; margin-bottom: .6rem; }
