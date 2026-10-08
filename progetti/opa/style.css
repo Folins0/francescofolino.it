@@ -455,3 +455,9 @@ legend, .field { font-size: .85rem; font-weight: 600; color: var(--navy); margin
   .dessert, .allergens { box-shadow: none; break-inside: avoid; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* ===== Prezzi su richiesta, consenso ===== */
+a.menu-price { display: block; text-decoration: none; color: var(--terra); }
+a.menu-price:hover { color: var(--navy); }
+.consent { margin: 14px 0 0; }
+.consent a { color: var(--navy); }

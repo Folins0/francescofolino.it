@@ -3,8 +3,6 @@
 const CONFIG = window.OPA_CONFIG || {};
 const INSTAGRAM_USER = "opa_cucinagreca_chefadomicilio";
 let whatsappNumber = (CONFIG.WHATSAPP_NUMBER || "").replace(/\D/g, "");
-let prices = [null, null, null];          // prezzo a persona per Menù 1, 2, 3
-let priceNote = { it: "a persona", en: "per person" };
 
 /* ---------- Lingua IT / EN ---------- */
 const T = {
@@ -12,21 +10,19 @@ const T = {
     toggle: "EN", toggleLabel: "Switch to English",
     greeting: "Ciao Opa! Vorrei richiedere una serata greca 🇬🇷",
     service: "Servizio", menu: "Menù", dessert: "Dolce", date: "Data", guests: "Persone",
-    area: "Zona", notes: "Note", thanks: "Grazie",
-    estimateLine: (n, p, t) => `Stima: ${n} persone × ${p} = ${t}`,
-    estimateNote: "indicativa, da confermare",
-    errDate: "Scegli una data.", errGuests: "Il servizio è disponibile per minimo 4 persone.",
-    errName: "Inserisci il tuo nome.", locale: "it-IT"
+    area: "Zona", notes: "Note", thanks: "Grazie", phone: "Telefono", callTime: "Quando chiamarmi",
+    callback: "Potete ricontattarmi al numero indicato per prezzi e modalità?",
+    errDate: "Scegli una data.", errAdvance: "Prenota con almeno 2 giorni di anticipo.", errGuests: "Il servizio è disponibile per minimo 4 persone.",
+    errName: "Inserisci il tuo nome.", errPhone: "Inserisci un numero di telefono valido.", locale: "it-IT"
   },
   en: {
     toggle: "IT", toggleLabel: "Passa all'italiano",
     greeting: "Hi Opa! I'd like to book a Greek night 🇬🇷",
     service: "Service", menu: "Menu", dessert: "Dessert", date: "Date", guests: "Guests",
-    area: "Area", notes: "Notes", thanks: "Thank you",
-    estimateLine: (n, p, t) => `Estimate: ${n} guests × ${p} = ${t}`,
-    estimateNote: "indicative, to be confirmed",
-    errDate: "Please choose a date.", errGuests: "The service is available for at least 4 guests.",
-    errName: "Please enter your name.", locale: "en-GB"
+    area: "Area", notes: "Notes", thanks: "Thank you", phone: "Phone", callTime: "Best time to call",
+    callback: "Could you call me back at this number with prices and details?",
+    errDate: "Please choose a date.", errAdvance: "Please book at least 2 days in advance.", errGuests: "The service is available for at least 4 guests.",
+    errName: "Please enter your name.", errPhone: "Please enter a valid phone number.", locale: "en-GB"
   }
 };
 let lang = "it";
@@ -37,7 +33,6 @@ phEls.forEach(el => { el.dataset.itPlaceholder = el.placeholder; });
 const langBtn = document.getElementById("lang-toggle");
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const fmtMoney = (n, l) => new Intl.NumberFormat(T[l].locale, { style: "currency", currency: "EUR", maximumFractionDigits: n % 1 ? 2 : 0 }).format(n);
 
 // Imposta un testo bilingue su un elemento (usato dai contenuti dell'admin)
 function setBilingual(el, it, en) {
@@ -55,7 +50,7 @@ function setLang(l) {
   langBtn.textContent = T[l].toggle;
   langBtn.setAttribute("aria-label", T[l].toggleLabel);
   try { localStorage.setItem("opa-lang", l); } catch {}
-  if (!preview.hidden) refresh(); else updateEstimate();
+  if (!preview.hidden) refresh();
 }
 langBtn.addEventListener("click", () => setLang(lang === "it" ? "en" : "it"));
 
@@ -66,35 +61,27 @@ const preview = document.getElementById("preview");
 const previewText = document.getElementById("preview-text");
 const copied = document.getElementById("copied");
 const waBtn = document.getElementById("send-wa");
-const estimateBox = document.getElementById("estimate");
 
 function updateWhatsApp() { waBtn.hidden = !whatsappNumber; }
 updateWhatsApp();
 
-form.elements.data.min = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+// Prenotazione con almeno 2 giorni di anticipo (data locale, non UTC)
+const MIN_DAYS_AHEAD = 2;
+const localISO = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const minDate = () => { const d = new Date(); d.setDate(d.getDate() + MIN_DAYS_AHEAD); return localISO(d); };
+form.elements.data.min = minDate();
 
-const checkedIndex = name => [...form.querySelectorAll(`input[name="${name}"]`)].findIndex(i => i.checked);
 const chosen = name => form.querySelector(`input[name="${name}"]:checked`).nextElementSibling.textContent.trim();
-
-function estimate() {
-  const i = checkedIndex("menu");
-  const n = parseInt(form.elements.persone.value, 10);
-  const p = prices[i];
-  if (i < 0 || i > 2 || !p || !n || n < 4) return null;
-  return T[lang].estimateLine(n, fmtMoney(p, lang), fmtMoney(p * n, lang));
-}
-function updateEstimate() {
-  const e = estimate();
-  estimateBox.hidden = !e;
-  if (e) estimateBox.textContent = `${e} (${T[lang].estimateNote})`;
-}
 
 function buildMessage() {
   const f = form.elements, t = T[lang];
   const persone = parseInt(f.persone.value, 10);
   if (!f.data.value) return { error: t.errDate };
+  if (f.data.value < minDate()) return { error: t.errAdvance };
   if (!persone || persone < 4) return { error: t.errGuests };
   if (!f.nome.value.trim()) return { error: t.errName };
+  const phone = f.telefono.value.trim();
+  if (phone.replace(/\D/g, "").length < 8) return { error: t.errPhone };
 
   const data = new Date(f.data.value + "T12:00").toLocaleDateString(t.locale, {
     weekday: "long", day: "numeric", month: "long", year: "numeric"
@@ -107,16 +94,15 @@ function buildMessage() {
     `• ${t.date}: ${data}`,
     `• ${t.guests}: ${persone}`,
   ];
+  lines.push(`• ${t.phone}: ${phone}`);
+  if (f.orario.value.trim()) lines.push(`• ${t.callTime}: ${f.orario.value.trim()}`);
   if (f.zona.value.trim()) lines.push(`• ${t.area}: ${f.zona.value.trim()}`);
   if (f.note.value.trim()) lines.push(`• ${t.notes}: ${f.note.value.trim()}`);
-  const e = estimate();
-  if (e) lines.push(`• ${e}`);
-  lines.push("", `${t.thanks}, ${f.nome.value.trim()}`);
+  lines.push("", t.callback, `${t.thanks}, ${f.nome.value.trim()}`);
   return { text: lines.join("\n") };
 }
 
 function refresh() {
-  updateEstimate();
   const r = buildMessage();
   if (r.text) {
     previewText.textContent = r.text;
@@ -175,14 +161,6 @@ function applyContent(c) {
   if (c.notice && c.notice.it) { setBilingual(notice, c.notice.it, c.notice.en); notice.hidden = false; }
   else notice.hidden = true;
 
-  if (c.priceNote && c.priceNote.it) priceNote = { it: c.priceNote.it, en: c.priceNote.en || c.priceNote.it };
-  if (Array.isArray(c.prices)) {
-    prices = [0, 1, 2].map(i => { const v = parseFloat(c.prices[i]); return v > 0 ? v : null; });
-    document.querySelectorAll("[data-cms-price]").forEach((el, i) => {
-      if (prices[i]) setBilingual(el, `${fmtMoney(prices[i], "it")} ${priceNote.it}`, `${fmtMoney(prices[i], "en")} ${priceNote.en}`);
-    });
-  }
-
   if (c.chef) {
     const bioIt = c.chef.bio && c.chef.bio.it;
     if (c.chef.name) { const n = document.getElementById("chef-name"); n.textContent = c.chef.name; n.hidden = false; }
@@ -209,7 +187,6 @@ function applyContent(c) {
       }
     });
   }
-  updateEstimate();
 }
 
 async function loadContent() {

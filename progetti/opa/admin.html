@@ -93,20 +93,6 @@
     <main>
       <form id="content-form">
         <section class="card">
-          <h2>Prezzi dei menù</h2>
-          <p class="hint">Solo il numero in euro, a persona. Lascia vuoto per mostrare "Prezzo in arrivo".</p>
-          <div class="row">
-            <div><label for="p1">Menù 1 · O Meraklis</label><input type="number" min="0" step="0.5" id="p1" inputmode="decimal"></div>
-            <div><label for="p2">Menù 2 · Oikogeneia</label><input type="number" min="0" step="0.5" id="p2" inputmode="decimal"></div>
-            <div><label for="p3">Menù 3 · To Steki</label><input type="number" min="0" step="0.5" id="p3" inputmode="decimal"></div>
-          </div>
-          <div class="row2">
-            <div><label for="pn-it">Testo dopo il prezzo</label><input type="text" id="pn-it" placeholder="a persona"></div>
-            <div><label for="pn-en">…in inglese</label><input type="text" id="pn-en" placeholder="per person"></div>
-          </div>
-        </section>
-
-        <section class="card">
           <h2>Lo chef</h2>
           <label for="chef-name">Nome</label>
           <input type="text" id="chef-name" maxlength="60">
@@ -150,7 +136,7 @@
     </div>
   </div>
 
-  <script src="config.js?v=6"></script>
+  <script src="config.js?v=7"></script>
   <script>
     const API = (window.OPA_CONFIG || {}).CMS_URL;
     const DEFAULT_TITLES = ["Moussaká", "Spanakopita", "Pita gyros", "Tzatziki", "Keftedes", "Bougatsa"];
@@ -223,9 +209,6 @@
     }
 
     function fill(c) {
-      const p = c.prices || [];
-      ["p1", "p2", "p3"].forEach((id, i) => $(id).value = p[i] ?? "");
-      $("pn-it").value = c.priceNote?.it || ""; $("pn-en").value = c.priceNote?.en || "";
       $("chef-name").value = c.chef?.name || "";
       $("bio-it").value = c.chef?.bio?.it || ""; $("bio-en").value = c.chef?.bio?.en || "";
       photos.chef = c.chef?.photo || "";
@@ -279,8 +262,6 @@
 
     function collect() {
       return {
-        prices: ["p1", "p2", "p3"].map(id => $(id).value === "" ? null : parseFloat($(id).value)),
-        priceNote: { it: $("pn-it").value, en: $("pn-en").value },
         chef: { name: $("chef-name").value, bio: { it: $("bio-it").value, en: $("bio-en").value }, photo: photos.chef },
         gallery: DEFAULT_TITLES.map((_, i) => ({ title: $("gt" + i).value, photo: photos.g[i] })),
         notice: { it: $("n-it").value, en: $("n-en").value },
