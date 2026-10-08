@@ -461,3 +461,21 @@ a.menu-price { display: block; text-decoration: none; color: var(--terra); }
 a.menu-price:hover { color: var(--navy); }
 .consent { margin: 14px 0 0; }
 .consent a { color: var(--navy); }
+
+/* ===== Prenotazione semplificata ===== */
+.how3 { list-style: none; padding: 0; margin: 0 0 22px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.how3 li { background: var(--paper); border-radius: 12px; padding: 12px; display: flex; gap: 10px; align-items: center; }
+.how3 span { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--navy); color: #fff; font: 700 1rem var(--serif); }
+.how3 p { margin: 0; font-size: .88rem; color: var(--ink); line-height: 1.35; }
+.how3 strong, .done-title strong { color: var(--terra); }
+.done { margin-top: 16px; background: rgba(107,122,58,.1); border: 1.5px solid rgba(107,122,58,.35); border-radius: 14px; padding: 16px; text-align: center; }
+.done-title { margin: 0 0 6px; font-size: 1.05rem; font-weight: 600; color: var(--navy); }
+.done .small a { color: var(--navy); }
+.done .preview { text-align: left; margin: 12px 0 0; }
+@media (max-width: 640px) { .how3 { grid-template-columns: 1fr; gap: 8px; } }
+
+/* ===== Testo dello chef ===== */
+.chef-text p { margin: 0 0 14px; }
+.chef-text strong { color: #fff; }
+.chef-closing { font-family: var(--serif); font-style: italic; font-size: 1.35rem; color: var(--olive-soft); }
+@media (max-width: 900px) { .chef-text { text-align: left; } }

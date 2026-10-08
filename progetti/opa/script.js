@@ -50,7 +50,7 @@ function setLang(l) {
   langBtn.textContent = T[l].toggle;
   langBtn.setAttribute("aria-label", T[l].toggleLabel);
   try { localStorage.setItem("opa-lang", l); } catch {}
-  if (!preview.hidden) refresh();
+  if (!copied.hidden) refresh();
 }
 langBtn.addEventListener("click", () => setLang(lang === "it" ? "en" : "it"));
 
@@ -89,30 +89,25 @@ function buildMessage() {
   const lines = [
     t.greeting, "",
     `• ${t.service}: ${chosen("servizio")}`,
-    `• ${t.menu}: ${chosen("menu")}`,
-    `• ${t.dessert}: ${chosen("dolce")}`,
     `• ${t.date}: ${data}`,
     `• ${t.guests}: ${persone}`,
   ];
   lines.push(`• ${t.phone}: ${phone}`);
-  if (f.orario.value.trim()) lines.push(`• ${t.callTime}: ${f.orario.value.trim()}`);
-  if (f.zona.value.trim()) lines.push(`• ${t.area}: ${f.zona.value.trim()}`);
   if (f.note.value.trim()) lines.push(`• ${t.notes}: ${f.note.value.trim()}`);
   lines.push("", t.callback, `${t.thanks}, ${f.nome.value.trim()}`);
   return { text: lines.join("\n") };
 }
 
+// Il messaggio si mostra solo dopo aver premuto il pulsante; se si modifica il modulo, si nasconde
 function refresh() {
   const r = buildMessage();
   if (r.text) {
     previewText.textContent = r.text;
-    preview.hidden = false;
     errorBox.hidden = true;
   }
   return r;
 }
-form.addEventListener("input", refresh);
-form.addEventListener("change", refresh);
+form.addEventListener("input", () => { copied.hidden = true; errorBox.hidden = true; });
 
 async function copy(text) {
   try { await navigator.clipboard.writeText(text); return true; }
@@ -135,7 +130,9 @@ form.addEventListener("submit", async e => {
   const text = validate();
   if (!text) return;
   await copy(text);
+  preview.hidden = false;
   copied.hidden = false;
+  copied.scrollIntoView({ behavior: "smooth", block: "nearest" });
   window.open(`https://ig.me/m/${INSTAGRAM_USER}`, "_blank", "noopener");
 });
 
@@ -165,7 +162,7 @@ function applyContent(c) {
     const bioIt = c.chef.bio && c.chef.bio.it;
     if (c.chef.name) { const n = document.getElementById("chef-name"); n.textContent = c.chef.name; n.hidden = false; }
     if (bioIt) { const b = document.getElementById("chef-bio"); setBilingual(b, bioIt, c.chef.bio.en); b.hidden = false; }
-    if (c.chef.name || bioIt) document.getElementById("chef-placeholder").hidden = true;
+    if (bioIt) document.getElementById("chef-text").hidden = true;
     if (c.chef.photo) {
       const img = document.getElementById("chef-img");
       img.src = c.chef.photo; img.alt = c.chef.name || "Lo chef di Opa!";
