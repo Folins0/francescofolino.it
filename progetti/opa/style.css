@@ -515,3 +515,15 @@ a.menu-price:hover { color: var(--navy); }
 .variants strong { color: var(--terra); display: block; }
 .tag-veg { display: inline-block; vertical-align: middle; margin-left: 8px; font: 600 .68rem var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--olive); border: 1.5px solid rgba(107,122,58,.45); border-radius: 999px; padding: 2px 8px; }
 @media (max-width: 900px) { .takeaway { grid-template-columns: 1fr; gap: 10px; } }
+
+/* ===== Esigenze alimentari ===== */
+.diet { max-width: 720px; margin: 0 auto 22px; padding: 22px 24px; border-radius: 16px; background: #fff; border: 1.5px solid rgba(107,122,58,.35); box-shadow: var(--shadow); text-align: center; }
+.diet h4 { margin-top: 0; color: var(--olive); }
+.diet-tags { list-style: none; padding: 0; margin: 4px 0 16px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.diet-tags li { display: inline-flex; align-items: center; gap: 8px; background: rgba(107,122,58,.1); color: var(--olive); border-radius: 999px; padding: 7px 14px; font-weight: 600; font-size: .9rem; }
+.diet-tags svg { width: 20px; height: 20px; }
+.diet blockquote { border: 0; padding: 0; margin: 0; color: var(--navy); font-size: 1.2rem; line-height: 1.5; }
+.diet-sign { margin: 6px 0 12px; font-family: var(--serif); font-style: italic; color: var(--terra); }
+.diet-note { margin: 0; font-size: .9rem; color: var(--muted); }
+.field-hint { font-weight: 500; color: var(--olive); font-size: .82rem; margin-top: -2px; }
+@media print { .diet { box-shadow: none; padding: 8px; margin: 6px auto; } .diet blockquote, .diet-sign { display: none; } .diet-tags { margin-bottom: 4px; } .diet-tags li { padding: 3px 10px; font-size: 9pt; } .diet-note { font-size: 9pt; } }

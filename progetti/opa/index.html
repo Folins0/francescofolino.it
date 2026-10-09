@@ -28,7 +28,7 @@
   <link rel="preload" href="cormorant-garamond-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="fonts.css?v=6">
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=13">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -91,6 +91,9 @@
       <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3.5h10V9 M7 17H4.5V9h15v8H17 M7 14h10v6.5H7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
       <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor"/></symbol>
       <symbol id="i-fb" viewBox="0 0 24 24"><path d="M12 3C7 3 3 6.8 3 11.5c0 2.6 1.2 4.9 3.2 6.5V21l2.9-1.6c.9.2 1.9.4 2.9.4 5 0 9-3.8 9-8.5S17 3 12 3zm1 11.3-2.3-2.4-4.4 2.4 4.9-5.2 2.3 2.4 4.3-2.4z" fill="currentColor"/></symbol>
+      <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19C5 10 11 5 20 4c0 9-5 15-14 15z M5 19l9-9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-wheat" viewBox="0 0 24 24"><path d="M12 21V8 M12 8c-2-1-3-3-3-5 2 0 3 1 3 3 0-2 1-3 3-3 0 2-1 4-3 5z M12 13c-2.5 0-4-1.5-4.5-3.5 2 0 3.5.8 4.5 2 1-1.2 2.5-2 4.5-2-.5 2-2 3.5-4.5 3.5z M12 18c-2.5 0-4-1.5-4.5-3.5 2 0 3.5.8 4.5 2 1-1.2 2.5-2 4.5-2-.5 2-2 3.5-4.5 3.5z M4 4l16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-milk" viewBox="0 0 24 24"><path d="M9 3h6v3l2 3v12H7V9l2-3z M7 13h10 M4 4l16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     </defs>
   </svg>
 
@@ -372,9 +375,16 @@
           <h4 data-en="Dessert of your choice, for every menu">Dolce a scelta, per tutti i menù</h4>
           <p data-en="<strong>Ravani</strong> <span class='gr' lang='el'>Ραβανί</span> semolina and citrus cake &nbsp;or&nbsp; <strong>Bougatsa</strong> <span class='gr' lang='el'>Μπουγάτσα</span> custard pie"><strong>Ravani</strong> <span class='gr' lang='el'>Ραβανί</span> al semolino e agrumi &nbsp;oppure&nbsp; <strong>Bougatsa</strong> <span class='gr' lang='el'>Μπουγάτσα</span> alla crema</p>
         </div>
-        <div class="allergens reveal">
-          <h4 data-en="Allergens">Allergeni</h4>
-          <p data-en="Allergen details for each dish will be listed here soon. In the meantime, tell us about any allergy or intolerance in your request and we'll reply with full information.">Il dettaglio degli allergeni di ogni piatto sarà indicato qui a breve. Nel frattempo segnala allergie e intolleranze nella richiesta: ti risponderemo con tutte le informazioni.</p>
+        <div class="diet reveal">
+          <h4 data-en="Dietary needs">Esigenze alimentari</h4>
+          <ul class="diet-tags">
+            <li><svg aria-hidden="true"><use href="#i-leaf"/></svg><span data-en="Vegetarian">Vegetariani</span></li>
+            <li><svg aria-hidden="true"><use href="#i-wheat"/></svg><span data-en="Gluten-free">Senza glutine</span></li>
+            <li><svg aria-hidden="true"><use href="#i-milk"/></svg><span data-en="Dairy-free">Senza latticini</span></li>
+          </ul>
+          <blockquote data-en="«I've put together a selection of traditional Greek dishes designed for vegetarians too, and for anyone who is gluten intolerant or has dairy-related needs: just let me know and I'll be happy to take care of it. No compromise on flavour, just plenty of authenticity and respect for everyone's needs!»">«Ho pensato a una selezione di piatti della tradizione greca pensata appositamente anche per chi è vegetariano, intollerante al glutine o ha esigenze legate ai latticini: basta segnalarmelo e sarò felice di gestirle al meglio. Niente compromessi sul sapore, solo tanta autenticità e rispetto per le esigenze di ognuno!»</blockquote>
+          <p class="diet-sign" data-en="— the chef">— lo chef</p>
+          <p class="diet-note" data-en="Mention it in your request: we'll reply with full allergen information for every dish.">Segnalalo nella richiesta: ti risponderemo con tutte le informazioni sugli allergeni di ogni piatto.</p>
         </div>
         <p class="center"><button type="button" class="btn btn-ghost btn-print" id="print-menu"><svg aria-hidden="true"><use href="#i-print"/></svg> <span data-en="Download the menu (PDF)">Scarica il menù (PDF)</span></button></p>
         <p class="center muted small" data-en="Special requests or a tailor-made menu? Mention it in your request.">Hai esigenze particolari o vuoi un menù su misura? Scrivilo nella richiesta.</p>
@@ -552,7 +562,6 @@
           <p class="chef-name" id="chef-name" hidden></p>
           <div class="chef-text" id="chef-text">
             <p data-en="For me, cooking isn't just a job, it's an act of dedication: I love listening to every request you make and taking care of every detail with the utmost attention. Because at the table everyone should be able to smile and enjoy every bite with complete peace of mind… and when the joy is that big, you just have to shout &quot;OPAAAAAAAAAA!&quot; to express pure happiness!">Cucinare per me non è solo un lavoro, è un atto di dedizione: amo ascoltare ogni vostra richiesta e curare ogni dettaglio con la massima attenzione. Perché a tavola tutti devono poter sorridere e gustare ogni boccone in totale serenità… e quando la gioia è così grande, viene proprio da esclamare <strong>"OPAAAAAAAAAA!"</strong> per esprimere la massima felicità!</p>
-            <p data-en="That's why I've put together a selection of traditional Greek dishes designed for vegetarians too, and for anyone who is gluten intolerant or has dairy-related needs: just let me know and I'll be happy to take care of it. No compromise on flavour, just plenty of authenticity and respect for everyone's needs!">Ecco perché ho pensato a una selezione di piatti della tradizione greca pensata appositamente anche per chi è vegetariano, intollerante al glutine o ha esigenze legate ai latticini: basta segnalarmelo e sarò felice di gestirle al meglio. Niente compromessi sul sapore, solo tanta autenticità e rispetto per le esigenze di ognuno!</p>
             <p data-en="Because for me, Greece is much more than a cuisine: it's pure passion, it's true love.">Perché la Grecia, per me, è molto più di una cucina: è pura passione, è amore autentico.</p>
             <p data-en="I often lack the words to describe the wonder and beauty I found in that land. The only definition that comes naturally, the only one that holds everything I feel, is simply: a second <strong>HOME</strong>.">Spesso mi mancano le parole per descrivere la meraviglia e la bellezza che ho trovato in quella terra. L'unica definizione che mi viene spontanea, l'unica che racchiude tutto ciò che provo, è semplicemente: una seconda <strong>CASA</strong>.</p>
             <p class="chef-closing" data-en="And I really hope to make you feel the atmosphere that welcomed me, bite after bite!">E spero proprio di farvi sentire l'atmosfera che mi ha accolto, morso dopo morso!</p>
@@ -643,6 +652,7 @@
           </div>
 
           <label class="field"><span data-en="Anything else? (optional)">Qualcosa da aggiungere? (facoltativo)</span>
+            <small class="field-hint" data-en="Vegetarian, gluten-free or dairy-free? Write it here.">Vegetariano, senza glutine o senza latticini? Scrivilo qui.</small>
             <textarea name="note" rows="3" placeholder="Menù preferito, zona, allergie, occasione…" data-en-placeholder="Preferred menu, area, allergies, occasion…"></textarea>
           </label>
 
