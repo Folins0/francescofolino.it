@@ -253,3 +253,9 @@ const fabIO = new IntersectionObserver(entries => {
 }, { threshold: 0.1 });
 fabIO.observe(document.querySelector(".hero"));
 fabIO.observe(document.getElementById("prenota"));
+
+/* ---------- "Ordina da asporto": preseleziona il servizio ---------- */
+document.querySelectorAll("[data-service]").forEach(a => a.addEventListener("click", () => {
+  const r = form.querySelectorAll('input[name="servizio"]')[+a.dataset.service];
+  if (r) r.checked = true;
+}));
