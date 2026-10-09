@@ -529,3 +529,38 @@ a.menu-price:hover { color: var(--navy); }
 @media print { .diet { box-shadow: none; padding: 8px; margin: 6px auto; } .diet blockquote, .diet-sign { display: none; } .diet-tags { margin-bottom: 4px; } .diet-tags li { padding: 3px 10px; font-size: 9pt; } .diet-note { font-size: 9pt; } }
 
 @media (max-width: 1420px) { .dict-col { display: none; } }
+
+/* ===== Schede menù ===== */
+.tabs { display: flex; justify-content: center; gap: 8px; margin: 26px auto 8px; background: rgba(28,47,94,.07); padding: 6px; border-radius: 999px; width: fit-content; }
+.tab { display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent; color: var(--navy); font: 600 1rem var(--sans); padding: 11px 22px; border-radius: 999px; cursor: pointer; transition: background .2s, color .2s; }
+.tab svg { width: 20px; height: 20px; }
+.tab[aria-selected="true"] { background: var(--navy); color: #fff; box-shadow: 0 6px 16px rgba(28,47,94,.2); }
+.tab:focus-visible { outline: 2px solid var(--terra); outline-offset: 2px; }
+.panel-intro { max-width: 720px; margin: 18px auto 0; }
+.panel-intro strong { color: var(--navy); }
+.asp-badge { display: flex; width: fit-content; margin: 22px auto 0; align-items: center; gap: 8px; background: var(--terra); color: #fff; font-weight: 600; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; border-radius: 999px; padding: 7px 16px; }
+.asp-badge svg { width: 18px; height: 18px; }
+#asporto .takeaway { margin-top: 28px; }
+
+/* ===== Regole prenotazione ===== */
+.rules { margin: 26px auto 0; background: #fff; border-left: 4px solid var(--terra); border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow); }
+.rules p { display: flex; gap: 10px; align-items: flex-start; margin: 6px 0; font-size: .95rem; }
+.rules svg { width: 22px; height: 22px; flex: none; color: var(--terra); margin-top: 1px; }
+.rules strong { color: var(--navy); }
+
+/* ===== Scelta piatti asporto ===== */
+.dish-picker { background: var(--paper); border-radius: 14px; padding: 14px 16px; }
+.dish-picker legend { float: left; width: 100%; margin-bottom: 4px; }
+.dish-picker .field-hint { display: block; clear: both; margin: 0 0 10px; }
+.picks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+.pick-group { grid-column: 1 / -1; margin: 8px 0 2px; font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--olive); }
+.pick { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #fff; border-radius: 10px; padding: 6px 8px 6px 12px; border: 1.5px solid transparent; }
+.pick:has(input:checked) { border-color: var(--navy); }
+.pick label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: .92rem; color: var(--ink); }
+.pick input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--navy); }
+.qty { width: 58px; padding: 6px 8px; border-radius: 8px; border: 1.5px solid rgba(28,47,94,.2); font: 400 .95rem var(--sans); }
+.qty:disabled { opacity: .35; }
+@media (max-width: 640px) {
+  .picks { grid-template-columns: 1fr; }
+  .tab { padding: 10px 16px; font-size: .95rem; }
+}

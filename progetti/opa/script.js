@@ -14,19 +14,19 @@ let whatsappNumber = (CONFIG.WHATSAPP_NUMBER || "").replace(/\D/g, "");
 const T = {
   it: {
     toggle: "EN", toggleLabel: "Switch to English",
-    greeting: "Ciao Opa! Vorrei richiedere una serata greca 🇬🇷",
+    greeting: "Ciao Opa! Vorrei richiedere una serata greca 🇬🇷", greetingTA: "Ciao Opa! Vorrei ordinare da asporto 🇬🇷",
     service: "Servizio", menu: "Menù", dessert: "Dolce", date: "Data", guests: "Persone",
     area: "Zona", notes: "Note", thanks: "Grazie", phone: "Telefono", callTime: "Quando chiamarmi",
-    callback: "Potete ricontattarmi al numero indicato per prezzi e modalità?",
+    callback: "Potete ricontattarmi al numero indicato per prezzi e modalità?", dishes: "Piatti da asporto", errDishes: "Scegli almeno un piatto da asporto.",
     errDate: "Scegli una data.", errAdvance: "Prenota con almeno 2 giorni di anticipo.", errGuests: "Il servizio è disponibile per minimo 4 persone.",
     errName: "Inserisci il tuo nome.", errPhone: "Inserisci un numero di telefono valido.", locale: "it-IT"
   },
   en: {
     toggle: "IT", toggleLabel: "Passa all'italiano",
-    greeting: "Hi Opa! I'd like to book a Greek night 🇬🇷",
+    greeting: "Hi Opa! I'd like to book a Greek night 🇬🇷", greetingTA: "Hi Opa! I'd like to order takeaway 🇬🇷",
     service: "Service", menu: "Menu", dessert: "Dessert", date: "Date", guests: "Guests",
     area: "Area", notes: "Notes", thanks: "Thank you", phone: "Phone", callTime: "Best time to call",
-    callback: "Could you call me back at this number with prices and details?",
+    callback: "Could you call me back at this number with prices and details?", dishes: "Takeaway dishes", errDishes: "Please choose at least one takeaway dish.",
     errDate: "Please choose a date.", errAdvance: "Please book at least 2 days in advance.", errGuests: "The service is available for at least 4 guests.",
     errName: "Please enter your name.", errPhone: "Please enter a valid phone number.", locale: "en-GB"
   }
@@ -88,16 +88,19 @@ function buildMessage() {
   if (!f.nome.value.trim()) return { error: t.errName };
   const phone = f.telefono.value.trim();
   if (phone.replace(/\D/g, "").length < 8) return { error: t.errPhone };
+  const picked = isTakeaway() ? pickedDishes() : [];
+  if (isTakeaway() && !picked.length) return { error: t.errDishes };
 
   const data = new Date(f.data.value + "T12:00").toLocaleDateString(t.locale, {
     weekday: "long", day: "numeric", month: "long", year: "numeric"
   });
   const lines = [
-    t.greeting, "",
+    isTakeaway() ? t.greetingTA : t.greeting, "",
     `• ${t.service}: ${chosen("servizio")}`,
     `• ${t.date}: ${data}`,
     `• ${t.guests}: ${persone}`,
   ];
+  if (picked.length) lines.push(`• ${t.dishes}: ${picked.join(", ")}`);
   lines.push(`• ${t.phone}: ${phone}`);
   if (f.note.value.trim()) lines.push(`• ${t.notes}: ${f.note.value.trim()}`);
   lines.push("", t.callback, `${t.thanks}, ${f.nome.value.trim()}`);
@@ -200,6 +203,7 @@ function applyContent(c) {
         if (!img) { img = document.createElement("img"); img.loading = "lazy"; tile.prepend(img); }
         img.src = g.photo; img.alt = g.title || cap.textContent;
         tile.classList.add("has-photo");
+        document.getElementById("galleria").hidden = false;
       }
     });
   }
@@ -259,3 +263,35 @@ document.querySelectorAll("[data-service]").forEach(a => a.addEventListener("cli
   const r = form.querySelectorAll('input[name="servizio"]')[+a.dataset.service];
   if (r) r.checked = true;
 }));
+
+/* ---------- Schede menù: A domicilio / Asporto ---------- */
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function showTab(id) {
+  tabs.forEach(t => {
+    const on = t.getAttribute("aria-controls") === id;
+    t.setAttribute("aria-selected", on);
+    document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+  });
+  document.querySelectorAll(`#${id} .reveal`).forEach(el => el.classList.add("in"));
+}
+tabs.forEach(t => t.addEventListener("click", () => showTab(t.getAttribute("aria-controls"))));
+// I link a #asporto aprono la scheda Asporto
+document.querySelectorAll('a[href="#asporto"]').forEach(a => a.addEventListener("click", () => showTab("asporto")));
+if (location.hash === "#asporto") { showTab("asporto"); setTimeout(() => document.getElementById("menu").scrollIntoView(), 50); }
+
+/* ---------- Piatti da asporto nel modulo ---------- */
+const picker = document.getElementById("dish-picker");
+const serviceRadios = [...form.querySelectorAll('input[name="servizio"]')];
+function isTakeaway() { return serviceRadios[2] && serviceRadios[2].checked; }
+function pickedDishes() {
+  return [...picker.querySelectorAll(".pick")].filter(p => p.querySelector("input[type=checkbox]").checked)
+    .map(p => `${p.querySelector("label span").textContent.trim()} ×${Math.max(1, parseInt(p.querySelector(".qty").value, 10) || 1)}`);
+}
+function updatePicker() { picker.hidden = !isTakeaway(); }
+serviceRadios.forEach(r => r.addEventListener("change", updatePicker));
+picker.querySelectorAll(".pick").forEach(p => {
+  const cb = p.querySelector("input[type=checkbox]"), q = p.querySelector(".qty");
+  cb.addEventListener("change", () => { q.disabled = !cb.checked; });
+});
+document.querySelectorAll("[data-service]").forEach(a => a.addEventListener("click", updatePicker));
+updatePicker();

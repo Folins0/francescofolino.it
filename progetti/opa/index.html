@@ -28,7 +28,7 @@
   <link rel="preload" href="cormorant-garamond-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="fonts.css?v=6">
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=16">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -131,10 +131,11 @@
   <rect x="12" y="322" width="76" height="11" fill="currentColor"/>
   <rect x="3" y="337" width="94" height="22" fill="currentColor"/>
 </g></symbol>
+      <symbol id="i-cal" viewBox="0 0 24 24"><path d="M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5 M8 14h3 M13 14h3 M8 17h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     </defs>
   </svg>
 
-  <div class="proto-bar" data-en="Prototype in progress · prices and contacts coming soon">Prototipo in lavorazione · prezzi e contatti in arrivo</div>
+  <div class="proto-bar" data-en="Prototype in progress">Prototipo in lavorazione</div>
 
   <header class="nav">
     <a href="#top" class="nav-brand" aria-label="Opa! home">
@@ -145,8 +146,7 @@
       <a href="#servizi" data-en="Services">Servizi</a>
       <a href="#menu" data-en="Menus">Menù</a>
       <a href="#asporto" data-en="Takeaway">Asporto</a>
-      <a href="#dizionario" data-en="Dictionary">Dizionario</a>
-      <a href="#galleria" data-en="Gallery">Galleria</a>
+      <a href="#chef" data-en="The chef">Lo chef</a>
       <a href="#faq">FAQ</a>
     </nav>
     <div class="nav-right">
@@ -179,7 +179,7 @@
           <a href="#menu" class="btn btn-ghost" data-en="See the menus">Scopri i menù</a>
         </div>
         <ul class="hero-facts">
-          <li data-en="<strong>3</strong> traditional menus"><strong>3</strong> menù tradizionali</li>
+          <li data-en="Menus &lt;strong&gt;at home&lt;/strong&gt; &amp; &lt;strong&gt;takeaway&lt;/strong&gt;">Menù <strong>a domicilio</strong> e <strong>da asporto</strong></li>
           <li data-en="From <strong>4</strong> guests"><strong>4+</strong> persone</li>
           <li data-en="<strong>Pisa</strong> &amp; surroundings"><strong>Pisa</strong> e dintorni</li>
         </ul>
@@ -296,52 +296,6 @@
       </div>
     </section>
 
-    <!-- OCCASIONI -->
-    <section id="occasioni" class="section section-occ">
-      <div class="container">
-        <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
-        <p class="eyebrow center reveal" data-en="Every occasion is a good one">Ogni occasione è buona</p>
-        <h2 class="center reveal" data-en="Made for your occasion">Per la tua occasione</h2>
-        <div class="occs">
-          <article class="occ reveal">
-            <div class="occ-icon"><svg><use href="#i-egg"/></svg></div>
-            <h3 data-en="Greek Easter">Pasqua greca</h3>
-            <p class="occ-gr" lang="el">Πάσχα</p>
-            <p class="occ-text" data-en="Celebrate Easter the Greek way, including Orthodox Easter, which often falls on a different date.">Festeggia la Pasqua alla greca, anche quella ortodossa, che spesso cade in una data diversa dalla nostra.</p>
-            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Catering / takeaway">Catering / asporto</strong></p>
-          </article>
-          <article class="occ reveal">
-            <div class="occ-icon"><svg><use href="#i-star"/></svg></div>
-            <h3 data-en="Christmas &amp; holidays">Natale e feste</h3>
-            <p class="occ-gr" lang="el">Χριστούγεννα</p>
-            <p class="occ-text" data-en="A holiday lunch with a twist, without spending the day in the kitchen.">Un pranzo delle feste diverso dal solito, senza passare la giornata ai fornelli.</p>
-            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Ready to serve">Pronto in tavola</strong></p>
-          </article>
-          <article class="occ reveal">
-            <div class="occ-icon"><svg><use href="#i-cake"/></svg></div>
-            <h3 data-en="Birthdays &amp; anniversaries">Compleanni e ricorrenze</h3>
-            <p class="occ-gr" lang="el">Γενέθλια</p>
-            <p class="occ-text" data-en="Mezedes to share in the middle of the table: perfect for a crowd.">Mezedes da condividere al centro della tavola: perfetti quando si è in tanti.</p>
-            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Catering / takeaway">Catering / asporto</strong></p>
-          </article>
-          <article class="occ reveal">
-            <div class="occ-icon"><svg><use href="#i-heart"/></svg></div>
-            <h3 data-en="Romantic dinner">Cena romantica</h3>
-            <p class="occ-gr" lang="el">Αγάπη</p>
-            <p class="occ-text" data-en="An evening for two with the chef cooking for you and leaving the kitchen spotless.">Una serata a due con lo chef che cucina per voi e poi vi lascia la cucina in ordine.</p>
-            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Private chef">Chef a domicilio</strong></p>
-          </article>
-          <article class="occ reveal">
-            <div class="occ-icon"><svg><use href="#i-case"/></svg></div>
-            <h3 data-en="Corporate dinners">Cene aziendali</h3>
-            <p class="occ-gr" lang="el">Εταιρικά</p>
-            <p class="occ-text" data-en="A team or client dinner with a menu people will talk about.">Una cena di squadra o con i clienti, con un menù che fa parlare di sé.</p>
-            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Private chef">Chef a domicilio</strong></p>
-          </article>
-        </div>
-      </div>
-    </section>
-
     <!-- MENU -->
     <section id="menu" class="section section-paper">
       <div class="container">
@@ -349,7 +303,14 @@
         <div class="print-head"><img src="logo.svg" alt=""><p><strong>Opa! – Cucina greca a domicilio · Pisa</strong><br>francescofolino.it/progetti/opa · Instagram @opa_cucinagreca_chefadomicilio</p></div>
         <p class="eyebrow center reveal">Sfizi di Grecia</p>
         <h2 class="center reveal" data-en="Our menus">I nostri menù</h2>
-        <p class="center muted reveal" data-en="Every menu includes mezedes, a main course and a dessert of your choice. Leave us your number and we'll get back to you with prices and details.">Ogni menù comprende mezedes, piatto principale e un dolce a scelta. Prezzi e modalità su richiesta: lasciaci il tuo numero e ti ricontattiamo.</p>
+
+        <div class="tabs reveal" role="tablist" aria-label="Menù">
+          <button type="button" role="tab" class="tab" id="tab-dom" aria-controls="panel-dom" aria-selected="true"><svg aria-hidden="true"><use href="#i-chef"/></svg><span data-en="At your home">A domicilio</span></button>
+          <button type="button" role="tab" class="tab" id="tab-asp" aria-controls="asporto" aria-selected="false"><svg aria-hidden="true"><use href="#i-bag"/></svg><span data-en="Takeaway">Asporto</span></button>
+        </div>
+
+        <div class="tab-panel" id="panel-dom" role="tabpanel" aria-labelledby="tab-dom">
+        <p class="center muted panel-intro" data-en="For &lt;strong&gt;Private chef&lt;/strong&gt; and &lt;strong&gt;Ready to serve&lt;/strong&gt;. Every menu includes mezedes, a main course and a dessert of your choice. Prices and details on request: leave us your number and we'll get back to you.">Per lo <strong>Chef a domicilio</strong> e <strong>Pronto in tavola</strong>. Ogni menù comprende mezedes, piatto principale e un dolce a scelta. Prezzi e modalità su richiesta: lasciaci il tuo numero e ti ricontattiamo.</p>
 
         <div class="menus">
           <article class="menu-card reveal">
@@ -409,7 +370,7 @@
         </div>
 
         <div class="dessert reveal">
-          <h4 data-en="Dessert of your choice, for every menu">Dolce a scelta, per tutti i menù</h4>
+          <h4 data-en="Dessert of your choice, for every menu above">Dolce a scelta, per tutti i menù qui sopra</h4>
           <p data-en="<strong>Ravani</strong> <span class='gr' lang='el'>Ραβανί</span> semolina and citrus cake &nbsp;or&nbsp; <strong>Bougatsa</strong> <span class='gr' lang='el'>Μπουγάτσα</span> custard pie"><strong>Ravani</strong> <span class='gr' lang='el'>Ραβανί</span> al semolino e agrumi &nbsp;oppure&nbsp; <strong>Bougatsa</strong> <span class='gr' lang='el'>Μπουγάτσα</span> alla crema</p>
         </div>
         <div class="diet reveal">
@@ -425,17 +386,12 @@
         </div>
         <p class="center"><button type="button" class="btn btn-ghost btn-print" id="print-menu"><svg aria-hidden="true"><use href="#i-print"/></svg> <span data-en="Download the menu (PDF)">Scarica il menù (PDF)</span></button></p>
         <p class="center muted small" data-en="Special requests or a tailor-made menu? Mention it in your request.">Hai esigenze particolari o vuoi un menù su misura? Scrivilo nella richiesta.</p>
-      </div>
-    </section>
+        </div>
 
-    <!-- ASPORTO -->
-    <section id="asporto" class="section section-takeaway">
-      <div class="container">
-        <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
-        <p class="eyebrow center reveal" data-en="Takeaway only">Solo per l'asporto</p>
-        <h2 class="center reveal" data-en="The takeaway menu">Il menù da asporto</h2>
-        <p class="center muted reveal takeaway-intro" data-en="As well as our 3 classic Sfizi di Grecia menus, we've picked a selection of dishes made especially for takeaway: from the most moreish bites to the great classics of Greek cooking, perfect for arriving at your home hot, fragrant and ready to enjoy.">Oltre ai nostri 3 menù classici Sfizi di Grecia, abbiamo selezionato una serie di piatti pensati unicamente per l'asporto: dai più sfiziosi ai grandi classici della cucina greca, ideali per arrivare a casa vostra caldi, fragranti e pronti da gustare.</p>
-        <p class="flex-note reveal" data-en="&lt;strong&gt;Flexible menu:&lt;/strong&gt; want to swap one or two dishes for something from our other menus? Just ask!"><strong>Menù flessibile:</strong> vuoi sostituire uno o due piatti con qualcosa preso dagli altri nostri menù? Basta chiederlo!</p>
+        <div class="tab-panel" id="asporto" role="tabpanel" aria-labelledby="tab-asp" hidden>
+        <p class="asp-badge"><svg aria-hidden="true"><use href="#i-bag"/></svg><span data-en="Takeaway only">Solo per l'asporto</span></p>
+        <p class="center muted panel-intro" data-en="For takeaway you order &lt;strong&gt;only from this menu&lt;/strong&gt;: a selection of dishes made especially to arrive at your home hot, fragrant and ready to enjoy, from the most moreish bites to the great classics of Greek cooking.">Per l'asporto si ordina <strong>solo da questo menù</strong>: una selezione di piatti pensati apposta per arrivare a casa vostra caldi, fragranti e pronti da gustare, dai più sfiziosi ai grandi classici della cucina greca.</p>
+        <p class="flex-note" data-en="&lt;strong&gt;Flexible menu:&lt;/strong&gt; want to swap one or two dishes for something from our other menus? Just ask!"><strong>Menù flessibile:</strong> vuoi sostituire uno o due piatti con qualcosa preso dagli altri nostri menù? Basta chiederlo!</p>
         <div class="takeaway">
           <div>
             <h3 class="takeaway-title"><span data-en="Main courses">Piatti principali</span> <span class="gr" lang="el">Κύρια πιάτα</span></h3>
@@ -491,6 +447,179 @@
           </div>
         </div>
         <p class="center"><a href="#prenota" class="btn" data-service="2" data-en="Order takeaway">Ordina da asporto</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- COME FUNZIONA -->
+    <section id="come-funziona" class="section">
+      <div class="container">
+        <p class="eyebrow center reveal" data-en="As easy as a toast">Semplice come un brindisi</p>
+        <h2 class="center reveal" data-en="How it works">Come funziona</h2>
+        <ol class="steps">
+          <li class="reveal"><span>1</span><h3 data-en="Choose">Scegli</h3><p data-en="The service and menu you like.">Il servizio e il menù che preferisci.</p></li>
+          <li class="reveal"><span>2</span><h3 data-en="Request">Richiedi</h3><p data-en="Date, number of guests and area.">Indica data, numero di persone e zona di Pisa.</p></li>
+          <li class="reveal"><span>3</span><h3 data-en="Confirm">Conferma</h3><p data-en="I get back to you to sort out the details.">Ti ricontatto per definire i dettagli.</p></li>
+          <li class="reveal"><span>4</span><h3>Opa!</h3><p data-en="Enjoy your evening, I'll take care of the rest.">Ti godi la serata, al resto penso io.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- PRENOTA -->
+    <section id="prenota" class="section section-paper">
+      <div class="container narrow">
+        <p class="eyebrow center reveal" data-en="By reservation only · at least 2 days ahead">Solo su prenotazione · almeno 2 giorni prima</p>
+        <h2 class="center reveal" data-en="Request your Greek night">Richiedi la tua serata greca</h2>
+        <p class="center muted reveal" data-en="Tell us what you have in mind and leave your number: we'll call you back with prices and details.">Raccontaci cosa hai in mente e lasciaci il tuo numero: ti ricontattiamo con prezzi e modalità.</p>
+
+        <div class="rules reveal">
+          <p><svg aria-hidden="true"><use href="#i-cal"/></svg><span data-en="&lt;strong&gt;Book at least 2 days in advance.&lt;/strong&gt;"><strong>Prenota con almeno 2 giorni di anticipo.</strong></span></p>
+          <p><svg aria-hidden="true"><use href="#i-bag"/></svg><span data-en="&lt;strong&gt;Takeaway:&lt;/strong&gt; you can only order from the takeaway menu. It's flexible: you can swap one or two dishes with others from our menus."><strong>Asporto:</strong> si ordina solo dal menù da asporto. È flessibile: puoi sostituire uno o due piatti con altri presi dai nostri menù.</span></p>
+        </div>
+
+        <form id="booking" class="form" novalidate>
+          <ol class="how3">
+            <li><span>1</span><p data-en="Fill in the fields">Compila i campi</p></li>
+            <li><span>2</span><p data-en="Choose Instagram or Facebook: the message is copied for you">Scegli Instagram o Facebook: il messaggio si copia da solo</p></li>
+            <li><span>3</span><p data-en="&lt;strong&gt;Paste it in the chat&lt;/strong&gt; and send"><strong>Incollalo nella chat</strong> e invia</p></li>
+          </ol>
+
+          <fieldset>
+            <legend data-en="Service">Servizio</legend>
+            <div class="chips">
+              <label><input type="radio" name="servizio" checked><span data-en="Private chef">Chef a domicilio</span></label>
+              <label><input type="radio" name="servizio"><span data-en="Ready to serve">Pronto in tavola</span></label>
+              <label><input type="radio" name="servizio"><span data-en="Takeaway / catering">Asporto / catering</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="dish-picker" id="dish-picker" hidden>
+            <legend data-en="Takeaway dishes">Piatti da asporto</legend>
+            <p class="field-hint" data-en="Tick the dishes and choose how many portions. Want to swap something with a dish from the other menus? Write it in the notes.">Spunta i piatti e scegli quante porzioni. Vuoi sostituire qualcosa con un piatto degli altri menù? Scrivilo nelle note.</p>
+            <div class="picks">
+              <p class="pick-group" data-en="Main courses">Piatti principali</p>
+              <div class="pick"><label><input type="checkbox" name="piatto" value="0"><span data-en="Skepastí">Skepastí</span></label><input type="number" class="qty" min="1" max="50" value="1" aria-label="Quantità" disabled></div>
+              <div class="pick"><label><input type="checkbox" name="piatto" value="1"><span data-en="Kléftiko – with lamb">Kléftiko – con agnello</span></label><input type="number" class="qty" min="1" max="50" value="1" aria-label="Quantità" disabled></div>
+              <div class="pick"><label><input type="checkbox" name="piatto" value="2"><span data-en="Kléftiko – with veal">Kléftiko – con vitello</span></label><input type="number" class="qty" min="1" max="50" value="1" aria-label="Quantità" disabled></div>
+              <div class="pick"><label><input type="checkbox" name="piatto" value="3"><span data-en="Bifteki gemistó me feta">Bifteki gemistó me feta</span></label><input type="number" class="qty" min="1" max="50" value="1" aria-label="Quantità" disabled></div>
+              <div class="pick"><label><input type="checkbox" name="piatto" value="4"><span data-en="Gemistá">Gemistá</span></label><input type="number" class="qty" min="1" max="50" value="1" aria-label="Quantità" disabled></div>
+              <p class="pick-group" data-en="Starters &amp; sides">Antipasti e contorni</p>
+              <div class="pick"><label><input type="checkbox" name="piatto" value="5"><span data-en="Piperiés me feta">Piperiés me feta</span></label><input type="number" class="qty" min="1" max="50" value="1" aria-label="Quantità" disabled></div>
+              <div class="pick"><label><input type="checkbox" name="piatto" value="6"><span data-en="Fasólia gígantes">Fasólia gígantes</span></label><input type="number" class="qty" min="1" max="50" value="1" aria-label="Quantità" disabled></div>
+              <div class="pick"><label><input type="checkbox" name="piatto" value="7"><span data-en="Bouyiourdí">Bouyiourdí</span></label><input type="number" class="qty" min="1" max="50" value="1" aria-label="Quantità" disabled></div>
+              <div class="pick"><label><input type="checkbox" name="piatto" value="8"><span data-en="Féta psití">Féta psití</span></label><input type="number" class="qty" min="1" max="50" value="1" aria-label="Quantità" disabled></div>
+              <div class="pick"><label><input type="checkbox" name="piatto" value="9"><span data-en="Tirokafterí">Tirokafterí</span></label><input type="number" class="qty" min="1" max="50" value="1" aria-label="Quantità" disabled></div>
+            </div>
+          </fieldset>
+
+          <div class="row">
+            <label class="field"><span data-en="Date (at least 2 days from today)">Data (almeno 2 giorni da oggi)</span>
+              <input type="date" name="data" required>
+            </label>
+            <label class="field"><span data-en="Guests">Persone</span>
+              <input type="number" name="persone" min="4" value="4" required>
+            </label>
+          </div>
+
+          <div class="row">
+            <label class="field"><span data-en="Name">Nome</span>
+              <input type="text" name="nome" autocomplete="name" required>
+            </label>
+            <label class="field"><span data-en="Phone number">Numero di telefono</span>
+              <input type="tel" name="telefono" autocomplete="tel" inputmode="tel" placeholder="es. 333 123 4567" data-en-placeholder="e.g. +39 333 123 4567" required>
+            </label>
+          </div>
+
+          <label class="field"><span data-en="Anything else? (optional)">Qualcosa da aggiungere? (facoltativo)</span>
+            <small class="field-hint" data-en="Vegetarian, gluten-free or dairy-free? Write it here.">Vegetariano, senza glutine o senza latticini? Scrivilo qui.</small>
+            <textarea name="note" rows="3" placeholder="Menù preferito, zona, allergie, occasione…" data-en-placeholder="Preferred menu, area, allergies, occasion…"></textarea>
+          </label>
+
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-ig" id="send-ig" data-channel="ig"><svg aria-hidden="true"><use href="#i-ig"/></svg> <span data-en="Book on Instagram">Prenota su Instagram</span></button>
+            <button type="button" class="btn btn-fb" id="send-fb" data-channel="fb"><svg aria-hidden="true"><use href="#i-fb"/></svg> <span data-en="Book on Facebook">Prenota su Facebook</span></button>
+            <button type="button" class="btn btn-wa" id="send-wa" hidden data-en="Send on WhatsApp">Invia su WhatsApp</button>
+          </div>
+
+          <div class="done" id="copied" hidden>
+            <p class="done-title" id="done-title"></p>
+            <p class="small"><a id="done-link" href="#" target="_blank" rel="noopener"></a></p>
+            <div class="preview" id="preview" hidden>
+              <p class="preview-title" data-en="Your message">Il tuo messaggio</p>
+              <pre id="preview-text"></pre>
+            </div>
+          </div>
+
+          <p class="small muted center consent"><span data-en="By sending the request you agree to be contacted at the number provided.">Inviando la richiesta accetti di essere ricontattato al numero indicato.</span> <a href="privacy.html">Privacy</a></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- CHEF -->
+    <section id="chef" class="section section-navy">
+      <svg class="chef-branch" width="0" height="0" aria-hidden="true"><use href="#olive-branch"/></svg>
+      <div class="container chef">
+        <div class="chef-photo reveal"><img src="logo.svg" alt="" id="chef-img"></div>
+        <div class="reveal">
+          <p class="eyebrow" data-en="The chef">Lo chef</p>
+          <h2 data-en="A journey through the flavours of Greece… without a worry!">Un viaggio nei sapori della Grecia… senza pensieri!</h2>
+          <p class="chef-name" id="chef-name" hidden></p>
+          <div class="chef-text" id="chef-text">
+            <p data-en="For me, cooking isn't just a job, it's an act of dedication: I love listening to every request you make and taking care of every detail with the utmost attention. Because at the table everyone should be able to smile and enjoy every bite with complete peace of mind… and when the joy is that big, you just have to shout &quot;OPAAAAAAAAAA!&quot; to express pure happiness!">Cucinare per me non è solo un lavoro, è un atto di dedizione: amo ascoltare ogni vostra richiesta e curare ogni dettaglio con la massima attenzione. Perché a tavola tutti devono poter sorridere e gustare ogni boccone in totale serenità… e quando la gioia è così grande, viene proprio da esclamare <strong>"OPAAAAAAAAAA!"</strong> per esprimere la massima felicità!</p>
+            <p data-en="Because for me, Greece is much more than a cuisine: it's pure passion, it's true love.">Perché la Grecia, per me, è molto più di una cucina: è pura passione, è amore autentico.</p>
+            <p data-en="I often lack the words to describe the wonder and beauty I found in that land. The only definition that comes naturally, the only one that holds everything I feel, is simply: a second <strong>HOME</strong>.">Spesso mi mancano le parole per descrivere la meraviglia e la bellezza che ho trovato in quella terra. L'unica definizione che mi viene spontanea, l'unica che racchiude tutto ciò che provo, è semplicemente: una seconda <strong>CASA</strong>.</p>
+            <p class="chef-closing" data-en="And I really hope to make you feel the atmosphere that welcomed me, bite after bite!">E spero proprio di farvi sentire l'atmosfera che mi ha accolto, morso dopo morso!</p>
+          </div>
+          <p class="chef-bio" id="chef-bio" hidden></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- OCCASIONI -->
+    <section id="occasioni" class="section section-paper">
+      <div class="container">
+        <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
+        <p class="eyebrow center reveal" data-en="Every occasion is a good one">Ogni occasione è buona</p>
+        <h2 class="center reveal" data-en="Made for your occasion">Per la tua occasione</h2>
+        <div class="occs">
+          <article class="occ reveal">
+            <div class="occ-icon"><svg><use href="#i-egg"/></svg></div>
+            <h3 data-en="Greek Easter">Pasqua greca</h3>
+            <p class="occ-gr" lang="el">Πάσχα</p>
+            <p class="occ-text" data-en="Celebrate Easter the Greek way, including Orthodox Easter, which often falls on a different date.">Festeggia la Pasqua alla greca, anche quella ortodossa, che spesso cade in una data diversa dalla nostra.</p>
+            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Catering / takeaway">Catering / asporto</strong></p>
+          </article>
+          <article class="occ reveal">
+            <div class="occ-icon"><svg><use href="#i-star"/></svg></div>
+            <h3 data-en="Christmas &amp; holidays">Natale e feste</h3>
+            <p class="occ-gr" lang="el">Χριστούγεννα</p>
+            <p class="occ-text" data-en="A holiday lunch with a twist, without spending the day in the kitchen.">Un pranzo delle feste diverso dal solito, senza passare la giornata ai fornelli.</p>
+            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Ready to serve">Pronto in tavola</strong></p>
+          </article>
+          <article class="occ reveal">
+            <div class="occ-icon"><svg><use href="#i-cake"/></svg></div>
+            <h3 data-en="Birthdays &amp; anniversaries">Compleanni e ricorrenze</h3>
+            <p class="occ-gr" lang="el">Γενέθλια</p>
+            <p class="occ-text" data-en="Mezedes to share in the middle of the table: perfect for a crowd.">Mezedes da condividere al centro della tavola: perfetti quando si è in tanti.</p>
+            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Catering / takeaway">Catering / asporto</strong></p>
+          </article>
+          <article class="occ reveal">
+            <div class="occ-icon"><svg><use href="#i-heart"/></svg></div>
+            <h3 data-en="Romantic dinner">Cena romantica</h3>
+            <p class="occ-gr" lang="el">Αγάπη</p>
+            <p class="occ-text" data-en="An evening for two with the chef cooking for you and leaving the kitchen spotless.">Una serata a due con lo chef che cucina per voi e poi vi lascia la cucina in ordine.</p>
+            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Private chef">Chef a domicilio</strong></p>
+          </article>
+          <article class="occ reveal">
+            <div class="occ-icon"><svg><use href="#i-case"/></svg></div>
+            <h3 data-en="Corporate dinners">Cene aziendali</h3>
+            <p class="occ-gr" lang="el">Εταιρικά</p>
+            <p class="occ-text" data-en="A team or client dinner with a menu people will talk about.">Una cena di squadra o con i clienti, con un menù che fa parlare di sé.</p>
+            <p class="occ-tag"><span data-en="Recommended:">Consigliato:</span> <strong data-en="Private chef">Chef a domicilio</strong></p>
+          </article>
+        </div>
       </div>
     </section>
 
@@ -559,7 +688,7 @@
     </section>
 
     <!-- GALLERIA -->
-    <section id="galleria" class="section">
+    <section id="galleria" class="section" hidden>
       <div class="container">
         <div class="divider reveal" aria-hidden="true"><span></span><svg><use href="#amphora"/></svg><span></span></div>
         <p class="eyebrow center reveal" data-en="From our kitchen">Dalla nostra cucina</p>
@@ -573,40 +702,6 @@
           <figure class="tile tile-navy tile-wide reveal"><div class="tile-art"><svg><use href="#olive-branch"/></svg></div><figcaption>Bougatsa<span lang="el">Μπουγάτσα</span></figcaption></figure>
         </div>
         <p class="center muted small" data-en="Real photos coming soon.">Le foto vere arriveranno a breve.</p>
-      </div>
-    </section>
-
-    <!-- COME FUNZIONA -->
-    <section id="come-funziona" class="section section-paper">
-      <div class="container">
-        <p class="eyebrow center reveal" data-en="As easy as a toast">Semplice come un brindisi</p>
-        <h2 class="center reveal" data-en="How it works">Come funziona</h2>
-        <ol class="steps">
-          <li class="reveal"><span>1</span><h3 data-en="Choose">Scegli</h3><p data-en="The service and menu you like.">Il servizio e il menù che preferisci.</p></li>
-          <li class="reveal"><span>2</span><h3 data-en="Request">Richiedi</h3><p data-en="Date, number of guests and area.">Indica data, numero di persone e zona di Pisa.</p></li>
-          <li class="reveal"><span>3</span><h3 data-en="Confirm">Conferma</h3><p data-en="I get back to you to sort out the details.">Ti ricontatto per definire i dettagli.</p></li>
-          <li class="reveal"><span>4</span><h3>Opa!</h3><p data-en="Enjoy your evening, I'll take care of the rest.">Ti godi la serata, al resto penso io.</p></li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- CHEF -->
-    <section id="chef" class="section section-navy">
-      <svg class="chef-branch" width="0" height="0" aria-hidden="true"><use href="#olive-branch"/></svg>
-      <div class="container chef">
-        <div class="chef-photo reveal"><img src="logo.svg" alt="" id="chef-img"></div>
-        <div class="reveal">
-          <p class="eyebrow" data-en="The chef">Lo chef</p>
-          <h2 data-en="A journey through the flavours of Greece… without a worry!">Un viaggio nei sapori della Grecia… senza pensieri!</h2>
-          <p class="chef-name" id="chef-name" hidden></p>
-          <div class="chef-text" id="chef-text">
-            <p data-en="For me, cooking isn't just a job, it's an act of dedication: I love listening to every request you make and taking care of every detail with the utmost attention. Because at the table everyone should be able to smile and enjoy every bite with complete peace of mind… and when the joy is that big, you just have to shout &quot;OPAAAAAAAAAA!&quot; to express pure happiness!">Cucinare per me non è solo un lavoro, è un atto di dedizione: amo ascoltare ogni vostra richiesta e curare ogni dettaglio con la massima attenzione. Perché a tavola tutti devono poter sorridere e gustare ogni boccone in totale serenità… e quando la gioia è così grande, viene proprio da esclamare <strong>"OPAAAAAAAAAA!"</strong> per esprimere la massima felicità!</p>
-            <p data-en="Because for me, Greece is much more than a cuisine: it's pure passion, it's true love.">Perché la Grecia, per me, è molto più di una cucina: è pura passione, è amore autentico.</p>
-            <p data-en="I often lack the words to describe the wonder and beauty I found in that land. The only definition that comes naturally, the only one that holds everything I feel, is simply: a second <strong>HOME</strong>.">Spesso mi mancano le parole per descrivere la meraviglia e la bellezza che ho trovato in quella terra. L'unica definizione che mi viene spontanea, l'unica che racchiude tutto ciò che provo, è semplicemente: una seconda <strong>CASA</strong>.</p>
-            <p class="chef-closing" data-en="And I really hope to make you feel the atmosphere that welcomed me, bite after bite!">E spero proprio di farvi sentire l'atmosfera che mi ha accolto, morso dopo morso!</p>
-          </div>
-          <p class="chef-bio" id="chef-bio" hidden></p>
-        </div>
       </div>
     </section>
 
@@ -643,77 +738,9 @@
           </details>
           <details>
             <summary data-en="How does takeaway work?">Come funziona l'asporto?</summary>
-            <p data-en="Besides the 3 classic menus, there's a takeaway-only menu with main courses and starters. Book at least 2 days ahead and we'll agree on a pick-up time; you can also swap one or two dishes with ones from the other menus.">Oltre ai 3 menù classici c'è un menù pensato solo per l'asporto, con piatti principali e antipasti. Prenoti almeno 2 giorni prima e concordiamo l'orario di ritiro; puoi anche sostituire uno o due piatti con altri presi dai nostri menù.</p>
+            <p data-en="For takeaway you order only from the takeaway menu, which is flexible: you can swap one or two dishes with others from our menus. Book at least 2 days ahead, pick the dishes in the form and we'll agree on a pick-up time.">Per l'asporto si ordina solo dal menù da asporto, che è flessibile: puoi sostituire uno o due piatti con altri presi dai nostri menù. Prenoti almeno 2 giorni prima, scegli i piatti nel modulo e concordiamo l'orario di ritiro.</p>
           </details>
         </div>
-      </div>
-    </section>
-
-    <!-- PRENOTA -->
-    <section id="prenota" class="section section-paper">
-      <div class="container narrow">
-        <p class="eyebrow center reveal" data-en="By reservation only · at least 2 days ahead">Solo su prenotazione · almeno 2 giorni prima</p>
-        <h2 class="center reveal" data-en="Request your Greek night">Richiedi la tua serata greca</h2>
-        <p class="center muted reveal" data-en="Tell us what you have in mind and leave your number: we'll call you back with prices and details.">Raccontaci cosa hai in mente e lasciaci il tuo numero: ti ricontattiamo con prezzi e modalità.</p>
-
-        <form id="booking" class="form" novalidate>
-          <ol class="how3">
-            <li><span>1</span><p data-en="Fill in the fields">Compila i campi</p></li>
-            <li><span>2</span><p data-en="Choose Instagram or Facebook: the message is copied for you">Scegli Instagram o Facebook: il messaggio si copia da solo</p></li>
-            <li><span>3</span><p data-en="&lt;strong&gt;Paste it in the chat&lt;/strong&gt; and send"><strong>Incollalo nella chat</strong> e invia</p></li>
-          </ol>
-
-          <fieldset>
-            <legend data-en="Service">Servizio</legend>
-            <div class="chips">
-              <label><input type="radio" name="servizio" checked><span data-en="Private chef">Chef a domicilio</span></label>
-              <label><input type="radio" name="servizio"><span data-en="Ready to serve">Pronto in tavola</span></label>
-              <label><input type="radio" name="servizio"><span data-en="Catering / takeaway">Catering / asporto</span></label>
-            </div>
-          </fieldset>
-
-          <div class="row">
-            <label class="field"><span data-en="Date (at least 2 days from today)">Data (almeno 2 giorni da oggi)</span>
-              <input type="date" name="data" required>
-            </label>
-            <label class="field"><span data-en="Guests">Persone</span>
-              <input type="number" name="persone" min="4" value="4" required>
-            </label>
-          </div>
-
-          <div class="row">
-            <label class="field"><span data-en="Name">Nome</span>
-              <input type="text" name="nome" autocomplete="name" required>
-            </label>
-            <label class="field"><span data-en="Phone number">Numero di telefono</span>
-              <input type="tel" name="telefono" autocomplete="tel" inputmode="tel" placeholder="es. 333 123 4567" data-en-placeholder="e.g. +39 333 123 4567" required>
-            </label>
-          </div>
-
-          <label class="field"><span data-en="Anything else? (optional)">Qualcosa da aggiungere? (facoltativo)</span>
-            <small class="field-hint" data-en="Vegetarian, gluten-free or dairy-free? Write it here.">Vegetariano, senza glutine o senza latticini? Scrivilo qui.</small>
-            <textarea name="note" rows="3" placeholder="Menù preferito, zona, allergie, occasione…" data-en-placeholder="Preferred menu, area, allergies, occasion…"></textarea>
-          </label>
-
-          <p class="form-error" id="form-error" role="alert" hidden></p>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-ig" id="send-ig" data-channel="ig"><svg aria-hidden="true"><use href="#i-ig"/></svg> <span data-en="Book on Instagram">Prenota su Instagram</span></button>
-            <button type="button" class="btn btn-fb" id="send-fb" data-channel="fb"><svg aria-hidden="true"><use href="#i-fb"/></svg> <span data-en="Book on Facebook">Prenota su Facebook</span></button>
-            <button type="button" class="btn btn-wa" id="send-wa" hidden data-en="Send on WhatsApp">Invia su WhatsApp</button>
-          </div>
-
-          <div class="done" id="copied" hidden>
-            <p class="done-title" id="done-title"></p>
-            <p class="small"><a id="done-link" href="#" target="_blank" rel="noopener"></a></p>
-            <div class="preview" id="preview" hidden>
-              <p class="preview-title" data-en="Your message">Il tuo messaggio</p>
-              <pre id="preview-text"></pre>
-            </div>
-          </div>
-
-          <p class="small muted center consent"><span data-en="By sending the request you agree to be contacted at the number provided.">Inviando la richiesta accetti di essere ricontattato al numero indicato.</span> <a href="privacy.html">Privacy</a></p>
-        </form>
       </div>
     </section>
 
@@ -738,6 +765,6 @@
   <a href="#prenota" class="fab" data-en="Book">Prenota</a>
 
   <script src="config.js?v=7"></script>
-  <script src="script.js?v=12"></script>
+  <script src="script.js?v=16"></script>
 </body>
 </html>
