@@ -350,9 +350,10 @@ legend, .field { font-size: .85rem; font-weight: 600; color: var(--navy); margin
     radial-gradient(ellipse at 50% 0%, rgba(28,47,94,.06), transparent 60%),
     var(--cream);
 }
-.dict-col { position: absolute; top: 60px; width: 70px; height: calc(100% - 120px); color: var(--navy); opacity: .12; }
-.dict-col-l { left: max(10px, calc((100% - 1260px) / 2)); }
-.dict-col-r { right: max(10px, calc((100% - 1260px) / 2)); }
+.words-wrap { position: relative; }
+.dict-col { position: absolute; top: 0; height: 100%; width: 124px; color: var(--navy); opacity: .2; pointer-events: none; }
+.dict-col-l { left: -150px; }
+.dict-col-r { right: -150px; transform: scaleX(-1); }
 .words { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 40px; }
 .word {
   background: #fff; border-radius: var(--radius); padding: 24px 20px 22px; text-align: center;
@@ -369,7 +370,6 @@ legend, .field { font-size: .85rem; font-weight: 600; color: var(--navy); margin
 
 @media (max-width: 1000px) {
   .words { grid-template-columns: repeat(2, 1fr); }
-  .dict-col { display: none; }
 }
 @media (max-width: 640px) {
   .words { gap: 12px; }
@@ -527,3 +527,5 @@ a.menu-price:hover { color: var(--navy); }
 .diet-note { margin: 0; font-size: .9rem; color: var(--muted); }
 .field-hint { font-weight: 500; color: var(--olive); font-size: .82rem; margin-top: -2px; }
 @media print { .diet { box-shadow: none; padding: 8px; margin: 6px auto; } .diet blockquote, .diet-sign { display: none; } .diet-tags { margin-bottom: 4px; } .diet-tags li { padding: 3px 10px; font-size: 9pt; } .diet-note { font-size: 9pt; } }
+
+@media (max-width: 1420px) { .dict-col { display: none; } }
