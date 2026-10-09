@@ -2,6 +2,12 @@
    Configurazione (indirizzo admin e numero WhatsApp predefinito) in config.js */
 const CONFIG = window.OPA_CONFIG || {};
 const INSTAGRAM_USER = "opa_cucinagreca_chefadomicilio";
+const FACEBOOK_PAGE_ID = "61594585724199";
+const CHANNELS = {
+  ig: { url: `https://ig.me/m/${INSTAGRAM_USER}`, it: "Instagram", en: "Instagram" },
+  fb: { url: `https://m.me/${FACEBOOK_PAGE_ID}`, it: "Facebook Messenger", en: "Facebook Messenger" }
+};
+let lastChannel = "ig";
 let whatsappNumber = (CONFIG.WHATSAPP_NUMBER || "").replace(/\D/g, "");
 
 /* ---------- Lingua IT / EN ---------- */
@@ -50,7 +56,7 @@ function setLang(l) {
   langBtn.textContent = T[l].toggle;
   langBtn.setAttribute("aria-label", T[l].toggleLabel);
   try { localStorage.setItem("opa-lang", l); } catch {}
-  if (!copied.hidden) refresh();
+  if (!copied.hidden) { refresh(); showDone(lastChannel); }
 }
 langBtn.addEventListener("click", () => setLang(lang === "it" ? "en" : "it"));
 
@@ -125,16 +131,29 @@ function validate() {
   return r.text;
 }
 
-form.addEventListener("submit", async e => {
-  e.preventDefault();
+function showDone(ch) {
+  const name = CHANNELS[ch][lang];
+  document.getElementById("done-title").innerHTML = lang === "en"
+    ? `✓ Message copied! Now <strong>paste it in the ${name} chat</strong> with Opa and send.`
+    : `✓ Messaggio copiato! Ora <strong>incollalo nella chat di ${name}</strong> con Opa e invia.`;
+  const link = document.getElementById("done-link");
+  link.href = CHANNELS[ch].url;
+  link.textContent = lang === "en" ? `${name} didn't open? Tap here` : `${name} non si è aperto? Tocca qui`;
+}
+
+async function sendVia(ch) {
   const text = validate();
   if (!text) return;
   await copy(text);
+  lastChannel = ch;
+  showDone(ch);
   preview.hidden = false;
   copied.hidden = false;
   copied.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  window.open(`https://ig.me/m/${INSTAGRAM_USER}`, "_blank", "noopener");
-});
+  window.open(CHANNELS[ch].url, "_blank", "noopener");
+}
+form.addEventListener("submit", e => { e.preventDefault(); sendVia("ig"); });
+document.getElementById("send-fb").addEventListener("click", () => sendVia("fb"));
 
 waBtn.addEventListener("click", () => {
   const text = validate();

@@ -28,7 +28,7 @@
   <link rel="preload" href="cormorant-garamond-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="fonts.css?v=6">
-  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="style.css?v=11">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -89,6 +89,8 @@
       <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
       <symbol id="i-case" viewBox="0 0 24 24"><path d="M3.5 8h17v11h-17z M9 8V5.5h6V8 M3.5 13h17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
       <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3.5h10V9 M7 17H4.5V9h15v8H17 M7 14h10v6.5H7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor"/></symbol>
+      <symbol id="i-fb" viewBox="0 0 24 24"><path d="M12 3C7 3 3 6.8 3 11.5c0 2.6 1.2 4.9 3.2 6.5V21l2.9-1.6c.9.2 1.9.4 2.9.4 5 0 9-3.8 9-8.5S17 3 12 3zm1 11.3-2.3-2.4-4.4 2.4 4.9-5.2 2.3 2.4 4.3-2.4z" fill="currentColor"/></symbol>
     </defs>
   </svg>
 
@@ -141,30 +143,68 @@
           <li data-en="<strong>Pisa</strong> &amp; surroundings"><strong>Pisa</strong> e dintorni</li>
         </ul>
       </div>
-      <svg class="islands" viewBox="0 0 1200 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-        <defs>
-          <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a5fa8" stop-opacity=".55"/><stop offset="1" stop-color="#1c2f5e" stop-opacity=".8"/></linearGradient>
-        </defs>
-        <circle cx="1000" cy="112" r="30" fill="#b5562f" opacity=".2"/>
-        <path d="M0 150 C 140 120 260 112 380 128 C 470 140 520 104 600 96 C 700 86 760 124 860 132 C 980 142 1080 118 1200 128 V200 H0z" fill="#efe4cc"/>
-        <g stroke="#1c2f5e" stroke-width="1.6" fill="#fffdf7" stroke-linejoin="round">
-          <rect x="430" y="104" width="44" height="34"/><rect x="474" y="114" width="34" height="24"/>
-          <rect x="520" y="96" width="40" height="42"/><path d="M520 96 a20 20 0 0 1 40 0" fill="#1c2f5e"/><path d="M540 76 v-8 M536 72 h8" fill="none"/>
-          <rect x="560" y="108" width="52" height="30"/><rect x="612" y="100" width="36" height="38"/>
-          <rect x="648" y="112" width="44" height="26"/><rect x="692" y="104" width="30" height="34"/>
-          <path d="M692 104 a15 15 0 0 1 30 0" fill="#1c2f5e"/>
-          <rect x="722" y="116" width="40" height="22"/>
-        </g>
-        <g fill="#1c2f5e" opacity=".75">
-          <rect x="440" y="114" width="6" height="9"/><rect x="456" y="114" width="6" height="9"/><rect x="484" y="122" width="6" height="8"/>
-          <rect x="535" y="114" width="10" height="16" rx="5"/><rect x="572" y="116" width="6" height="9"/><rect x="592" y="116" width="6" height="9"/>
-          <rect x="624" y="112" width="12" height="18" rx="6"/><rect x="660" y="120" width="6" height="8"/><rect x="702" y="116" width="10" height="14" rx="5"/><rect x="736" y="122" width="6" height="8"/>
-        </g>
-        <path d="M0 150 C 200 142 400 158 600 150 C 800 142 1000 158 1200 150 V200 H0z" fill="url(#sea)"/>
-        <g fill="none" stroke="#fffdf7" stroke-width="1.6" stroke-linecap="round" opacity=".6">
-          <path d="M120 172 q12 -6 24 0 t24 0"/><path d="M340 182 q12 -6 24 0 t24 0"/><path d="M820 176 q12 -6 24 0 t24 0"/><path d="M1040 186 q12 -6 24 0 t24 0"/>
-        </g>
-      </svg>
+      <div class="islands" aria-hidden="true">
+        <svg class="village" viewBox="0 0 600 230">
+          <circle cx="520" cy="62" r="30" fill="#b5562f" opacity=".22"/>
+          <!-- collina -->
+          <path d="M10 230 C 60 226 95 180 165 142 L 440 142 C 500 170 540 226 590 230 Z" fill="#e8dcc0"/>
+          <!-- mulino -->
+          <g transform="translate(36 18)">
+          <g stroke="#1c2f5e" stroke-width="2.4" stroke-linejoin="round">
+            <path d="M58 172 L62 122 H86 L90 172Z" fill="#fffdf7"/>
+            <path d="M60 122 L74 104 L88 122Z" fill="#1c2f5e"/>
+            <path d="M74 112 L48 86 M74 112 L102 88 M74 112 L50 138 M74 112 L98 136" fill="none" stroke-width="2"/>
+            <circle cx="74" cy="112" r="3" fill="#1c2f5e"/>
+          </g>
+          <rect x="70" y="156" width="8" height="16" rx="4" fill="#1c2f5e"/>
+          </g>
+          <!-- fila dietro -->
+          <g stroke="#1c2f5e" stroke-width="2.4" stroke-linejoin="round" fill="#fffdf7">
+            <rect x="172" y="76" width="50" height="40"/>
+            <rect x="226" y="58" width="44" height="58"/>
+            <path d="M226 58 a22 22 0 0 1 44 0Z" fill="#1c2f5e"/>
+            <path d="M248 36 v-10 M243 31 h10" fill="none"/>
+            <rect x="274" y="82" width="46" height="34"/>
+            <rect x="324" y="68" width="42" height="48"/>
+            <path d="M330 68 a15 15 0 0 1 30 0Z" fill="#1c2f5e"/>
+            <rect x="370" y="80" width="52" height="36"/>
+            <rect x="426" y="54" width="20" height="62"/>
+            <path d="M426 54 h20 l-10 -12Z" fill="#1c2f5e"/>
+          </g>
+          <!-- fila davanti -->
+          <g stroke="#1c2f5e" stroke-width="2.4" stroke-linejoin="round" fill="#fffdf7">
+            <rect x="128" y="118" width="58" height="40"/>
+            <rect x="190" y="108" width="52" height="50"/>
+            <rect x="246" y="122" width="70" height="36"/>
+            <rect x="320" y="110" width="50" height="48"/>
+            <path d="M326 110 a19 19 0 0 1 38 0Z" fill="#1c2f5e"/>
+            <rect x="374" y="120" width="64" height="38"/>
+            <rect x="442" y="112" width="44" height="46"/>
+          </g>
+          <!-- finestre e porte -->
+          <g fill="#1c2f5e">
+            <rect x="182" y="88" width="9" height="12"/><rect x="200" y="88" width="9" height="12"/>
+            <rect x="241" y="80" width="14" height="22" rx="7"/>
+            <rect x="286" y="92" width="9" height="11"/><rect x="302" y="92" width="9" height="11"/>
+            <rect x="338" y="84" width="14" height="20" rx="7"/>
+            <rect x="382" y="90" width="9" height="11"/><rect x="400" y="90" width="9" height="11"/>
+            <rect x="431" y="64" width="10" height="14" rx="5"/>
+            <rect x="140" y="128" width="10" height="12"/><rect x="160" y="138" width="12" height="20" rx="6"/>
+            <rect x="202" y="120" width="10" height="12"/><rect x="220" y="134" width="12" height="24" rx="6"/>
+            <rect x="258" y="132" width="10" height="11"/><rect x="276" y="132" width="10" height="11"/><rect x="294" y="138" width="12" height="20" rx="6"/>
+            <rect x="338" y="126" width="14" height="32" rx="7"/>
+            <rect x="386" y="130" width="10" height="11"/><rect x="404" y="138" width="12" height="20" rx="6"/>
+            <rect x="452" y="124" width="10" height="12"/><rect x="468" y="136" width="10" height="22" rx="5"/>
+          </g>
+          <!-- bouganville -->
+          <g fill="#c2457a" opacity=".85">
+            <circle cx="188" cy="112" r="4"/><circle cx="194" cy="116" r="3.5"/><circle cx="183" cy="118" r="3"/>
+            <circle cx="318" cy="114" r="4"/><circle cx="312" cy="120" r="3"/>
+            <circle cx="440" cy="116" r="4"/><circle cx="446" cy="121" r="3.5"/><circle cx="436" cy="123" r="3"/>
+          </g>
+        </svg>
+        <div class="sea"></div>
+      </div>
       <div class="meander" aria-hidden="true"></div>
     </section>
 
@@ -504,8 +544,8 @@
         <form id="booking" class="form" novalidate>
           <ol class="how3">
             <li><span>1</span><p data-en="Fill in the fields">Compila i campi</p></li>
-            <li><span>2</span><p data-en="Tap the button: the message is copied for you">Tocca il pulsante: il messaggio si copia da solo</p></li>
-            <li><span>3</span><p data-en="&lt;strong&gt;Paste it on Instagram&lt;/strong&gt; and send"><strong>Incollalo su Instagram</strong> e invia</p></li>
+            <li><span>2</span><p data-en="Choose Instagram or Facebook: the message is copied for you">Scegli Instagram o Facebook: il messaggio si copia da solo</p></li>
+            <li><span>3</span><p data-en="&lt;strong&gt;Paste it in the chat&lt;/strong&gt; and send"><strong>Incollalo nella chat</strong> e invia</p></li>
           </ol>
 
           <fieldset>
@@ -542,13 +582,14 @@
           <p class="form-error" id="form-error" role="alert" hidden></p>
 
           <div class="form-actions">
-            <button type="submit" class="btn" id="send-ig" data-en="Copy the message and open Instagram">Copia il messaggio e apri Instagram</button>
+            <button type="submit" class="btn btn-ig" id="send-ig" data-channel="ig"><svg aria-hidden="true"><use href="#i-ig"/></svg> <span data-en="Book on Instagram">Prenota su Instagram</span></button>
+            <button type="button" class="btn btn-fb" id="send-fb" data-channel="fb"><svg aria-hidden="true"><use href="#i-fb"/></svg> <span data-en="Book on Facebook">Prenota su Facebook</span></button>
             <button type="button" class="btn btn-wa" id="send-wa" hidden data-en="Send on WhatsApp">Invia su WhatsApp</button>
           </div>
 
           <div class="done" id="copied" hidden>
-            <p class="done-title" data-en="✓ Message copied! Now &lt;strong&gt;paste it on Instagram&lt;/strong&gt; in the chat with Opa and send.">✓ Messaggio copiato! Ora <strong>incollalo su Instagram</strong> nella chat di Opa e invia.</p>
-            <p class="small"><a href="https://ig.me/m/opa_cucinagreca_chefadomicilio" target="_blank" rel="noopener" data-en="Instagram didn't open? Tap here">Instagram non si è aperto? Tocca qui</a></p>
+            <p class="done-title" id="done-title"></p>
+            <p class="small"><a id="done-link" href="#" target="_blank" rel="noopener"></a></p>
             <div class="preview" id="preview" hidden>
               <p class="preview-title" data-en="Your message">Il tuo messaggio</p>
               <pre id="preview-text"></pre>
@@ -581,6 +622,6 @@
   <a href="#prenota" class="fab" data-en="Book">Prenota</a>
 
   <script src="config.js?v=7"></script>
-  <script src="script.js?v=9"></script>
+  <script src="script.js?v=11"></script>
 </body>
 </html>

@@ -378,7 +378,14 @@ legend, .field { font-size: .85rem; font-weight: 600; color: var(--navy); margin
 }
 
 /* ===== Paesaggio isole ===== */
-.islands { display: block; width: 100%; height: 150px; margin-top: -30px; position: relative; }
+.islands { position: relative; margin-top: -10px; }
+.village { display: block; width: min(720px, 100%); height: auto; margin: 0 auto; position: relative; z-index: 1; }
+.sea {
+  height: 64px; margin-top: -26px; position: relative; z-index: 2;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='64'%3E%3Cpath d='M20 30 q12 -7 24 0 t24 0 M100 46 q12 -7 24 0 t24 0' fill='none' stroke='%23fffdf7' stroke-width='2' stroke-linecap='round' opacity='.7'/%3E%3C/svg%3E") repeat-x,
+    linear-gradient(180deg, #4a6db0, #1c2f5e);
+}
 
 /* ===== Avviso dall'admin ===== */
 .notice { background: var(--olive); color: #fff; text-align: center; padding: 10px 16px; font-weight: 500; font-size: .95rem; }
@@ -423,13 +430,13 @@ legend, .field { font-size: .85rem; font-weight: 600; color: var(--navy); margin
 .legal a { color: #fff; }
 
 @media (max-width: 1100px) { .occs { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 900px) { .islands { height: 110px; } }
+
 @media (max-width: 640px) {
   .occs { grid-template-columns: 1fr 1fr; gap: 12px; }
   .occ { padding: 18px 12px; }
   .occ:last-child { grid-column: span 2; }
   .occ h3 { font-size: 1.2rem; }
-  .islands { height: 80px; margin-top: -10px; }
+  .sea { height: 44px; margin-top: -16px; }
 }
 
 /* ===== Stampa: solo il menù ===== */
@@ -479,3 +486,12 @@ a.menu-price:hover { color: var(--navy); }
 .chef-text strong { color: #fff; }
 .chef-closing { font-family: var(--serif); font-style: italic; font-size: 1.35rem; color: var(--olive-soft); }
 @media (max-width: 900px) { .chef-text { text-align: left; } }
+
+/* ===== Pulsanti Instagram / Facebook ===== */
+.btn-ig, .btn-fb { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 230px; }
+.btn-ig svg, .btn-fb svg { width: 20px; height: 20px; flex: none; }
+.btn-ig { background: linear-gradient(135deg, #833ab4, #e1306c 55%, #f77737); }
+.btn-ig:hover { background: linear-gradient(135deg, #6f2f99, #c5265c 55%, #e0662b); }
+.btn-fb { background: #0866ff; }
+.btn-fb:hover { background: #0657d9; }
+@media (max-width: 640px) { .btn-ig, .btn-fb { width: 100%; } }
