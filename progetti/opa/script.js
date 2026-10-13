@@ -210,17 +210,11 @@ function applyContent(c) {
 }
 
 async function loadContent() {
-  if (!CONFIG.CMS_URL) return;
-  try { const cached = JSON.parse(localStorage.getItem("opa-content") || "null"); if (cached) applyContent(cached); } catch {}
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
-    const res = await fetch(CONFIG.CMS_URL, { signal: ctrl.signal });
-    clearTimeout(timer);
-    const c = await res.json();
-    applyContent(c);
-    try { localStorage.setItem("opa-content", JSON.stringify(c)); } catch {}
-  } catch { /* se il servizio non risponde restano i contenuti predefiniti */ }
+    // content.json è scritto dalla pagina admin; no-cache così le modifiche si vedono appena pubblicate
+    const res = await fetch("content.json", { cache: "no-cache" });
+    applyContent(await res.json());
+  } catch { /* file mancante o non valido: restano i contenuti predefiniti */ }
 }
 
 /* ---------- Lingua iniziale ---------- */
