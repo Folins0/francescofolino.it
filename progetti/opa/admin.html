@@ -15,7 +15,7 @@
     [hidden] { display: none !important; }
     body { margin: 0; font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.5; }
     header { background: var(--navy); color: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 5; }
-    header img { width: 40px; height: 40px; border-radius: 50%; background: #fff; }
+    header img { width: 52px; height: 52px; border-radius: 50%; background: #fff; flex: none; }
     header h1 { font: 600 1.4rem var(--serif); margin: 0; flex: 1; }
     header a { color: #fff; font-size: .9rem; }
     main { width: min(720px, 100% - 32px); margin: 24px auto 120px; }
@@ -28,7 +28,8 @@
       border: 1.5px solid rgba(28,47,94,.2); background: var(--cream); color: var(--ink);
     }
     input:focus, textarea:focus { outline: none; border-color: var(--navy); }
-    textarea { min-height: 110px; resize: vertical; }
+    textarea { min-height: 110px; resize: vertical; overflow-y: hidden; }
+    textarea.short { min-height: 0; }
     .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; cursor: pointer; background: var(--navy); color: #fff;
@@ -96,15 +97,15 @@
 
         <section class="card">
           <h2>Galleria</h2>
-          <p class="hint">Sei riquadri. Puoi cambiare foto e titolo di ognuno.</p>
+          <p class="hint">Sei riquadri. Puoi cambiare foto e titolo di ognuno. Se lasci vuoto il titolo resta quello predefinito.</p>
           <div id="gallery"></div>
         </section>
 
         <section class="card">
           <h2>Avviso in evidenza</h2>
           <p class="hint">Una frase che compare in cima al sito (es. "Prenotazioni aperte per Pasqua!"). Lascia vuoto per non mostrarla.</p>
-          <label for="n-it">Testo</label><input type="text" id="n-it" maxlength="160">
-          <label for="n-en">In inglese (facoltativo)</label><input type="text" id="n-en" maxlength="160">
+          <label for="n-it">Testo</label><textarea class="short" id="n-it" rows="2" maxlength="160"></textarea>
+          <label for="n-en">In inglese (facoltativo)</label><textarea class="short" id="n-en" rows="2" maxlength="160"></textarea>
         </section>
 
         <section class="card">
@@ -170,7 +171,16 @@
       const t = box.querySelector(".thumb");
       t.style.backgroundImage = url ? `url("${url}")` : "";
       t.textContent = url ? "" : "Nessuna foto";
+      box.querySelector("[data-remove]").hidden = !url;
     }
+
+    // I campi di testo lungo crescono col contenuto invece di scorrere all'interno
+    function grow(t) { t.style.height = "auto"; t.style.height = t.scrollHeight + 3 + "px"; }
+    document.querySelectorAll("textarea").forEach(t => t.addEventListener("input", () => grow(t)));
+    addEventListener("resize", () => document.querySelectorAll("textarea").forEach(grow));
+    addEventListener("load", () => document.querySelectorAll("textarea").forEach(grow));
+    // L'avviso è una frase sola: niente a capo
+    ["n-it", "n-en"].forEach(id => $(id).addEventListener("keydown", e => { if (e.key === "Enter") e.preventDefault(); }));
 
     function buildGallery() {
       const wrap = $("gallery");
@@ -178,7 +188,7 @@
         wrap.insertAdjacentHTML("beforeend", `
           <div class="slot">
             <label for="gt${i}">Riquadro ${i + 1} – titolo</label>
-            <input type="text" id="gt${i}" maxlength="40" placeholder="${d}">
+            <input type="text" id="gt${i}" maxlength="40" placeholder="Predefinito: ${d}">
             <div class="photo" data-photo="g${i}">
               <div class="thumb">Nessuna foto</div>
               <div class="photo-actions">
@@ -193,8 +203,8 @@
     async function start() {
       const file = await gh("content.json");
       contentSha = file.sha;
+      $("editor").hidden = false; // prima di fill: i campi nascosti non hanno altezza da far crescere
       fill(JSON.parse(fromB64(file.content)));
-      $("editor").hidden = false;
     }
 
     function fill(c) {
@@ -210,6 +220,9 @@
       });
       $("n-it").value = c.notice?.it || ""; $("n-en").value = c.notice?.en || "";
       $("wa").value = c.whatsapp || "";
+      const growAll = () => document.querySelectorAll("textarea").forEach(grow);
+      growAll();
+      document.fonts?.ready.then(growAll); // il font cambia l'altezza del testo una volta caricato
     }
 
     // Riduce la foto (max 1600 px) prima di caricarla
