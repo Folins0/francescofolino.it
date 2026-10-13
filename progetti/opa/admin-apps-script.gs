@@ -1,7 +1,7 @@
 /**
  * Opa! – servizio per la pagina admin (Google Apps Script)
  *
- * Salva i contenuti modificabili del sito (prezzi, chef, galleria, avviso, WhatsApp)
+ * Salva i contenuti modificabili del sito (chef, galleria, avviso, WhatsApp)
  * e carica le foto in una cartella del Google Drive di chi distribuisce lo script.
  *
  * ATTIVAZIONE (una volta sola, dal computer):
