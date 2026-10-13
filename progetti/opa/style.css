@@ -182,6 +182,15 @@ h4 { font-size: .78rem; text-transform: uppercase; letter-spacing: .14em; color:
 }
 .dessert h4 { margin-top: 0; }
 .dessert p { margin: 0; font-size: 1.05rem; }
+.dessert-ing { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 8px; margin-top: 14px; }
+.dessert-ing details { flex: 1 1 220px; text-align: left; border: 1px solid rgba(28,47,94,.15); border-radius: 12px; }
+.dessert-ing summary { cursor: pointer; list-style: none; padding: 10px 40px 10px 14px; position: relative; font-weight: 600; color: var(--navy); }
+.dessert-ing summary::-webkit-details-marker { display: none; }
+.dessert-ing summary::after { content: "+"; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 1.3rem; color: var(--terra); transition: transform .2s; }
+.dessert-ing details[open] summary::after { transform: translateY(-50%) rotate(45deg); }
+.dessert-ing summary:focus-visible { outline: 2px solid var(--terra); outline-offset: 2px; border-radius: 12px; }
+.dessert .dessert-ing p { padding: 0 14px 12px; font-size: .95rem; color: var(--muted); }
+.dessert-ing strong { color: var(--navy); }
 
 /* Gallery */
 .gallery {
@@ -460,6 +469,7 @@ legend, .field { font-size: .85rem; font-weight: 600; color: var(--navy); margin
   .allergens { margin: 8px auto; padding: 8px 12px; }
   .allergens p, .dessert p { font-size: 9pt; }
   .dessert, .allergens { box-shadow: none; break-inside: avoid; }
+  .dessert-ing { display: none; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
